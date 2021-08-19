@@ -1,0 +1,10 @@
+.bsp/
+.idea/
+/build/
+target
+project/project/target
+project/project
+codescience*/
+codescience
+cpg.bin.zip
+/gnupg-*

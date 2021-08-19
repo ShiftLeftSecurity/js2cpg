@@ -1,0 +1,25 @@
+<body>
+
+<h1>Welcome <%= user.name %></h1>
+
+<b><%_ foo.callWithWhitespaces() _%></b>
+
+<b><%- foo.callUnescaped() -%></b>
+
+<%# Just a comment here #%>
+<% if (admin) { %>
+    <a href="/admin">Admin</a>
+<% } %>
+
+<ul>
+    <% friends.forEach(function(friend, index) { %>
+        <li class="<%= index === 0 ? "first" : "" %> <%= friend.name === selected ? "selected" : "" %>"><%= friend.name %></li>
+    <% }); %>
+</ul>
+
+<%
+console.log(user);
+exampleWrite = 'some value';
+%>
+
+</body>

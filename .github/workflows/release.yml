@@ -1,0 +1,52 @@
+name: Release
+on:
+  push:
+    branches: [master, main]
+    tags: ["*"]
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: apt-get update
+        run: sudo apt-get update
+      - name: Install gnupg
+        run: sudo apt update && sudo apt install -y gnupg
+      - name: Import GPG key
+        run: echo $PGP_SECRET | base64 --decode | gpg --batch --import
+        env:
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.sbt
+            ~/.coursier
+          key: ${{ runner.os }}-sbt-${{ hashfiles('**/build.sbt') }}
+      - name: Run tests
+        run: sbt clean test
+      - name: Release to sonatype
+        run: sbt clean ciReleaseTagNextVersion ciReleaseSonatype
+        env:
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+      - name: Export ENV vars
+        run:
+          echo "LATEST_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+      - name: Package github release
+        run: sbt clean Universal/packageBin Universal/packageZipTarball
+      - name: Create github release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            target/universal/*.tgz
+            target/universal/*.zip
+          tag_name: ${{ env.LATEST_TAG }}

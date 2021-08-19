@@ -1,0 +1,24 @@
+{
+  "name": "helloshiftleftnodejs",
+  "version": "0.1.0",
+  "description": "A vulnerable nodejs application to demonstrate detection on JS code",
+  "main": "app.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/ShiftLeftSecurity/Helloshiftleft-internal.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ShiftLeftSecurity/Helloshiftleft-internal/issues"
+  },
+  "homepage": "https://github.com/ShiftLeftSecurity/Helloshiftleft-internal#readme",
+  "dependencies": {
+    "cookie-parser": "^1.4.3",
+    "express": "^4.16.2",
+    "mongodb": "^3.0.0-rc0"
+  }
+}
