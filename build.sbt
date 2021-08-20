@@ -129,5 +129,5 @@ lazy val cfgIntegrationTests = project.settings(
   Test / test := ((Test / test) dependsOn (js2cpg / stage)).value
 )
 
-// no top level directory in Universal/packageXyz
-topLevelDirectory := None
+Universal/packageName := name.value
+Universal/topLevelDirectory := None
