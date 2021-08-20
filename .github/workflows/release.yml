@@ -46,7 +46,5 @@ jobs:
       - name: Create github release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            target/universal/*.tgz
-            target/universal/*.zip
+          files: target/universal/*.zip
           tag_name: ${{ env.LATEST_TAG }}
