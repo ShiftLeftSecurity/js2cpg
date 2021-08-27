@@ -1,4 +1,4 @@
-val cpgVersion = "1.3.286"
+val cpgVersion = "1.3.304"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
@@ -78,7 +78,7 @@ lazy val commonSettings = Seq(
   ),
   resolvers ++= Seq(
     Resolver.mavenLocal,
-    "Atlassian Maven Repository" at "https://maven.atlassian.com/repository/public",
+    "Atlassian Maven Repository" at "https://maven.atlassian.com/repository/public"
   ),
   libraryDependencies ++= Seq(
     "io.shiftleft"             %% "codepropertygraph" % cpgVersion,
@@ -89,7 +89,7 @@ lazy val commonSettings = Seq(
     "org.slf4j"                % "slf4j-api"          % "1.7.32",
     "org.apache.logging.log4j" % "log4j-slf4j-impl"   % "2.14.1" % Runtime,
     "com.typesafe.play"        %% "play-json"         % "2.9.2",
-    "com.atlassian.sourcemap"  % "sourcemap"          % "1.7.7",
+    "com.atlassian.sourcemap"  % "sourcemap"          % "2.0.0",
     "commons-io"               % "commons-io"         % "2.11.0",
     "org.scalatest"            %% "scalatest"         % "3.2.9" % Test
   ),
@@ -111,11 +111,10 @@ lazy val js2cpg = (project in file(".")).settings(
   homepage := Some(url("https://github.com/ShiftLeftSecurity/js2cpg/")),
   licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
   developers := List(
-    Developer(
-      "max-leuthaeuser",
-      "Max Leuthäuser",
-      "max@shiftleft.io",
-      url("https://github.com/max-leuthaeuser"))
+    Developer("max-leuthaeuser",
+              "Max Leuthäuser",
+              "max@shiftleft.io",
+              url("https://github.com/max-leuthaeuser"))
   ),
   publishMavenStyle := true,
   gitCommitString := git.gitHeadCommit.value.getOrElse("n/a"),
@@ -129,5 +128,5 @@ lazy val cfgIntegrationTests = project.settings(
   Test / test := ((Test / test) dependsOn (js2cpg / stage)).value
 )
 
-Universal/packageName := name.value
-Universal/topLevelDirectory := None
+Universal / packageName := name.value
+Universal / topLevelDirectory := None

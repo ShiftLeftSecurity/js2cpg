@@ -1,7 +1,8 @@
 package io.shiftleft.js2cpg.preprocessing
 
 import better.files.File
-import com.atlassian.sourcemap.{SourceMap, SourceMapImpl}
+import com.atlassian.sourcemap.WritableSourceMap
+import com.atlassian.sourcemap.WritableSourceMapImpl.Builder
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileDefaults.{EJS_SUFFIX, JS_SUFFIX}
 import io.shiftleft.js2cpg.io.FileUtils
@@ -31,8 +32,8 @@ class EjsTranspiler(override val config: Config, override val projectPath: Path)
   private def extractJsCode(tpl: String,
                             positionToLineNumberMapping: SortedMap[Int, Int],
                             positionToFirstPositionInLineMapping: SortedMap[Int, Int],
-                            ejsFileName: String): (String, SourceMap) = {
-    val sourceMap = new SourceMapImpl()
+                            ejsFileName: String): (String, WritableSourceMap) = {
+    val sourceMap = new Builder().withSources(java.util.List.of(ejsFileName)).build()
     val result    = mutable.ArrayBuffer.empty[String]
     TAGS_REGEX.findAllIn(tpl).matchData.foreach { ma =>
       val tag   = ma.toString
