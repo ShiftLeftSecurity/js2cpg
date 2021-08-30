@@ -33,8 +33,9 @@ class EjsTranspiler(override val config: Config, override val projectPath: Path)
                             positionToLineNumberMapping: SortedMap[Int, Int],
                             positionToFirstPositionInLineMapping: SortedMap[Int, Int],
                             ejsFileName: String): (String, WritableSourceMap) = {
-    val sourceMap = new Builder().withSources(java.util.List.of(ejsFileName)).build()
-    val result    = mutable.ArrayBuffer.empty[String]
+    val sourceMap =
+      new Builder().withSources(java.util.Collections.singletonList(ejsFileName)).build()
+    val result = mutable.ArrayBuffer.empty[String]
     TAGS_REGEX.findAllIn(tpl).matchData.foreach { ma =>
       val tag   = ma.toString
       val start = ma.start
