@@ -2,7 +2,7 @@ package io.shiftleft.js2cpg.parser
 
 import java.nio.file.{Path, Paths}
 import better.files.File
-import com.atlassian.sourcemap.{SourceMap, SourceMapImpl}
+import com.atlassian.sourcemap.{ReadableSourceMap, ReadableSourceMapImpl}
 import com.oracle.js.parser.Source
 import com.oracle.js.parser.ir.Node
 import io.shiftleft.js2cpg.io.FileDefaults._
@@ -34,7 +34,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
   private val MAX_CODE_LENGTH = 100
 
   private case class SourceMapOrigin(sourceFilePath: Path,
-                                     sourceMap: Option[SourceMap],
+                                     sourceMap: Option[ReadableSourceMap],
                                      sourceWithLineNumbers: Map[Int, String])
 
   /**
@@ -109,8 +109,8 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
     } else {
       Using(FileUtils.bufferedSourceFromFile(Paths.get(mapFilePath))) { sourceMapBuffer =>
         val sourceMap =
-          new SourceMapImpl(FileUtils.contentFromBufferedSource(sourceMapBuffer))
-        val sourceFileNames = sourceMap.getSourceFileNames.asScala
+          ReadableSourceMapImpl.fromSource(FileUtils.contentFromBufferedSource(sourceMapBuffer))
+        val sourceFileNames = sourceMap.getSources.asScala
 
         // The source file might not exist, e.g., if it was the result of transpilation
         // but is not delivered and still referenced in the source map
