@@ -29,7 +29,7 @@ class TranspilerGroup(override val config: Config,
       "@babel/plugin-transform-property-mutators"
 
   private def isYarnAvailable: Boolean = {
-    logger.debug(s"\t+ Checking yarn ...")
+    logger.debug("\t+ Checking yarn ...")
     ExternalCommand.run("yarn -v", projectPath.toString) match {
       case Success(result) =>
         logger.debug(s"\t+ yarn is available: $result")
@@ -46,10 +46,11 @@ class TranspilerGroup(override val config: Config,
     } else {
       s"npm install --save-dev $BABEL_PLUGINS && ${NpmEnvironment.NPM_INSTALL}"
     }
-    logger.debug(s"\t+ Installing plugins ...")
+    logger.info("Installing project dependencies and plugins. This might take a while.")
+    logger.debug("\t+ Installing plugins ...")
     ExternalCommand.run(command, projectPath.toString) match {
       case Success(_) =>
-        logger.debug(s"\t+ Plugins installed")
+        logger.debug("\t+ Plugins installed")
         true
       case Failure(exception) =>
         logger.debug(s"\t- Failed to install plugins: ${exception.getMessage}")
