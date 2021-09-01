@@ -55,9 +55,9 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
 
   def createDependencyNode(name: String, groupId: String, version: String): NewDependency = {
     val dependency = NewDependency()
-      .version(version)
-      .name(name)
-      .dependencyGroupId(Some(groupId))
+      .name(Option(name).getOrElse("<n/a>"))
+      .dependencyGroupId(Option(groupId).getOrElse("<n/a>"))
+      .version(Option(version).getOrElse("<n/a>"))
       .build
     diffGraph.addNode(dependency)
     dependency
