@@ -13,10 +13,11 @@ import scala.util.{Failure, Success, Try}
 
 object TypescriptTranspiler {
 
-  // this is our default:
   val COMMONJS: String = "commonjs"
   val ESNEXT: String   = "esnext"
   val ES2020: String   = "es2020"
+
+  val DEFAULT_MODULE: String = COMMONJS
 
 }
 

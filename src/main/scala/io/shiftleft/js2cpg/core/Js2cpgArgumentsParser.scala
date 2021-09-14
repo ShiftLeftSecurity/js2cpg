@@ -174,7 +174,7 @@ class Js2cpgArgumentsParser {
       .hidden()
     opt[String](MODULE_MODE)
       .text(
-        s"set the module mode for transpiling (default is ${TypescriptTranspiler.COMMONJS}, alternatives are e.g., esnext or es2015)")
+        s"set the module mode for transpiling (default is ${TypescriptTranspiler.DEFAULT_MODULE}, alternatives are e.g., esnext or es2015)")
       .action((module, c) => c.copy(moduleMode = Some(module)))
       .hidden()
   }
