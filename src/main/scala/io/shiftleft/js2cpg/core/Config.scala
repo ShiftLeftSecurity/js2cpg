@@ -6,6 +6,7 @@ import java.io.File
 import java.nio.file.{Path, Paths}
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.parser.PackageJsonParser
+import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler
 
 import scala.util.{Failure, Success, Using}
 import scala.util.matching.Regex
@@ -87,6 +88,7 @@ case class Config(srcDir: String = "",
   override def toString: String =
     s"""
       |\t- Source project: '$srcDir'
+      |\t- Module mode: '${moduleMode.getOrElse(TypescriptTranspiler.DEFAULT_MODULE)}'
       |\t- Typescript transpiling: $tsTranspiling
       |\t- Babel transpiling: $babelTranspiling
       |\t- Vue.js transpiling: $vueTranspiling
