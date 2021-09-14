@@ -20,12 +20,12 @@ object TsConfigJsonParser {
           .asOpt[String]
         moduleOption match {
           case Some(module) if module == ESNEXT || module == ES2020 => ES2020
-          case _                                                    => ES2015
+          case _                                                    => COMMONJS
         }
       case Failure(exception) =>
         logger.debug(
-          s"\t- TypeScript - acquiring tsconfig.json failed: ${exception.getMessage}. Assuming no tsconfig and proceeding with $ES2015 defaults.")
-        ES2015
+          s"\t- TypeScript - acquiring tsconfig.json failed: ${exception.getMessage}. Assuming no tsconfig and proceeding with $COMMONJS defaults.")
+        COMMONJS
     }
   }
 
