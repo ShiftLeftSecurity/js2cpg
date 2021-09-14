@@ -87,6 +87,7 @@ case class Config(srcDir: String = "",
   override def toString: String =
     s"""
       |\t- Source project: '$srcDir'
+      |\t- Module mode: '$moduleMode'
       |\t- Typescript transpiling: $tsTranspiling
       |\t- Babel transpiling: $babelTranspiling
       |\t- Vue.js transpiling: $vueTranspiling
