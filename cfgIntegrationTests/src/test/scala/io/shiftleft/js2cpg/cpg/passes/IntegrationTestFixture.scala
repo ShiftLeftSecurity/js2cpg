@@ -57,7 +57,7 @@ abstract class IntegrationTestFixture {
 
     ExternalCommand
       .run(
-        s"./js2cpg.sh ${workspace.pathAsString} --output ${cpgPath.pathAsString} --no-ts --no-babel")
+        s"js2cpg.sh ${workspace.pathAsString} --output ${cpgPath.pathAsString} --no-ts --no-babel")
       .map { _ =>
         CpgLoader
           .loadFromOverflowDb(
