@@ -32,7 +32,7 @@ object IntegrationTestFixture {
         if (systemString != null && systemString.startsWith(windowsSystemPrefix)) {
           "cmd" :: "/c" :: "\"" + command + "\"" :: Nil
         } else {
-          "sh" :: "-c" :: command :: Nil
+          "sh" :: "-c" :: "./" + command :: Nil
         }
       
       Process(cmd, new io.File(js2cpgPath.pathAsString))
@@ -57,7 +57,7 @@ abstract class IntegrationTestFixture {
 
     ExternalCommand
       .run(
-        s"./js2cpg.sh ${workspace.pathAsString} --output ${cpgPath.pathAsString} --no-ts --no-babel")
+        s"js2cpg.sh ${workspace.pathAsString} --output ${cpgPath.pathAsString} --no-ts --no-babel")
       .map { _ =>
         CpgLoader
           .loadFromOverflowDb(
