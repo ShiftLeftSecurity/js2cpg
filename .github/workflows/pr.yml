@@ -21,6 +21,6 @@ jobs:
             ~/.coursier
           key: ${{ runner.os }}-sbt-${{ hashfiles('**/build.sbt') }}
       - name: Compile and run tests
-        run: sbt -v "clean; +test;"
+        run: sbt -v -Dfile.encoding=UTF-8 "clean; +test;"
         shell: bash
         
