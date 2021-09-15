@@ -1296,7 +1296,9 @@ class CfgIntegrationTest extends AnyWordSpec with Matchers {
 
     File.usingTemporaryDirectory("js2cpgCfgIntegrationTest") { workspace =>
       cpg = callFrontend(workspace, code) match {
-        case Failure(exception) => fail(exception)
+        case Failure(exception) =>
+          println(exception)
+          fail(exception)
         case Success(cpg) =>
           new CfgCreationPass(cpg).createAndApply()
           cpg
