@@ -2,7 +2,10 @@ name: PR
 on: pull_request
 jobs:
   pr:
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v2
         with:
