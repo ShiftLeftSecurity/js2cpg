@@ -28,14 +28,14 @@ object IntegrationTestFixture {
       }
 
       val systemString = System.getProperty(osNameProperty)
-      val shellPrefix =
+      val (shellPrefix, cmd) =
         if (systemString != null && systemString.startsWith(windowsSystemPrefix)) {
-          "cmd" :: "/c" :: Nil
+          ("sh" :: Nil, command.replace("./", ""))
         } else {
-          "sh" :: "-c" :: Nil
+          ("sh" :: "-c" :: Nil, command)
         }
       
-      Process(shellPrefix :+ command, new io.File(js2cpgPath.pathAsString))
+      Process(shellPrefix :+ cmd, new io.File(js2cpgPath.pathAsString))
         .!(ProcessLogger(lineHandler, lineHandler)) match {
         case 0 =>
           Success(result.mkString(System.lineSeparator()))
@@ -57,7 +57,7 @@ abstract class IntegrationTestFixture {
 
     ExternalCommand
       .run(
-        s"js2cpg.sh ${workspace.pathAsString} --output ${cpgPath.pathAsString} --no-ts --no-babel")
+        s"./js2cpg.sh ${workspace.pathAsString} --output ${cpgPath.pathAsString} --no-ts --no-babel")
       .map { _ =>
         CpgLoader
           .loadFromOverflowDb(
