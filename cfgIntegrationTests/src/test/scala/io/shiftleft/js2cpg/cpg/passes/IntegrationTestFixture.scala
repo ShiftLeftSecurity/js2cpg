@@ -30,9 +30,7 @@ object IntegrationTestFixture {
       val systemString = System.getProperty(osNameProperty)
       val cmd =
         if (systemString != null && systemString.startsWith(windowsSystemPrefix)) {
-          println("Command raw: " + command)
-          println("Command replaced: " + command.replace("\\", "\\\\"))
-          "sh" :: "-c" :: "\"" + command.replace("\\", "\\\\") + "\"" :: Nil
+          "sh" :: "-c" :: "\"" + command + "\"" :: Nil
         } else {
           "sh" :: "-c" :: command :: Nil
         }
