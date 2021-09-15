@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/bash
 
 dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 scriptpath="$dir/target/universal/stage/bin/js2cpg"
