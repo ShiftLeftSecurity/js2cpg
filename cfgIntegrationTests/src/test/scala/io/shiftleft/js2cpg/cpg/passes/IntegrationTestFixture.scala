@@ -18,23 +18,13 @@ object IntegrationTestFixture {
   }
 
   private object ExternalCommand {
-    private val windowsSystemPrefix = "Windows"
-    private val osNameProperty      = "os.name"
-
     def run(command: String): Try[String] = {
       val result = mutable.ArrayBuffer.empty[String]
       val lineHandler: String => Unit = line => {
         result.addOne(line)
       }
 
-      val systemString = System.getProperty(osNameProperty)
-      val shellPrefix =
-        if (systemString != null && systemString.startsWith(windowsSystemPrefix)) {
-          "cmd" :: "/c" :: Nil
-        } else {
-          "sh" :: "-c" :: Nil
-        }
-
+      val shellPrefix = "sh" :: "-c" :: Nil
       Process(shellPrefix :+ command, new io.File(js2cpgPath.pathAsString))
         .!(ProcessLogger(lineHandler, lineHandler)) match {
         case 0 =>
