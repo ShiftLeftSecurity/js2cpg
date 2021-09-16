@@ -106,7 +106,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
             jsFilesAfterTranspilation.map(
               f =>
                 File(f._1).contentAsString
-                  .split("\n")
+                  .split(System.lineSeparator())
                   .head // we ignore the sourcemap reference comment here
                   .mkString
                   .stripLineEnd)) shouldBe "console.log(\"Hello World!\");"
@@ -130,8 +130,8 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
                 Config.withDefaults.withStorageLocation(cpgPath)))
         fileNames(cpg) should contain allElementsOf Set("a.ts",
                                                         "b.ts",
-                                                        "tests/a.test.ts",
-                                                        "tests/b.spec.ts")
+                                                        s"tests${java.io.File.separator}a.test.ts",
+                                                        s"tests${java.io.File.separator}b.spec.ts")
       }
     }
 
@@ -148,7 +148,8 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
             .loadFromOverflowDb(
               CpgLoaderConfig.withDefaults.withOverflowConfig(
                 Config.withDefaults.withStorageLocation(cpgPath)))
-        fileNames(cpg) should contain allElementsOf Set("src/main.js", "src/App.vue")
+        fileNames(cpg) should contain allElementsOf Set(s"src${java.io.File.separator}main.js",
+                                                        s"src${java.io.File.separator}App.vue")
       }
     }
 
