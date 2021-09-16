@@ -3,13 +3,15 @@ package io.shiftleft.js2cpg.io
 import better.files.File
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.codepropertygraph.cpgloading.{CpgLoader, CpgLoaderConfig}
-import io.shiftleft.codepropertygraph.generated.{PropertyNames, NodeTypes}
-import io.shiftleft.js2cpg.core.{Js2CpgMain, Js2cpgArgumentsParser}
+import io.shiftleft.codepropertygraph.generated.{NodeTypes, PropertyNames}
+import io.shiftleft.js2cpg.core.{Js2cpgArgumentsParser, Js2CpgMain}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.wordspec.AnyWordSpec
 import overflowdb._
 import overflowdb.traversal.TraversalSource
+
+import java.util.regex.Pattern
 
 object ExcludeTest {
   private implicit class ToArg(val arg: String) extends AnyVal {
@@ -22,7 +24,7 @@ class ExcludeTest extends AnyWordSpec with Matchers with TableDrivenPropertyChec
   import ExcludeTest._
   import Js2cpgArgumentsParser._
 
-  private val projectUnderTestPath: String = getClass.getResource("/excludes").getPath
+  private val projectUnderTestPath = File(getClass.getResource("/excludes").toURI).pathAsString
 
   private def fileNames(cpg: Cpg): List[String] =
     TraversalSource(cpg.graph).label(NodeTypes.FILE).property(PropertyNames.NAME).toList
@@ -44,7 +46,8 @@ class ExcludeTest extends AnyWordSpec with Matchers with TableDrivenPropertyChec
             CpgLoaderConfig.withDefaults.withOverflowConfig(
               Config.withDefaults.withStorageLocation(cpgPath)))
 
-      fileNames(cpg) should contain theSameElementsAs expectedFiles
+      fileNames(cpg) should contain theSameElementsAs expectedFiles.map(
+        _.replace("/", java.io.File.separator))
     }
   }
 
@@ -90,7 +93,9 @@ class ExcludeTest extends AnyWordSpec with Matchers with TableDrivenPropertyChec
        Seq(EXCLUDE_REGEX.toArg, ".*(index|b)\\..*"),
        Set("a.js", "folder/c.js", "foo.bar/d.js")),
       (s"exclude a complete folder with ${EXCLUDE_REGEX.toArg}",
-       Seq(EXCLUDE_REGEX.toArg, ".*/folder/.*"),
+       Seq(
+         EXCLUDE_REGEX.toArg,
+         s".*${Pattern.quote(java.io.File.separator)}folder${Pattern.quote(java.io.File.separator)}.*"),
        Set("index.js", "a.js", "foo.bar/d.js")),
       // --
       // Tests for mixed arguments
