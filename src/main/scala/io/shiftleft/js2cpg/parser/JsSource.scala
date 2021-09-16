@@ -91,6 +91,11 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
       srcDir / replacedName
     case _ =>
       val replacedName = FileUtils.cleanPath(sourceFileName)
+      logger.debug(s"""
+        |>>> constructSourceFilePath:
+        |TMP: '$tmpDir'
+        |replacedName: '$replacedName'
+        |""".stripMargin)
       val srcFilePath: File = if (replacedName.contains(tmpDir)) {
         // on MacOS the path to the tmp dir is already there
         File("/") / replacedName
