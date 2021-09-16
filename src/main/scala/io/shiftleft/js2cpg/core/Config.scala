@@ -74,7 +74,7 @@ case class Config(srcDir: String = "",
     val slIngoreFilePath = Paths.get(srcDir, Config.SL_IGNORE_FILE)
     val result = Using(FileUtils.bufferedSourceFromFile(slIngoreFilePath)) { bufferedSource =>
       val content = FileUtils.contentFromBufferedSource(bufferedSource)
-      content.split("\n").toSeq.map(createPathForIgnore)
+      content.split(System.lineSeparator()).toSeq.map(createPathForIgnore)
     }
 
     result match {
