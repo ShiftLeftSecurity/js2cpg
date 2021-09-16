@@ -93,10 +93,10 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
       val replacedName = FileUtils.cleanPath(sourceFileName)
       val srcFilePath: File = if (replacedName.contains(tmpDir)) {
         // on MacOS the path to the tmp dir is already there
-        File(replacedName)
+        File("/") / replacedName
       } else {
         // on all other OS we have to prepend it with special handling for Windows:
-        if (replacedName.contains("AppData\\Local\\Temp")) {
+        if (replacedName.contains("AppData/Local/Temp")) {
           File("/Users") / replacedName
         } else {
           File(tmpDir) / replacedName
