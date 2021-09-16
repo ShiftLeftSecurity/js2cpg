@@ -95,8 +95,12 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
         // on MacOS the path to the tmp dir is already there
         File(replacedName)
       } else {
-        // on all other OS we have to prepend it
-        File(tmpDir) / replacedName
+        // on all other OS we have to prepend it with special handling for Windows:
+        if (replacedName.contains("AppData\\Local\\Temp")) {
+          File("/Users") / replacedName
+        } else {
+          File(tmpDir) / replacedName
+        }
       }
       srcFilePath
   }
