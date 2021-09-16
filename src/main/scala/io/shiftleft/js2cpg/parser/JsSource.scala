@@ -95,8 +95,9 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
         // on MacOS the path to the tmp dir is already there
         File("/") / replacedName
       } else {
-        // on all other OS we are done
-        srcDir.parent / sourceFileName
+        // on all other OS we have to prepend it
+        if (srcDir.pathAsString.startsWith(tmpDir)) File(tmpDir) / replacedName
+        else srcDir.parent / sourceFileName
       }
       srcFilePath
   }
