@@ -5,14 +5,14 @@ import better.files.File
 import java.io.Reader
 import java.math.BigInteger
 import java.nio.charset.{CharsetDecoder, CodingErrorAction}
-import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
+import java.nio.file.{Files, FileVisitResult, Path, SimpleFileVisitor}
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileDefaults._
 import org.slf4j.LoggerFactory
 
 import java.nio.file.attribute.BasicFileAttributes
 import scala.collection.concurrent.TrieMap
-import scala.collection.{SortedMap, mutable}
+import scala.collection.{mutable, SortedMap}
 import scala.io.{BufferedSource, Codec, Source}
 import scala.jdk.CollectionConverters._
 
@@ -33,7 +33,7 @@ object FileUtils {
 
   /**
     * Cleans the given path as String and removes unwanted elements that
-    * occure during transpilation on the Windows platform and/or CI environments.
+    * occur during transpilation on the Windows platform and/or CI environments.
     */
   def cleanPath(sourceFileName: String): String = {
     val replaceDots = sourceFileName.replace("../", "")

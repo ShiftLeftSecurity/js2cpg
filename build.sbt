@@ -4,8 +4,6 @@ val gitCommitString = SettingKey[String]("gitSha")
 
 enablePlugins(JavaAppPackaging, GitVersioning, BuildInfoPlugin)
 
-Test / test := ((Test / test) dependsOn (cfgIntegrationTests / Test / test)).value
-
 lazy val Fast = config("fast").extend(Test)
 configs(Fast)
 inConfig(Fast)(Defaults.testTasks)
@@ -120,12 +118,6 @@ lazy val js2cpg = (project in file(".")).settings(
   gitCommitString := git.gitHeadCommit.value.getOrElse("n/a"),
   buildInfoKeys := Seq[BuildInfoKey](version, gitCommitString),
   buildInfoPackage := "io.shiftleft.js2cpg.core"
-)
-
-lazy val cfgIntegrationTests = project.settings(
-  commonSettings,
-  publish / skip := true,
-  Test / test := ((Test / test) dependsOn (js2cpg / stage)).value
 )
 
 Universal / packageName := name.value

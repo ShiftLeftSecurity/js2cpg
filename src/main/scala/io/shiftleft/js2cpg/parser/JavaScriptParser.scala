@@ -81,7 +81,7 @@ object JavaScriptParser {
     val lines        = jsSource.source.getContent.toString.linesIterator.toSeq
     val replaceIndex = lines.lastIndexWhere(l => importRegex.matches(l.trim())) + 1
     val (head, rest) = lines.splitAt(replaceIndex)
-    val fixedCode    = (head ++ nodeJsFixWrapper(rest)).mkString("\n")
+    val fixedCode    = (head ++ nodeJsFixWrapper(rest)).mkString(System.lineSeparator())
     val source       = Source.sourceFor(jsSource.filePath, fixedCode)
     source.toJsSource(jsSource.srcDir, jsSource.projectDir)
   }

@@ -14,7 +14,7 @@ object EmScriptenCleaner {
     val endIndex   = lines.indexWhere(EMSCRIPTEN_END_FUNCS.matches)
     if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
       (lines.slice(0, startIndex) ++
-        Seq.fill(endIndex - startIndex - 1)("\n") ++
+        Seq.fill(endIndex - startIndex - 1)(System.lineSeparator()) ++
         lines.slice(endIndex + 1, lines.length)).iterator
     } else {
       lines.iterator

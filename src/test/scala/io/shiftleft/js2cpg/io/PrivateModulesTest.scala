@@ -3,12 +3,14 @@ package io.shiftleft.js2cpg.io
 import better.files.File
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.codepropertygraph.cpgloading.{CpgLoader, CpgLoaderConfig}
-import io.shiftleft.codepropertygraph.generated.{PropertyNames, NodeTypes}
+import io.shiftleft.codepropertygraph.generated.{NodeTypes, PropertyNames}
 import io.shiftleft.js2cpg.core.Js2CpgMain
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import overflowdb._
 import overflowdb.traversal.TraversalSource
+
+import java.util.regex.Pattern
 
 class PrivateModulesTest extends AnyWordSpec with Matchers {
 
@@ -22,7 +24,7 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
   "Handling for private modules" should {
 
     "copy and generate js files correctly for a simple project" in {
-      val projectPath = getClass.getResource("/privatemodules").getPath
+      val projectPath = getClass.getResource("/privatemodules").toURI
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
@@ -35,12 +37,13 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
               CpgLoaderConfig.withDefaults.withOverflowConfig(
                 Config.withDefaults.withStorageLocation(cpgPath)))
 
-        fileNames(cpg) should contain allElementsOf Set("@privateA/a.js", "@privateB/b.js")
+        fileNames(cpg) should contain allElementsOf Set(s"@privateA${java.io.File.separator}a.js",
+                                                        s"@privateB${java.io.File.separator}b.js")
       }
     }
 
     "copy and generate js files correctly for a simple project with additional private modules" in {
-      val projectPath = getClass.getResource("/privatemodules").getPath
+      val projectPath = getClass.getResource("/privatemodules").toURI
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
@@ -59,15 +62,17 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
               CpgLoaderConfig.withDefaults.withOverflowConfig(
                 Config.withDefaults.withStorageLocation(cpgPath)))
 
-        fileNames(cpg) should contain allElementsOf Set("@privateA/a.js",
-                                                        "@privateB/b.js",
-                                                        "@privateC/c.js",
-                                                        "privateD/d.js")
+        fileNames(cpg) should contain allElementsOf Set(
+          s"@privateA${java.io.File.separator}a.js",
+          s"@privateB${java.io.File.separator}b.js",
+          s"@privateC${java.io.File.separator}c.js",
+          s"privateD${java.io.File.separator}d.js"
+        )
       }
     }
 
     "copy and generate js files correctly for a simple project with filter" in {
-      val projectPath = getClass.getResource("/privatemodules").getPath
+      val projectPath = getClass.getResource("/privatemodules").toURI
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
@@ -78,7 +83,7 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
                 cpgPath,
                 "--no-babel",
                 "--exclude-regex",
-                ".*@privateA/a.js"))
+                s".*@privateA${Pattern.quote(java.io.File.separator)}a.js"))
 
         val cpg =
           CpgLoader
@@ -86,12 +91,12 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
               CpgLoaderConfig.withDefaults.withOverflowConfig(
                 Config.withDefaults.withStorageLocation(cpgPath)))
 
-        fileNames(cpg) should contain only "@privateB/b.js"
+        fileNames(cpg) should contain only s"@privateB${java.io.File.separator}b.js"
       }
     }
 
     "copy and generate js files correctly for a simple project with no private module being references" in {
-      val projectPath = getClass.getResource("/ignoreprivatemodules").getPath
+      val projectPath = getClass.getResource("/ignoreprivatemodules").toURI
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 

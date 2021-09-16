@@ -3,24 +3,20 @@ package io.shiftleft.js2cpg.cpg.passes
 import better.files.File
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.codepropertygraph.generated._
+import io.shiftleft.js2cpg.core.Report
+import io.shiftleft.passes.IntervalKeyPool
 import io.shiftleft.semanticcpg.language._
 import io.shiftleft.semanticcpg.passes.CfgCreationPass
-import io.shiftleft.semanticcpg.passes.cfgcreation.Cfg.{
-  AlwaysEdge,
-  CaseEdge,
-  CfgEdgeType,
-  FalseEdge,
-  TrueEdge
-}
+import io.shiftleft.semanticcpg.passes.cfgcreation.Cfg._
 import overflowdb.traversal._
 import overflowdb._
+
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 import scala.jdk.CollectionConverters._
-import scala.util.{Failure, Success}
 
-class CfgIntegrationTest extends AnyWordSpec with Matchers {
+class CfgCreationPassTest extends AnyWordSpec with Matchers {
 
   "CFG generation for simple fragments" should {
     "have correct structure for block expression" in {
@@ -1290,17 +1286,17 @@ class CfgIntegrationTest extends AnyWordSpec with Matchers {
     }
   }
 
-  private class CfgFixture(code: String) extends IntegrationTestFixture {
+  private class CfgFixture(code: String) {
 
-    private var cpg: Cpg = Cpg.emptyCpg
+    private val cpg: Cpg = Cpg.emptyCpg
 
     File.usingTemporaryDirectory("js2cpgCfgIntegrationTest") { workspace =>
-      cpg = callFrontend(workspace, code) match {
-        case Failure(exception) => fail(exception)
-        case Success(cpg) =>
-          new CfgCreationPass(cpg).createAndApply()
-          cpg
-      }
+      val file = workspace / "test.js"
+      file.write(code)
+      val keyPool   = new IntervalKeyPool(1001, 2000)
+      val filenames = List((file.path, file.parent.path))
+      new AstCreationPass(workspace, filenames, cpg, keyPool, new Report()).createAndApply()
+      new CfgCreationPass(cpg).createAndApply()
     }
 
     private def matchCode(node: Node, code: String): Boolean = {
