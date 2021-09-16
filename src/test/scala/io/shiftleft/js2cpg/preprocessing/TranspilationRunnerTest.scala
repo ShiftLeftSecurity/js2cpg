@@ -34,7 +34,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
   "TranspilationRunner" should {
 
     "generate js files correctly for a simple Babel project" in {
-      val projectPath = getClass.getResource("/babel").getFile
+      val projectPath = getClass.getResource("/babel").toURI
       File.usingTemporaryDirectory() { tmpDir: File =>
         File.usingTemporaryDirectory() { transpileOutDir: File =>
           val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
@@ -55,7 +55,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate and use sourcemap files correctly" in {
-      val projectPath = getClass.getResource("/typescript").getFile
+      val projectPath = getClass.getResource("/typescript").toURI
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
@@ -73,7 +73,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple Typescript project" in {
-      val projectPath = getClass.getResource("/typescript").getFile
+      val projectPath = getClass.getResource("/typescript").toURI
       File.usingTemporaryDirectory() { tmpDir: File =>
         File.usingTemporaryDirectory() { transpileOutDir: File =>
           val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
@@ -115,7 +115,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple Typescript project including test files" in {
-      val projectPath = getClass.getResource("/typescript").getFile
+      val projectPath = getClass.getResource("/typescript").toURI
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
@@ -136,7 +136,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple Vue.js project" in {
-      val projectPath = getClass.getResource("/vue").getFile
+      val projectPath = getClass.getResource("/vue").toURI
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
@@ -153,7 +153,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js file correctly for a EJS template file" in {
-      val projectPath = getClass.getResource("/ejs").getFile
+      val projectPath = getClass.getResource("/ejs").toURI
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
@@ -172,7 +172,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js file correctly for a pug template file" in {
-      val projectPath = getClass.getResource("/pug").getFile
+      val projectPath = getClass.getResource("/pug").toURI
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
