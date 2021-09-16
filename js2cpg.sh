@@ -1,8 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env sh
 
-dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
-scriptpath="$dir/target/universal/stage/bin/js2cpg"
+SCRIPT_ABS_PATH=$(readlink -f "$0")
+SCRIPT_ABS_DIR=$(dirname $SCRIPT_ABS_PATH)
 
-$scriptpath \
-    -Dlog4j.configurationFile=$dir/src/main/resources/log4j2.xml \
-    $@
+$SCRIPT_ABS_DIR/target/universal/stage/bin/js2cpg -Dlog4j.configurationFile=$SCRIPT_ABS_DIR/src/main/resources/log4j2.xml $@
