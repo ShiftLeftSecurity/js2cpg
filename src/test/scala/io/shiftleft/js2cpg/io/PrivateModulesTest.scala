@@ -22,7 +22,7 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
   "Handling for private modules" should {
 
     "copy and generate js files correctly for a simple project" in {
-      val projectPath = getClass.getResource("/privatemodules").getPath
+      val projectPath = getClass.getResource("/privatemodules").getFile
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
@@ -40,7 +40,7 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
     }
 
     "copy and generate js files correctly for a simple project with additional private modules" in {
-      val projectPath = getClass.getResource("/privatemodules").getPath
+      val projectPath = getClass.getResource("/privatemodules").getFile
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
@@ -67,7 +67,7 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
     }
 
     "copy and generate js files correctly for a simple project with filter" in {
-      val projectPath = getClass.getResource("/privatemodules").getPath
+      val projectPath = getClass.getResource("/privatemodules").getFile
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
@@ -91,7 +91,7 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
     }
 
     "copy and generate js files correctly for a simple project with no private module being references" in {
-      val projectPath = getClass.getResource("/ignoreprivatemodules").getPath
+      val projectPath = getClass.getResource("/ignoreprivatemodules").getFile
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
