@@ -24,7 +24,7 @@ class TranspilationRunner(projectPath: Path,
       projectPath,
       Seq(
         new NuxtTranspiler(config, projectPath),
-        new TypescriptTranspiler(config, projectPath, subDir),
+        new TypescriptTranspiler(config, projectPath, subDir = subDir),
         new BabelTranspiler(config, projectPath, subDir = subDir)
       )
     ),

@@ -31,10 +31,9 @@ class BabelTranspiler(override val config: Config,
 
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
     val in = inDir.map(dir => projectPath.resolve(dir)).getOrElse(projectPath)
-    val out =
-      subDir
-        .map(dir => Paths.get(tmpTranspileDir.toString, dir.toString))
-        .getOrElse(tmpTranspileDir)
+    val outDir =
+      subDir.map(s => File(tmpTranspileDir.toString, s.toString)).getOrElse(File(tmpTranspileDir))
+
     val babel = Paths.get(projectPath.toString, "node_modules", ".bin", "babel")
     val command = s"$babel . " +
       "--no-babelrc " +
@@ -48,8 +47,8 @@ class BabelTranspiler(override val config: Config,
       "--plugins @babel/plugin-proposal-object-rest-spread " +
       "--plugins @babel/plugin-proposal-nullish-coalescing-operator " +
       "--plugins @babel/plugin-transform-property-mutators " +
-      s"--out-dir $out $constructIgnoreDirArgs"
-    logger.debug(s"\t+ Babel transpiling $projectPath to $out")
+      s"--out-dir $outDir $constructIgnoreDirArgs"
+    logger.debug(s"\t+ Babel transpiling $projectPath to $outDir")
     ExternalCommand.run(command, in.toString) match {
       case Success(result) =>
         logger.debug(s"\t+ Babel transpiling finished. $result")

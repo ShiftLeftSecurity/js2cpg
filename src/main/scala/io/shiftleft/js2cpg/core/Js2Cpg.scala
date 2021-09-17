@@ -106,7 +106,7 @@ class Js2Cpg {
         .flatMap { p =>
           val subDir =
             if (p.toString != newTmpProjectDir.toString()) Some(project.relativize(p)) else None
-          new TranspilationRunner(p, tmpTranspileDir.path, config, subDir).execute()
+          new TranspilationRunner(p, tmpTranspileDir.path, config, subDir = subDir).execute()
         }
         .distinctBy(_._1)
 
