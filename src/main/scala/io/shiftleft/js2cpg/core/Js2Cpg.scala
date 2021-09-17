@@ -105,7 +105,8 @@ class Js2Cpg {
       val jsFiles = findProjects(newTmpProjectDir, config)
         .flatMap { p =>
           val subDir =
-            if (p.toString != newTmpProjectDir.toString()) Some(project.relativize(p)) else None
+            if (p.toString != newTmpProjectDir.toString()) Some(newTmpProjectDir.relativize(p))
+            else None
           new TranspilationRunner(p, tmpTranspileDir.path, config, subDir = subDir).execute()
         }
         .distinctBy(_._1)
