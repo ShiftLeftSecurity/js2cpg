@@ -90,16 +90,23 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
       val replacedName = sourceFileName.replace(WEBPACK_PREFIX, "")
       srcDir / replacedName
     case _ =>
-      val replacedName = FileUtils.cleanPath(sourceFileName)
-      val srcFilePath: File = if (replacedName.contains(tmpDir)) {
-        // on MacOS the path to the tmp dir is already there
-        File("/") / replacedName
+      val cleanedPath = FileUtils.cleanPath(sourceFileName)
+      // having "/" here is fine as JS source maps always have platform independent path separators
+      val lookupPath = if (cleanedPath.contains("/" + srcDir.name + "/")) {
+        cleanedPath.substring(
+          cleanedPath.lastIndexOf("/" + srcDir.name + "/") + srcDir.name.length + 2)
       } else {
-        // on all other OS we have to prepend it with special handling for Windows:
-        if (replacedName.contains("AppData/Local/Temp")) {
-          srcDir.root / "Users" / replacedName
+        cleanedPath
+      }
+      val srcFilePath: File = if (cleanedPath.contains(tmpDir)) {
+        // on MacOS the path to the tmp dir is already there
+        File("/") / cleanedPath
+      } else {
+        if (cleanedPath.contains("AppData/Local/Temp")) {
+          // special handling for Windows CI
+          srcDir.root / "Users" / cleanedPath
         } else {
-          File(tmpDir) / replacedName
+          srcDir / lookupPath
         }
       }
       srcFilePath

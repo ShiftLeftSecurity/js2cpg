@@ -21,7 +21,9 @@ object TypescriptTranspiler {
 
 }
 
-class TypescriptTranspiler(override val config: Config, override val projectPath: Path)
+class TypescriptTranspiler(override val config: Config,
+                           override val projectPath: Path,
+                           subDir: Option[Path] = None)
     extends Transpiler
     with NpmEnvironment {
 
@@ -65,18 +67,23 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
 
       val isSolutionTsConfig = TsConfigJsonParser.isSolutionTsConfig(projectPath, tsc.toString)
       val projects = if (isSolutionTsConfig) {
-        TsConfigJsonParser.subprojects(projectPath, tsc.toString).map(proj => s"--project $proj")
+        TsConfigJsonParser.subprojects(projectPath, tsc.toString)
       } else {
         "" :: Nil
       }
 
       val module = config.moduleMode.getOrElse(TsConfigJsonParser.module(projectPath, tsc.toString))
+      val outDir =
+        subDir.map(s => File(tmpTranspileDir.toString, s.toString)).getOrElse(File(tmpTranspileDir))
 
       for (proj <- projects) {
+        val projCommand = if (proj.nonEmpty) s"--project $proj" else ""
+        val projOutDir =
+          if (proj.nonEmpty) outDir / proj.substring(0, proj.lastIndexOf("/")) else outDir
         val command =
-          s"$tsc -sourcemap --outDir $tmpTranspileDir -t ES2015 -m $module --jsx react --noEmit false $proj"
+          s"$tsc -sourcemap --outDir $projOutDir -t ES2015 -m $module --jsx react --noEmit false $projCommand"
         logger.debug(
-          s"\t+ TypeScript compiling $projectPath $proj to $tmpTranspileDir (using $module style modules)")
+          s"\t+ TypeScript compiling $projectPath $projCommand to $projOutDir (using $module style modules)")
         ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
           case Success(result) =>
             logger.debug(s"\t+ TypeScript compiling finished. $result")

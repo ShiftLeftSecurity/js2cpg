@@ -11,18 +11,23 @@ import java.nio.file.{Path, StandardCopyOption}
 import scala.util.Try
 import scala.util.chaining.scalaUtilChainingOps
 
-class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Config) {
+class TranspilationRunner(projectPath: Path,
+                          tmpTranspileDir: Path,
+                          config: Config,
+                          subDir: Option[Path] = None) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
   private val transpilers: Seq[Transpiler] = Seq(
-    new TranspilerGroup(config,
-                        projectPath,
-                        Seq(
-                          new NuxtTranspiler(config, projectPath),
-                          new TypescriptTranspiler(config, projectPath),
-                          new BabelTranspiler(config, projectPath)
-                        )),
+    new TranspilerGroup(
+      config,
+      projectPath,
+      Seq(
+        new NuxtTranspiler(config, projectPath),
+        new TypescriptTranspiler(config, projectPath, subDir),
+        new BabelTranspiler(config, projectPath, subDir = subDir)
+      )
+    ),
     new VueTranspiler(config, projectPath),
     new EjsTranspiler(config, projectPath),
     new PugTranspiler(config, projectPath),

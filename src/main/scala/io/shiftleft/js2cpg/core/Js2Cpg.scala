@@ -103,8 +103,11 @@ class Js2Cpg {
 
     File.usingTemporaryDirectory("js2cpgTranspileOut") { tmpTranspileDir =>
       val jsFiles = findProjects(newTmpProjectDir, config)
-        .flatMap(new TranspilationRunner(_, tmpTranspileDir.path, config)
-          .execute())
+        .flatMap { p =>
+          val subDir =
+            if (p.toString != newTmpProjectDir.toString()) Some(project.relativize(p)) else None
+          new TranspilationRunner(p, tmpTranspileDir.path, config, subDir).execute()
+        }
         .distinctBy(_._1)
 
       FileUtils.logAndClearExcludedPaths()

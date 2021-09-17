@@ -53,7 +53,7 @@ class NuxtTranspiler(override val config: Config, override val projectPath: Path
     ExternalCommand.run(command, projectPath.toString) match {
       case Success(result) =>
         logger.debug(s"\t+ Nuxt.js transpiling finished. $result")
-        new BabelTranspiler(config, projectPath, Some(Paths.get(NUXT_FOLDER)))
+        new BabelTranspiler(config, projectPath, inDir = Some(Paths.get(NUXT_FOLDER)))
           .run(projectPath.resolve(NUXT_FOLDER))
         wasExecuted = true
       case Failure(exception) =>
