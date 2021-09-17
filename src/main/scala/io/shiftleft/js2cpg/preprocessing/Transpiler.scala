@@ -30,7 +30,8 @@ trait Transpiler {
     "tests",
     "tests_integration",
     "tests-integration",
-    "e2e"
+    "e2e",
+    "mocks"
   )
 
   protected val config: Config
