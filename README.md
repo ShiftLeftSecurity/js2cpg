@@ -2,7 +2,7 @@
 
 # js2cpg Frontend
 
-This is a [CPG](https://docs.joern.io/code-property-graph/) frontend based on Java source code powered by the [GraalJS Parser](https://github.com/oracle/graaljs/tree/master/graal-js/src/com.oracle.js.parser) which is part of the [GraalVM JS project](https://www.graalvm.org/reference-manual/js/).
+This is a [CPG](https://docs.joern.io/code-property-graph/) frontend based on Javascript source code powered by the [GraalJS Parser](https://github.com/oracle/graaljs/tree/master/graal-js/src/com.oracle.js.parser) which is part of the [GraalVM JS project](https://www.graalvm.org/reference-manual/js/).
 
 ## Setup
 
