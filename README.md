@@ -79,11 +79,11 @@ The option `output` parameter describes the location in the file system where th
 
 # Overview
 
-`js2cpg` operates in the two major steps: Preprocessing, parsing and CPG-generation which are explained below.
+`js2cpg` operates in three major steps: Preprocessing, parsing, and CPG-generation which are explained below.
 
 ## Preprocessing
 
-This runs our [transpilers/preprocessors](https://github.com/ShiftLeftSecurity/js2cpg/tree/master/src/main/scala/io/shiftleft/js2cpg/preprocessing) if the input project contains at least one element of the targeted language extention or template language (e.g., at least one Typescript file).
+This runs our [transpilers/preprocessors](https://github.com/ShiftLeftSecurity/js2cpg/tree/master/src/main/scala/io/shiftleft/js2cpg/preprocessing) if the input project contains at least one element of the targeted language extension or template language (e.g., at least one Typescript file).
 
   - Babel
   - EJS
@@ -92,7 +92,7 @@ This runs our [transpilers/preprocessors](https://github.com/ShiftLeftSecurity/j
   - Vue.js templates
   - Typescript
 
-With this we ensure to have ES6 compliant JS code before we continue with the actual parsing and CPG-generation.
+With this, we ensure to have ES6 compliant JS code before we continue with the actual parsing and CPG-generation.
 
 ## Parsing
 
