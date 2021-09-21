@@ -29,6 +29,14 @@ class TypescriptTranspiler(override val config: Config,
 
   private val logger = LoggerFactory.getLogger(getClass)
 
+  private val DEFAULT_TS_CONFIG_CONTENT =
+    """
+       |{
+       | "compilerOptions": {},
+       | "include": ["**/*"]
+       |}
+       |""".stripMargin
+
   private val NODE_OPTIONS: Map[String, String] = Map("NODE_OPTIONS" -> "--max_old_space_size=4096")
 
   private val tsc = Paths.get(projectPath.toString, "node_modules", ".bin", "tsc")
@@ -59,6 +67,12 @@ class TypescriptTranspiler(override val config: Config,
     }
   }
 
+  private def createFakeTsConfigFile(): File = {
+    val fakeTsConfigFile =
+      File.newTemporaryFile("js2cpgTsConfig", ".json", parent = Some(projectPath))
+    fakeTsConfigFile.writeText(DEFAULT_TS_CONFIG_CONTENT)
+  }
+
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
     File.usingTemporaryDirectory() { tmpForIgnoredDirs =>
       // Sadly, tsc does not allow to exclude folders when being run from cli.
@@ -77,30 +91,16 @@ class TypescriptTranspiler(override val config: Config,
         subDir.map(s => File(tmpTranspileDir.toString, s.toString)).getOrElse(File(tmpTranspileDir))
 
       for (proj <- projects) {
-        val projCommand = if (proj.nonEmpty) {
-          s"--project $proj"
+        val (fakeFile, projCommand) = if (proj.nonEmpty) {
+          (None, s"--project $proj")
         } else {
-          // for the root project we create a fake tsconfig file to ignore settings that may be there
-          // that we sadly cannot override with tsc directly:
-          val fakeTsConfigFile =
-            File
-              .temporaryFile("js2cpgTsConfig", ".json", parent = Some(projectPath))
-              .get()
-              .createIfNotExists()
-          // and a fake ts file to trick tsc. This gets around 'missing input files' error from tsc:
-          File
-            .temporaryFile("js2cpgFakeTsFile", ".ts", parent = Some(projectPath))
-            .get()
-            .createIfNotExists()
-          val content =
-            s"""
-              |{
-              | "compilerOptions": {},
-              | "include": ["**/*"]
-              |}
-              |""".stripMargin
-          fakeTsConfigFile.writeText(content)
-          s"--project $fakeTsConfigFile"
+          // for the root project we try to create a fake tsconfig file to ignore settings that may be there
+          // and that we sadly cannot override with tsc directly:
+          Try(createFakeTsConfigFile()) match {
+            case Failure(_) => (None, "")
+            case Success(fakeTsConfigFile) =>
+              (Some(fakeTsConfigFile), s"--project $fakeTsConfigFile")
+          }
         }
         val projOutDir =
           if (proj.nonEmpty) outDir / proj.substring(0, proj.lastIndexOf("/")) else outDir
@@ -114,6 +114,7 @@ class TypescriptTranspiler(override val config: Config,
           case Failure(exception) =>
             logger.debug(s"\t- TypeScript compiling failed: ${exception.getMessage}")
         }
+        fakeFile.foreach(_.delete(swallowIOExceptions = true))
       }
 
       // ... and copy them back afterward.
