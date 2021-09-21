@@ -33,7 +33,7 @@ class TranspilationRunner(projectPath: Path,
     new PugTranspiler(config, projectPath),
   )
 
-  private def handlePrivateModules(): List[(Path, Path)] = {
+  def handlePrivateModules(): List[(Path, Path)] = {
     val project           = File(config.srcDir)
     val nodeModulesFolder = project / NODE_MODULES_DIR_NAME
     if (!nodeModulesFolder.exists) {
@@ -90,30 +90,9 @@ class TranspilationRunner(projectPath: Path,
     }
   }
 
-  private def collectJsFiles(jsFiles: List[(Path, Path)], dir: Path): List[(Path, Path)] = {
-    val transpiledJsFiles = FileUtils
-      .getFileTree(dir, config, JS_SUFFIX)
-      .map(f => (f, dir))
-    jsFiles.filterNot {
-      case (f, rootDir) =>
-        val filename = f.toString.replace(rootDir.toString, "")
-        transpiledJsFiles.exists(_._1.toString.endsWith(filename))
-    } ++ transpiledJsFiles
-  }
-
-  private def transpile(jsFiles: List[(Path, Path)]): List[(Path, Path)] = {
-    transpilers.takeWhile(_.run(tmpTranspileDir))
-    collectJsFiles(jsFiles, tmpTranspileDir) ++ NuxtTranspiler.collectJsFiles(projectPath, config)
-  }
-
-  def execute(): List[(Path, Path)] = {
-    val jsFiles = FileUtils
-      .getFileTree(projectPath, config, JS_SUFFIX)
-      .map(f => (f, projectPath))
-    config match {
-      case c if c.ignorePrivateDeps && !transpilers.exists(_.shouldRun()) => jsFiles
-      case c if c.ignorePrivateDeps                                       => transpile(jsFiles)
-      case _                                                              => transpile(jsFiles) ++ handlePrivateModules()
+  def execute(): Unit = {
+    if (transpilers.exists(_.shouldRun())) {
+      transpilers.takeWhile(_.run(tmpTranspileDir))
     }
   }
 

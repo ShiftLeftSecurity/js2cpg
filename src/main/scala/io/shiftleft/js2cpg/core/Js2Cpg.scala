@@ -7,6 +7,7 @@ import io.shiftleft.js2cpg.cpg.passes._
 import io.shiftleft.js2cpg.io.FileDefaults._
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.parser.PackageJsonParser
+import io.shiftleft.js2cpg.preprocessing.NuxtTranspiler
 import io.shiftleft.js2cpg.preprocessing.TranspilationRunner
 import io.shiftleft.js2cpg.util.MemoryMetrics
 import io.shiftleft.passes.{IntervalKeyPool, KeyPoolCreator}
@@ -92,6 +93,19 @@ class Js2Cpg {
 
   private def isInCi: Boolean = sys.env.get("CI").contains("true")
 
+  private def collectJsFiles(jsFiles: List[(Path, Path)],
+                             dir: Path,
+                             config: Config): List[(Path, Path)] = {
+    val transpiledJsFiles = FileUtils
+      .getFileTree(dir, config, JS_SUFFIX)
+      .map(f => (f, dir))
+    jsFiles.filterNot {
+      case (f, rootDir) =>
+        val filename = f.toString.replace(rootDir.toString, "")
+        transpiledJsFiles.exists(_._1.toString.endsWith(filename))
+    } ++ transpiledJsFiles
+  }
+
   private def prepareAndGenerateCpg(project: File, tmpProjectDir: File, config: Config): Unit = {
     val newTmpProjectDir = if (project.extension.contains(VSIX_SUFFIX)) {
       handleVsixProject(project, tmpProjectDir)
@@ -101,15 +115,31 @@ class Js2Cpg {
 
     FileUtils.logAndClearExcludedPaths()
 
+    val jsFilesBeforeTranspiling = FileUtils
+      .getFileTree(newTmpProjectDir.path, config, JS_SUFFIX)
+      .map(f => (f, newTmpProjectDir.path))
+
     File.usingTemporaryDirectory("js2cpgTranspileOut") { tmpTranspileDir =>
-      val jsFiles = findProjects(newTmpProjectDir, config)
-        .flatMap { p =>
+      findProjects(newTmpProjectDir, config)
+        .foreach { p =>
           val subDir =
             if (p.toString != newTmpProjectDir.toString()) Some(newTmpProjectDir.relativize(p))
             else None
           new TranspilationRunner(p, tmpTranspileDir.path, config, subDir = subDir).execute()
         }
-        .distinctBy(_._1)
+
+      val jsFilesAfterTranspiling =
+        collectJsFiles(jsFilesBeforeTranspiling, tmpTranspileDir.path, config) ++
+          NuxtTranspiler.collectJsFiles(newTmpProjectDir.path, config)
+
+      val privateModuleFiles = if (!config.ignorePrivateDeps) {
+        new TranspilationRunner(newTmpProjectDir.path, tmpTranspileDir.path, config)
+          .handlePrivateModules()
+      } else {
+        Nil
+      }
+
+      val jsFiles = (jsFilesAfterTranspiling ++ privateModuleFiles).distinctBy(_._1)
 
       FileUtils.logAndClearExcludedPaths()
       checkCpgGenInputFiles(jsFiles, config)

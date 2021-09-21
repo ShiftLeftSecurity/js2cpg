@@ -39,10 +39,13 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         File.usingTemporaryDirectory() { transpileOutDir: File =>
           val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
-          val transpiledJsFiles =
-            new TranspilationRunner(tmpProjectPath.path,
-                                    transpileOutDir.path,
-                                    core.Config(tsTranspiling = false)).execute()
+          new TranspilationRunner(tmpProjectPath.path,
+                                  transpileOutDir.path,
+                                  core.Config(tsTranspiling = false)).execute()
+
+          val transpiledJsFiles = FileUtils
+            .getFileTree(transpileOutDir.path, core.Config(), JS_SUFFIX)
+            .map(f => (f, transpileOutDir.path))
 
           val expectedJsFiles = Set(((transpileOutDir / "foo.js").path, transpileOutDir.path))
           transpiledJsFiles should contain allElementsOf expectedJsFiles
@@ -93,10 +96,13 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
           jsFiles.size shouldBe 0
           tsFiles should contain allElementsOf expectedTsFiles
 
-          val transpiledJsFiles =
-            new TranspilationRunner(tmpProjectPath.path,
-                                    transpileOutDir.path,
-                                    core.Config(babelTranspiling = false)).execute()
+          new TranspilationRunner(tmpProjectPath.path,
+                                  transpileOutDir.path,
+                                  core.Config(babelTranspiling = false)).execute()
+
+          val transpiledJsFiles = FileUtils
+            .getFileTree(transpileOutDir.path, core.Config(), JS_SUFFIX)
+            .map(f => (f, transpileOutDir.path))
 
           val jsFilesAfterTranspilation = jsFiles ++ transpiledJsFiles
           jsFilesAfterTranspilation should contain allElementsOf expectedJsFiles
