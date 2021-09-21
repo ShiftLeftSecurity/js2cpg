@@ -47,11 +47,6 @@ trait Transpiler {
     hasVueDep || hasVueFiles
   }
 
-  protected def isNuxtProject: Boolean =
-    new PackageJsonParser((File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME).path)
-      .dependencies()
-      .contains("nuxt")
-
   def shouldRun(): Boolean
 
   def validEnvironment(): Boolean

@@ -18,20 +18,33 @@ class TranspilationRunner(projectPath: Path,
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  private val transpilers: Seq[Transpiler] = Seq(
-    new TranspilerGroup(
+  private val transpilers: Seq[Transpiler] = createTranspilers()
+
+  private def createTranspilers(): Seq[Transpiler] = {
+    // We always run the following transpilers by default when not stated otherwise in the Config.
+    // This includes running them for sub-projects.
+    val baseTranspilers = TranspilerGroup(
       config,
       projectPath,
       Seq(
-        new NuxtTranspiler(config, projectPath),
         new TypescriptTranspiler(config, projectPath, subDir = subDir),
         new BabelTranspiler(config, projectPath, subDir = subDir)
       )
-    ),
-    new VueTranspiler(config, projectPath),
-    new EjsTranspiler(config, projectPath),
-    new PugTranspiler(config, projectPath),
-  )
+    )
+
+    // When we got no sub-project, we also run the following ones:
+    if (subDir.isEmpty) {
+      val otherTranspilers = Seq(new VueTranspiler(config, projectPath),
+                                 new EjsTranspiler(config, projectPath),
+                                 new PugTranspiler(config, projectPath))
+      val base = baseTranspilers.copy(
+        transpilers = baseTranspilers.transpilers.prepended(new NuxtTranspiler(config, projectPath))
+      )
+      base +: otherTranspilers
+    } else {
+      Seq(baseTranspilers)
+    }
+  }
 
   def handlePrivateModules(): List[(Path, Path)] = {
     val project           = File(config.srcDir)

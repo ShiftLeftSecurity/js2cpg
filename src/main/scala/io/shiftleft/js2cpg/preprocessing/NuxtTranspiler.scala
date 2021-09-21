@@ -4,6 +4,7 @@ import better.files.File
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileDefaults.JS_SUFFIX
 import io.shiftleft.js2cpg.io.{ExternalCommand, FileUtils}
+import io.shiftleft.js2cpg.parser.PackageJsonParser
 import org.slf4j.LoggerFactory
 
 import java.nio.file.{Path, Paths}
@@ -43,6 +44,11 @@ class NuxtTranspiler(override val config: Config, override val projectPath: Path
   import NuxtTranspiler._
 
   private val logger = LoggerFactory.getLogger(getClass)
+
+  private def isNuxtProject: Boolean =
+    new PackageJsonParser((File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME).path)
+      .dependencies()
+      .contains("nuxt")
 
   override def shouldRun(): Boolean = config.nuxtTranspiling && isNuxtProject
 
