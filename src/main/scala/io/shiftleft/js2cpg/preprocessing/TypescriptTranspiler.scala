@@ -84,12 +84,12 @@ class TypescriptTranspiler(override val config: Config,
           // that we sadly cannot override with tsc directly:
           val fakeTsConfigFile =
             File
-              .temporaryFile("js2cpgTsConfig", ".json", parent = Some(tmpTranspileDir))
+              .temporaryFile("js2cpgTsConfig", ".json", parent = Some(projectPath))
               .get()
               .createIfNotExists()
           // and a fake ts file to trick tsc. This gets around 'missing input files' error from tsc:
-          val fakeFile = File
-            .temporaryFile("js2cpgFakeTsFile", ".ts", parent = Some(tmpTranspileDir))
+          File
+            .temporaryFile("js2cpgFakeTsFile", ".ts", parent = Some(projectPath))
             .get()
             .createIfNotExists()
           val content =
