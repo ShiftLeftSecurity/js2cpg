@@ -51,7 +51,8 @@ object FileDefaults {
     ".*\\.tslint.*".r,
     ".*rollup\\.config.*".r,
     ".*\\.types\\.js".r,
-    ".*\\.cjs\\.js".r
+    ".*\\.cjs\\.js".r,
+    ".*js2cpgFakeTsFile.*".r // see: TypescriptTranspiler
   )
 
   val IGNORED_TESTS_REGEX: Seq[Regex] = List(

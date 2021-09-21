@@ -96,8 +96,7 @@ class TypescriptTranspiler(override val config: Config,
             s"""
               |{
               | "compilerOptions": {},
-              | "include": ["**/*"],
-              | "exclude": ["$fakeFile"]
+              | "include": ["**/*"]
               |}
               |""".stripMargin
           fakeTsConfigFile.writeText(content)
