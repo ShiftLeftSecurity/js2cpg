@@ -31,14 +31,6 @@ class TypescriptTranspiler(override val config: Config,
 
   private val NODE_OPTIONS: Map[String, String] = Map("NODE_OPTIONS" -> "--max_old_space_size=4096")
 
-  private val DEFAULT_TS_CONFIG_CONTENT =
-    """
-      |{
-      | "compilerOptions": {},
-      | "include": ["**/*"]
-      |}
-      |""".stripMargin
-
   private val tsc = Paths.get(projectPath.toString, "node_modules", ".bin", "tsc")
 
   private def hasTsFiles: Boolean =
@@ -92,15 +84,23 @@ class TypescriptTranspiler(override val config: Config,
           // that we sadly cannot override with tsc directly:
           val fakeTsConfigFile =
             File
-              .temporaryFile("js2cpgTsConfig", ".json", parent = Some(projectPath))
+              .temporaryFile("js2cpgTsConfig", ".json", parent = Some(tmpTranspileDir))
               .get()
               .createIfNotExists()
           // and a fake ts file to trick tsc. This gets around 'missing input files' error from tsc:
-          File
-            .temporaryFile("js2cpgFakeTsFile", ".ts", parent = Some(projectPath))
+          val fakeFile = File
+            .temporaryFile("js2cpgFakeTsFile", ".ts", parent = Some(tmpTranspileDir))
             .get()
             .createIfNotExists()
-          fakeTsConfigFile.writeText(DEFAULT_TS_CONFIG_CONTENT)
+          val content =
+            s"""
+              |{
+              | "compilerOptions": {},
+              | "include": ["**/*"],
+              | "exclude": ["$fakeFile"]
+              |}
+              |""".stripMargin
+          fakeTsConfigFile.writeText(content)
           s"--project $fakeTsConfigFile"
         }
         val projOutDir =
