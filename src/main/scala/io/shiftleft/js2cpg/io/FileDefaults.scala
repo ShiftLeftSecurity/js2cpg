@@ -49,6 +49,7 @@ object FileDefaults {
     ".*\\.babelrc.*".r,
     ".*\\.eslint.*".r,
     ".*\\.tslint.*".r,
+    ".*\\.stylelintrc\\.js".r,
     ".*rollup\\.config.*".r,
     ".*\\.types\\.js".r,
     ".*\\.cjs\\.js".r
