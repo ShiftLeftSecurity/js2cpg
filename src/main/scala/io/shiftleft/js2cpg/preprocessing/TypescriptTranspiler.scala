@@ -7,9 +7,14 @@ import io.shiftleft.js2cpg.io.{ExternalCommand, FileUtils}
 import io.shiftleft.js2cpg.parser.TsConfigJsonParser
 import org.slf4j.LoggerFactory
 import org.apache.commons.io.{FileUtils => CommonsFileUtils}
+import play.api.libs.json.JsArray
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.libs.json.JsString
 
 import java.nio.file.{Path, Paths}
 import scala.util.{Failure, Success, Try}
+import scala.util.Using
 
 object TypescriptTranspiler {
 
@@ -28,14 +33,6 @@ class TypescriptTranspiler(override val config: Config,
     with NpmEnvironment {
 
   private val logger = LoggerFactory.getLogger(getClass)
-
-  private val DEFAULT_TS_CONFIG_CONTENT =
-    """
-       |{
-       | "compilerOptions": {},
-       | "include": ["**/*"]
-       |}
-       |""".stripMargin
 
   private val NODE_OPTIONS: Map[String, String] = Map("NODE_OPTIONS" -> "--max_old_space_size=4096")
 
@@ -67,10 +64,17 @@ class TypescriptTranspiler(override val config: Config,
     }
   }
 
-  private def createFakeTsConfigFile(): File = {
-    val fakeTsConfigFile =
-      File.newTemporaryFile("js2cpgTsConfig", ".json", parent = Some(projectPath))
-    fakeTsConfigFile.writeText(DEFAULT_TS_CONFIG_CONTENT)
+  private def createCustomTsConfigFile(): Option[File] = {
+    Using(FileUtils.bufferedSourceFromFile((File(projectPath) / "tsconfig.json").path)) {
+      bufferedSource =>
+        val content = FileUtils.contentFromBufferedSource(bufferedSource)
+        val json    = Json.parse(content)
+        // --include is not available as tsc CLI argument; we set it manually:
+        val jsonCleaned = json.as[JsObject] + ("include" -> JsArray(Array(JsString("**/*"))))
+        val customTsConfigFile =
+          File.newTemporaryFile("js2cpgTsConfig", ".json", parent = Some(projectPath))
+        customTsConfigFile.writeText(Json.stringify(jsonCleaned))
+    }.toOption
   }
 
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
@@ -91,15 +95,15 @@ class TypescriptTranspiler(override val config: Config,
         subDir.map(s => File(tmpTranspileDir.toString, s.toString)).getOrElse(File(tmpTranspileDir))
 
       for (proj <- projects) {
-        val (fakeFile, projCommand) = if (proj.nonEmpty) {
+        val (customTsConfigFile, projCommand) = if (proj.nonEmpty) {
           (None, s"--project $proj")
         } else {
-          // for the root project we try to create a fake tsconfig file to ignore settings that may be there
+          // for the root project we try to create a custom tsconfig file to ignore settings that may be there
           // and that we sadly cannot override with tsc directly:
-          Try(createFakeTsConfigFile()) match {
+          Try(createCustomTsConfigFile()) match {
             case Failure(_) => (None, "")
-            case Success(fakeTsConfigFile) =>
-              (Some(fakeTsConfigFile), s"--project $fakeTsConfigFile")
+            case Success(customTsConfigFile) =>
+              (customTsConfigFile, s"--project ${customTsConfigFile.getOrElse(".")}")
           }
         }
         val projOutDir =
@@ -114,7 +118,7 @@ class TypescriptTranspiler(override val config: Config,
           case Failure(exception) =>
             logger.debug(s"\t- TypeScript compiling failed: ${exception.getMessage}")
         }
-        fakeFile.foreach(_.delete(swallowIOExceptions = true))
+        customTsConfigFile.foreach(_.delete(swallowIOExceptions = true))
       }
 
       // ... and copy them back afterward.
