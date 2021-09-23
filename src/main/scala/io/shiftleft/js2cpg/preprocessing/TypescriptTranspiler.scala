@@ -1,6 +1,8 @@
 package io.shiftleft.js2cpg.preprocessing
 
 import better.files.File
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileDefaults.TS_SUFFIX
 import io.shiftleft.js2cpg.io.{ExternalCommand, FileUtils}
@@ -64,18 +66,23 @@ class TypescriptTranspiler(override val config: Config,
     }
   }
 
-  private def createCustomTsConfigFile(): Option[File] = {
+  private def removeComments(json: String): String = {
+    val mapper = new ObjectMapper
+    mapper.enable(JsonParser.Feature.ALLOW_COMMENTS)
+    mapper.writeValueAsString(mapper.readTree(json))
+  }
+
+  private def createCustomTsConfigFile() =
     Using(FileUtils.bufferedSourceFromFile((File(projectPath) / "tsconfig.json").path)) {
       bufferedSource =>
         val content = FileUtils.contentFromBufferedSource(bufferedSource)
-        val json    = Json.parse(content)
+        val json    = Json.parse(removeComments(content))
         // --include is not available as tsc CLI argument; we set it manually:
         val jsonCleaned = json.as[JsObject] + ("include" -> JsArray(Array(JsString("**/*"))))
         val customTsConfigFile =
           File.newTemporaryFile("js2cpgTsConfig", ".json", parent = Some(projectPath))
         customTsConfigFile.writeText(Json.stringify(jsonCleaned))
-    }.toOption
-  }
+    }
 
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
     File.usingTemporaryDirectory() { tmpForIgnoredDirs =>
@@ -100,10 +107,12 @@ class TypescriptTranspiler(override val config: Config,
         } else {
           // for the root project we try to create a custom tsconfig file to ignore settings that may be there
           // and that we sadly cannot override with tsc directly:
-          Try(createCustomTsConfigFile()) match {
-            case Failure(_) => (None, "")
+          createCustomTsConfigFile() match {
+            case Failure(f) =>
+              logger.debug(s"\t- Creating a custom TS config failed: ${f.getMessage}")
+              (None, "")
             case Success(customTsConfigFile) =>
-              (customTsConfigFile, s"--project ${customTsConfigFile.getOrElse(".")}")
+              (Some(customTsConfigFile), s"--project $customTsConfigFile")
           }
         }
         val projOutDir =
