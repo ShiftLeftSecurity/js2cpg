@@ -104,6 +104,11 @@ class TranspilationRunner(projectPath: Path,
   }
 
   def execute(): Unit = {
+    if (!transpilers.headOption.exists(_.validEnvironment())) {
+      logger.error("npm is not available in your environment. Please install npm and node.js.")
+      System.exit(1)
+    }
+
     if (transpilers.exists(_.shouldRun())) {
       transpilers.takeWhile(_.run(tmpTranspileDir))
     }
