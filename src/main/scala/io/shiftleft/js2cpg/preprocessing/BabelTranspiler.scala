@@ -11,7 +11,8 @@ import scala.util.{Failure, Success}
 
 class BabelTranspiler(override val config: Config,
                       override val projectPath: Path,
-                      subDir: Option[Path] = None)
+                      subDir: Option[Path] = None,
+                      inDir: Option[Path] = None)
     extends Transpiler
     with NpmEnvironment {
 
@@ -29,7 +30,10 @@ class BabelTranspiler(override val config: Config,
   }
 
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
-    val inDir = subDir.flatMap(dir => Some(projectPath.resolve(dir))).getOrElse(projectPath)
+    val in = inDir.map(dir => projectPath.resolve(dir)).getOrElse(projectPath)
+    val outDir =
+      subDir.map(s => File(tmpTranspileDir.toString, s.toString)).getOrElse(File(tmpTranspileDir))
+
     val babel = Paths.get(projectPath.toString, "node_modules", ".bin", "babel")
     val command = s"$babel . " +
       "--no-babelrc " +
@@ -43,9 +47,9 @@ class BabelTranspiler(override val config: Config,
       "--plugins @babel/plugin-proposal-object-rest-spread " +
       "--plugins @babel/plugin-proposal-nullish-coalescing-operator " +
       "--plugins @babel/plugin-transform-property-mutators " +
-      s"--out-dir $tmpTranspileDir $constructIgnoreDirArgs"
-    logger.debug(s"\t+ Babel transpiling $projectPath to $tmpTranspileDir")
-    ExternalCommand.run(command, inDir.toString) match {
+      s"--out-dir $outDir $constructIgnoreDirArgs"
+    logger.debug(s"\t+ Babel transpiling $projectPath to $outDir")
+    ExternalCommand.run(command, in.toString) match {
       case Success(result) =>
         logger.debug(s"\t+ Babel transpiling finished. $result")
       case Failure(exception) =>

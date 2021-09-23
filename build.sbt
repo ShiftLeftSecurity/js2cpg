@@ -87,6 +87,7 @@ lazy val commonSettings = Seq(
     "org.slf4j"                % "slf4j-api"          % "1.7.32",
     "org.apache.logging.log4j" % "log4j-slf4j-impl"   % "2.14.1",
     "com.typesafe.play"        %% "play-json"         % "2.9.2",
+    "com.fasterxml.jackson"    % "jackson-base"       % "2.12.5",
     "com.atlassian.sourcemap"  % "sourcemap"          % "2.0.0",
     "commons-io"               % "commons-io"         % "2.11.0",
     "org.scalatest"            %% "scalatest"         % "3.2.9" % Test
