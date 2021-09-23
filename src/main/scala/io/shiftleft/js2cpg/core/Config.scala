@@ -31,6 +31,7 @@ object Config {
   val DEFAULT_INCLUDE_HTML: Boolean         = false
   val DEFAULT_JVM_METRICS: Option[Int]      = None
   val DEFAULT_MODULE_MODE: Option[String]   = None
+  val DEFAULT_LOG_FILE: Option[String]      = None
 
 }
 
@@ -52,6 +53,7 @@ case class Config(srcDir: String = "",
                   includeConfigs: Boolean = Config.DEFAULT_INCLUDE_CONFIGS,
                   includeHtml: Boolean = Config.DEFAULT_INCLUDE_HTML,
                   jvmMetrics: Option[Int] = Config.DEFAULT_JVM_METRICS,
+                  logFile: Option[String] = Config.DEFAULT_LOG_FILE,
                   moduleMode: Option[String] = Config.DEFAULT_MODULE_MODE) {
 
   def createPathForPackageJson(): Path = Paths.get(packageJsonLocation) match {

@@ -11,9 +11,17 @@ import io.shiftleft.js2cpg.preprocessing.TranspilationRunner
 import io.shiftleft.js2cpg.util.MemoryMetrics
 import io.shiftleft.passes.{IntervalKeyPool, KeyPoolCreator}
 import io.shiftleft.x2cpg.X2Cpg.newEmptyCpg
+import org.apache.logging.log4j.Level
+import org.apache.logging.log4j.core.LoggerContext
 import org.slf4j.LoggerFactory
 
 import scala.util.{Failure, Success, Try}
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.core.appender.FileAppender
+import org.apache.logging.log4j.core.config.AppenderRef
+import org.apache.logging.log4j.core.layout.PatternLayout
+
+import scala.annotation.nowarn
 
 class Js2Cpg {
 
@@ -92,6 +100,9 @@ class Js2Cpg {
 
   private def isInCi: Boolean = sys.env.get("CI").contains("true")
 
+  private def loggingLevel: Level =
+    sys.env.get("SL_LOGGING_LEVEL").map(Level.getLevel).getOrElse(Level.INFO)
+
   private def prepareAndGenerateCpg(project: File, tmpProjectDir: File, config: Config): Unit = {
     val newTmpProjectDir = if (project.extension.contains(VSIX_SUFFIX)) {
       handleVsixProject(project, tmpProjectDir)
@@ -120,8 +131,37 @@ class Js2Cpg {
     }
   }
 
+  private def setLogFile(config: Config): Unit = {
+    config.logFile.foreach { logFilePath =>
+      val level  = loggingLevel
+      val ctx    = LogManager.getContext(false).asInstanceOf[LoggerContext]
+      val config = ctx.getConfiguration
+      val layout = PatternLayout.newBuilder().withPattern("[%-5p] %m%n").build()
+      // we have to use the deprecated method createAppender here as
+      // the generic builder API does not work when called from Scala:
+      @nowarn val appender = FileAppender.createAppender(logFilePath,
+                                                         "false",
+                                                         "false",
+                                                         "File",
+                                                         "true",
+                                                         "false",
+                                                         "false",
+                                                         "4000",
+                                                         layout,
+                                                         null,
+                                                         "false",
+                                                         null,
+                                                         config)
+      appender.start()
+      config.getRootLogger.addAppender(appender, level, null)
+      ctx.updateLoggers()
+    }
+  }
+
   def run(config: Config): Unit = {
     val project = File(config.srcDir)
+
+    setLogFile(config)
 
     // We need to get the absolut project path here otherwise user configured
     // excludes based on either absolut or relative paths can not be matched.

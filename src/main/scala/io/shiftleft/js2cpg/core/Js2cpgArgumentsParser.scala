@@ -36,6 +36,7 @@ object Js2cpgArgumentsParser {
   val INCLUDE_CONFIGS: String      = "include-configs"
   val INCLUDE_HTML: String         = "include-html"
   val JVM_MONITOR: String          = "enable-jvm-monitor"
+  val LOG_FILE: String             = "log-file"
   val MODULE_MODE: String          = "module-mode"
 }
 
@@ -172,6 +173,9 @@ class Js2cpgArgumentsParser {
       .text(s"enable JVM metrics logging (requires JMX port number)")
       .action((jmxPortNumber, c) => c.copy(jvmMetrics = Some(jmxPortNumber)))
       .hidden()
+    opt[String](LOG_FILE)
+      .text(s"path to the log file (default is no log file)")
+      .action((logFile, c) => c.copy(logFile = Some(logFile)))
     opt[String](MODULE_MODE)
       .text(
         s"set the module mode for transpiling (default is ${TypescriptTranspiler.DEFAULT_MODULE}, alternatives are e.g., esnext or es2015)")

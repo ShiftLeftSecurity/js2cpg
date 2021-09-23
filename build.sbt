@@ -85,7 +85,7 @@ lazy val commonSettings = Seq(
     "org.graalvm.js"           % "js"                 % "21.1.0",
     "com.github.pathikrit"     %% "better-files"      % "3.9.1",
     "org.slf4j"                % "slf4j-api"          % "1.7.32",
-    "org.apache.logging.log4j" % "log4j-slf4j-impl"   % "2.14.1" % Runtime,
+    "org.apache.logging.log4j" % "log4j-slf4j-impl"   % "2.14.1",
     "com.typesafe.play"        %% "play-json"         % "2.9.2",
     "com.atlassian.sourcemap"  % "sourcemap"          % "2.0.0",
     "commons-io"               % "commons-io"         % "2.11.0",
