@@ -11,24 +11,42 @@ import java.nio.file.{Path, StandardCopyOption}
 import scala.util.Try
 import scala.util.chaining.scalaUtilChainingOps
 
-class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Config) {
+class TranspilationRunner(projectPath: Path,
+                          tmpTranspileDir: Path,
+                          config: Config,
+                          subDir: Option[Path] = None) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  private val transpilers: Seq[Transpiler] = Seq(
-    new TranspilerGroup(config,
-                        projectPath,
-                        Seq(
-                          new NuxtTranspiler(config, projectPath),
-                          new TypescriptTranspiler(config, projectPath),
-                          new BabelTranspiler(config, projectPath)
-                        )),
-    new VueTranspiler(config, projectPath),
-    new EjsTranspiler(config, projectPath),
-    new PugTranspiler(config, projectPath),
-  )
+  private val transpilers: Seq[Transpiler] = createTranspilers()
 
-  private def handlePrivateModules(): List[(Path, Path)] = {
+  private def createTranspilers(): Seq[Transpiler] = {
+    // We always run the following transpilers by default when not stated otherwise in the Config.
+    // This includes running them for sub-projects.
+    val baseTranspilers = TranspilerGroup(
+      config,
+      projectPath,
+      Seq(
+        new TypescriptTranspiler(config, projectPath, subDir = subDir),
+        new BabelTranspiler(config, projectPath, subDir = subDir)
+      )
+    )
+
+    // When we got no sub-project, we also run the following ones:
+    if (subDir.isEmpty) {
+      val otherTranspilers = Seq(new VueTranspiler(config, projectPath),
+                                 new EjsTranspiler(config, projectPath),
+                                 new PugTranspiler(config, projectPath))
+      val base = baseTranspilers.copy(
+        transpilers = baseTranspilers.transpilers.prepended(new NuxtTranspiler(config, projectPath))
+      )
+      base +: otherTranspilers
+    } else {
+      Seq(baseTranspilers)
+    }
+  }
+
+  def handlePrivateModules(): List[(Path, Path)] = {
     val project           = File(config.srcDir)
     val nodeModulesFolder = project / NODE_MODULES_DIR_NAME
     if (!nodeModulesFolder.exists) {
@@ -85,30 +103,9 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
     }
   }
 
-  private def collectJsFiles(jsFiles: List[(Path, Path)], dir: Path): List[(Path, Path)] = {
-    val transpiledJsFiles = FileUtils
-      .getFileTree(dir, config, JS_SUFFIX)
-      .map(f => (f, dir))
-    jsFiles.filterNot {
-      case (f, rootDir) =>
-        val filename = f.toString.replace(rootDir.toString, "")
-        transpiledJsFiles.exists(_._1.toString.endsWith(filename))
-    } ++ transpiledJsFiles
-  }
-
-  private def transpile(jsFiles: List[(Path, Path)]): List[(Path, Path)] = {
-    transpilers.takeWhile(_.run(tmpTranspileDir))
-    collectJsFiles(jsFiles, tmpTranspileDir) ++ NuxtTranspiler.collectJsFiles(projectPath, config)
-  }
-
-  def execute(): List[(Path, Path)] = {
-    val jsFiles = FileUtils
-      .getFileTree(projectPath, config, JS_SUFFIX)
-      .map(f => (f, projectPath))
-    config match {
-      case c if c.ignorePrivateDeps && !transpilers.exists(_.shouldRun()) => jsFiles
-      case c if c.ignorePrivateDeps                                       => transpile(jsFiles)
-      case _                                                              => transpile(jsFiles) ++ handlePrivateModules()
+  def execute(): Unit = {
+    if (transpilers.exists(_.shouldRun())) {
+      transpilers.takeWhile(_.run(tmpTranspileDir))
     }
   }
 

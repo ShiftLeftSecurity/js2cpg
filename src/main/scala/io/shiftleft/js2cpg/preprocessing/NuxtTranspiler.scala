@@ -4,6 +4,7 @@ import better.files.File
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileDefaults.JS_SUFFIX
 import io.shiftleft.js2cpg.io.{ExternalCommand, FileUtils}
+import io.shiftleft.js2cpg.parser.PackageJsonParser
 import org.slf4j.LoggerFactory
 
 import java.nio.file.{Path, Paths}
@@ -44,6 +45,11 @@ class NuxtTranspiler(override val config: Config, override val projectPath: Path
 
   private val logger = LoggerFactory.getLogger(getClass)
 
+  private def isNuxtProject: Boolean =
+    new PackageJsonParser((File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME).path)
+      .dependencies()
+      .contains("nuxt")
+
   override def shouldRun(): Boolean = config.nuxtTranspiling && isNuxtProject
 
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
@@ -53,7 +59,7 @@ class NuxtTranspiler(override val config: Config, override val projectPath: Path
     ExternalCommand.run(command, projectPath.toString) match {
       case Success(result) =>
         logger.debug(s"\t+ Nuxt.js transpiling finished. $result")
-        new BabelTranspiler(config, projectPath, Some(Paths.get(NUXT_FOLDER)))
+        new BabelTranspiler(config, projectPath, inDir = Some(Paths.get(NUXT_FOLDER)))
           .run(projectPath.resolve(NUXT_FOLDER))
         wasExecuted = true
       case Failure(exception) =>
