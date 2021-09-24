@@ -35,7 +35,7 @@ case class TranspilerGroup(override val config: Config,
         logger.debug(s"\t+ yarn is available: $result")
         true
       case Failure(_) =>
-        logger.debug("\t- yarn is not installed. Transpiling sources will not be available.")
+        logger.error("\t- yarn is not installed. Transpiling sources will not be available.")
         false
     }
   }

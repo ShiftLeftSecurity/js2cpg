@@ -28,7 +28,7 @@ trait NpmEnvironment {
         logger.debug(s"\t+ npm is available: $result")
         true
       case Failure(_) =>
-        logger.debug("\t- npm is not installed. Transpiling sources will not be available.")
+        logger.error("\t- npm is not installed. Transpiling sources will not be available.")
         false
     }
   }
