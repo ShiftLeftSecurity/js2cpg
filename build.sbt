@@ -1,4 +1,4 @@
-val cpgVersion = "1.3.327"
+val cpgVersion = "1.3.344"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
@@ -81,6 +81,8 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     "io.shiftleft"             %% "codepropertygraph" % cpgVersion,
     "io.shiftleft"             %% "semanticcpg"       % cpgVersion,
+    "io.shiftleft"             %% "dataflowengineoss" % cpgVersion % Test,
+    "io.shiftleft"             %% "semanticcpg-tests" % cpgVersion % "compile->compile; test->test",
     "com.github.scopt"         %% "scopt"             % "4.0.1",
     "org.graalvm.js"           % "js"                 % "21.1.0",
     "com.github.pathikrit"     %% "better-files"      % "3.9.1",
