@@ -37,6 +37,7 @@ class BabelTranspiler(override val config: Config,
     val babel = Paths.get(projectPath.toString, "node_modules", ".bin", "babel")
     val command = s"$babel . " +
       "--no-babelrc " +
+      s"--source-root '${in.toString}' " +
       "--source-maps true " +
       "--presets @babel/preset-env " +
       "--presets @babel/preset-react " +
