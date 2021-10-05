@@ -5,14 +5,15 @@ import better.files.File
 import java.io.Reader
 import java.math.BigInteger
 import java.nio.charset.{CharsetDecoder, CodingErrorAction}
-import java.nio.file.{Files, FileVisitResult, Path, SimpleFileVisitor}
+import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileDefaults._
 import org.slf4j.LoggerFactory
 
 import java.nio.file.attribute.BasicFileAttributes
+import java.security.{DigestInputStream, MessageDigest}
 import scala.collection.concurrent.TrieMap
-import scala.collection.{mutable, SortedMap}
+import scala.collection.{SortedMap, mutable}
 import scala.io.{BufferedSource, Codec, Source}
 import scala.jdk.CollectionConverters._
 
@@ -22,6 +23,18 @@ object FileUtils {
 
   // we only want to print excluded files and folders once (Path -> Reason as String)
   private val excludedPaths = TrieMap.empty[Path, String]
+
+  def md5(files: Seq[Path]): String = {
+    val md = MessageDigest.getInstance("MD5")
+    files.sortBy(_.toRealPath().toString).foreach { path =>
+      val dis = new DigestInputStream(Files.newInputStream(path), md)
+      while (dis.available() > 0) {
+        dis.read()
+      }
+      dis.close()
+    }
+    md.digest().map(b => String.format("%02x", Byte.box(b))).mkString
+  }
 
   def logAndClearExcludedPaths(): Unit = {
     excludedPaths.foreach {
