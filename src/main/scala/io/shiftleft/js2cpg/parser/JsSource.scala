@@ -100,7 +100,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
       }
       val srcFilePath: File = if (cleanedPath.contains("AppData/Local/Temp")) {
         // special handling for Windows CI
-        srcDir.root / "Users" / cleanedPath
+        srcDir.root / "Users" / cleanedPath.replace(srcDir.toString(), "")
       } else {
         srcDir / lookupPath
       }
