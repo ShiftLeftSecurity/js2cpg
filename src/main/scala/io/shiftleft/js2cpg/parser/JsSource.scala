@@ -98,16 +98,11 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
       } else {
         cleanedPath
       }
-      val srcFilePath: File = if (cleanedPath.contains(tmpDir)) {
-        // on MacOS the path to the tmp dir is already there
-        File("/") / cleanedPath
+      val srcFilePath: File = if (cleanedPath.contains("AppData/Local/Temp")) {
+        // special handling for Windows CI
+        srcDir.root / "Users" / cleanedPath
       } else {
-        if (cleanedPath.contains("AppData/Local/Temp")) {
-          // special handling for Windows CI
-          srcDir.root / "Users" / cleanedPath
-        } else {
-          srcDir / lookupPath
-        }
+        srcDir / lookupPath
       }
       srcFilePath
   }
