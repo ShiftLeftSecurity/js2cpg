@@ -58,7 +58,6 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
       .name(Option(name).getOrElse("<n/a>"))
       .dependencyGroupId(Option(groupId).getOrElse("<n/a>"))
       .version(Option(version).getOrElse("<n/a>"))
-      .build
     diffGraph.addNode(dependency)
     dependency
   }
