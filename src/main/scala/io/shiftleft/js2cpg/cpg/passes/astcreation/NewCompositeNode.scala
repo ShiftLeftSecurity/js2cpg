@@ -10,6 +10,18 @@ class NewCompositeNode(underlying: ListBuffer[NewNode] = ListBuffer.empty[NewNod
 
   override def properties: Map[String, Any] = ??? // we do not need this
 
+  override def canEqual(that: Any): Boolean =
+    that.isInstanceOf[NewCompositeNode]
+
+  override def productArity: Int = 0
+
+  override def productElement(n: Int): Any = null
+
+  override def copy: this.type = {
+    val newInstance = new NewCompositeNode(underlying.clone())
+    newInstance.asInstanceOf[this.type]
+  }
+
   def add(newNode: NewNode): Unit = {
     underlying.append(newNode)
   }

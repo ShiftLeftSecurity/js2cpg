@@ -13,7 +13,7 @@ class JsMetaDataPassTest extends AbstractPassTest {
     val cpg               = Cpg.emptyCpg
     val jsMetaDataKeyPool = new IntervalKeyPool(1, 100)
 
-    new JsMetaDataPass(cpg, jsMetaDataKeyPool).createAndApply()
+    new JsMetaDataPass(cpg, jsMetaDataKeyPool, "somehash").createAndApply()
 
     "create exactly 1 node" in {
       cpg.graph.V.asScala.size shouldBe 1
@@ -25,6 +25,10 @@ class JsMetaDataPassTest extends AbstractPassTest {
 
     "create a metadata node with correct language" in {
       cpg.metaData.language.l shouldBe List(Languages.JAVASCRIPT)
+    }
+
+    "create a metadata node with a hash" in {
+      cpg.metaData.hash.l shouldBe List("somehash")
     }
   }
 

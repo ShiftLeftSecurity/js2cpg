@@ -29,7 +29,6 @@ class DependenciesPass(cpg: Cpg, config: Config, keyPool: KeyPool)
         val dep = NewDependency()
           .name(name)
           .version(version)
-          .build
         diffGraph.addNode(dep)
     }
 

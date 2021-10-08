@@ -198,12 +198,13 @@ class Js2Cpg {
     val privateKeyFilePassPool = otherPools(3)
     val htmlAsConfigPassPool   = otherPools(4)
 
-    val cpg = newEmptyCpg(Some(config.outputFile))
+    val cpg  = newEmptyCpg(Some(config.outputFile))
+    val hash = FileUtils.md5(jsFilesWithRoot.map(_._1))
 
     new AstCreationPass(File(config.srcDir), jsFilesWithRoot, cpg, functionKeyPool, report)
       .createAndApply()
 
-    new JsMetaDataPass(cpg, metaDataKeyPool).createAndApply()
+    new JsMetaDataPass(cpg, metaDataKeyPool, hash).createAndApply()
     new BuiltinTypesPass(cpg, builtinTypesKeyPool).createAndApply()
     new DependenciesPass(cpg, config, dependenciesKeyPool)
       .createAndApply()
