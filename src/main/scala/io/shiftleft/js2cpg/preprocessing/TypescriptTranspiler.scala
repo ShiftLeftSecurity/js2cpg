@@ -115,12 +115,18 @@ class TypescriptTranspiler(override val config: Config,
               (Some(customTsConfigFile), s"--project $customTsConfigFile")
           }
         }
+
         val projOutDir =
           if (proj.nonEmpty) outDir / proj.substring(0, proj.lastIndexOf("/")) else outDir
+        val sourceRootDir =
+          if (proj.nonEmpty) File(projectPath) / proj.substring(0, proj.lastIndexOf("/"))
+          else File(projectPath)
+
         val command =
-          s"$tsc -sourcemap --sourceRoot $projectPath --outDir $projOutDir -t ES2015 -m $module --jsx react --noEmit false $projCommand"
+          s"$tsc -sourcemap --sourceRoot $sourceRootDir --outDir $projOutDir -t ES2015 -m $module --jsx react --noEmit false $projCommand"
         logger.debug(
           s"\t+ TypeScript compiling $projectPath $projCommand to $projOutDir (using $module style modules)")
+
         ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
           case Success(result) =>
             logger.debug(s"\t+ TypeScript compiling finished. $result")
