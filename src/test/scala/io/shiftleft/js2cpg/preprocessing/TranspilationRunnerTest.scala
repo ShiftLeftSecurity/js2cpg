@@ -142,7 +142,27 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple multi-project Typescript project" in {
-      val projectPath = getClass.getResource("/multi").toURI
+      val projectPath = getClass.getResource("/multisimple").toURI
+      File.usingTemporaryDirectory() { tmpDir: File =>
+        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+
+        val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
+        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath))
+
+        val cpg =
+          CpgLoader
+            .loadFromOverflowDb(
+              CpgLoaderConfig.withDefaults.withOverflowConfig(
+                Config.withDefaults.withStorageLocation(cpgPath)))
+        fileNames(cpg) should contain theSameElementsAs List("a.js",
+                                                             "b.ts",
+                                                             s"a${java.io.File.separator}a.ts",
+                                                             s"b${java.io.File.separator}b.js")
+      }
+    }
+
+    "generate js files correctly for a multi-project Typescript project (using solution config)" in {
+      val projectPath = getClass.getResource("/multisolutionconfig").toURI
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 

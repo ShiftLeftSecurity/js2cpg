@@ -1,0 +1,6 @@
+{
+  "include": ["a.ts"],
+  "compilerOptions": {
+    "outDir": "build/"
+  }
+}
