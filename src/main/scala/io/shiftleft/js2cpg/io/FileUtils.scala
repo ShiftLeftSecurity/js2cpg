@@ -24,15 +24,22 @@ object FileUtils {
   // we only want to print excluded files and folders once (Path -> Reason as String)
   private val excludedPaths = TrieMap.empty[Path, String]
 
+  private def isDirectory(path: Path): Boolean =
+    if (path == null || !Files.exists(path)) false
+    else Files.isDirectory(path)
+
   def md5(files: Seq[Path]): String = {
     val md = MessageDigest.getInstance("MD5")
-    files.sortBy(_.toRealPath().toString).foreach { path =>
-      val dis = new DigestInputStream(Files.newInputStream(path), md)
-      while (dis.available() > 0) {
-        dis.read()
+    files
+      .filterNot(p => isDirectory(p.toRealPath()))
+      .sortBy(_.toRealPath().toString)
+      .foreach { path =>
+        val dis = new DigestInputStream(Files.newInputStream(path), md)
+        while (dis.available() > 0) {
+          dis.read()
+        }
+        dis.close()
       }
-      dis.close()
-    }
     md.digest().map(b => String.format("%02x", Byte.box(b))).mkString
   }
 
