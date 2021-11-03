@@ -30,23 +30,11 @@ class JSDataFlowTest1 extends DataFlowCodeToCpgSuite {
     flows.map(flowToResultPairs).toSet shouldBe
       Set(
         List(("read(fd, buff, sz)", Some(11))),
-        List(("sz = -5", Some(9)), ("read(fd, buff, sz)", Some(11))),
-        List(("sz = 0", Some(5)),
-             ("sz = 20", Some(6)),
-             ("sz = 200", Some(7)),
-             ("sz = 41", Some(8)),
-             ("sz = -5", Some(9)),
-             ("read(fd, buff, sz)", Some(11))),
-        List(("sz = 200", Some(7)),
-             ("sz = 41", Some(8)),
-             ("sz = -5", Some(9)),
-             ("read(fd, buff, sz)", Some(11))),
-        List(("sz = 41", Some(8)), ("sz = -5", Some(9)), ("read(fd, buff, sz)", Some(11))),
-        List(("sz = 20", Some(6)),
-             ("sz = 200", Some(7)),
-             ("sz = 41", Some(8)),
-             ("sz = -5", Some(9)),
-             ("read(fd, buff, sz)", Some(11)))
+        List(("sz = 0", Some(5)), ("read(fd, buff, sz)", Some(11))),
+        List(("sz = 20", Some(6)), ("read(fd, buff, sz)", Some(11))),
+        List(("sz = 200", Some(7)), ("read(fd, buff, sz)", Some(11))),
+        List(("sz = 41", Some(8)), ("read(fd, buff, sz)", Some(11))),
+        List(("sz = -5", Some(9)), ("read(fd, buff, sz)", Some(11)))
       )
 
     // pretty printing for flows
@@ -110,13 +98,11 @@ class JSDataFlowTest4 extends DataFlowCodeToCpgSuite {
              ("b + c", Some(6)),
              ("z = b + c", Some(6)),
              ("z++", Some(7)),
-             ("p = z", Some(8)),
              ("x = z", Some(9))),
         List(("b = a", Some(4)),
              ("b + c", Some(6)),
              ("z = b + c", Some(6)),
              ("z++", Some(7)),
-             ("p = z", Some(8)),
              ("x = z", Some(9)))
       )
   }
@@ -212,7 +198,7 @@ class JSDataFlowTest7 extends DataFlowCodeToCpgSuite {
       Set(
         List(("return x", Some(14))),
         List(("x = z", Some(12)), ("return x", Some(14))),
-        List(("x = 0", Some(3)), ("x = a", Some(8)), ("return x", Some(14))),
+        List(("x = 0", Some(3)), ("return x", Some(14))),
         List(("x = a", Some(8)), ("return x", Some(14)))
       )
   }
@@ -326,7 +312,6 @@ class JSDataFlowTest11 extends DataFlowCodeToCpgSuite {
              ("b + c", Some(6)),
              ("z = b + c", Some(6)),
              ("z++", Some(7)),
-             ("p = z", Some(8)),
              ("x = z", Some(9))))
   }
 }
@@ -400,26 +385,24 @@ class JSDataFlowTest14 extends DataFlowCodeToCpgSuite {
       """.stripMargin
 
   "Test 14: flow from array method parameter to identifier" in {
-    def source = cpg.method(".*main").parameter.l
-    def sink   = cpg.identifier.name("y").l
+    def source = cpg.method(".*main").parameter
+    def sink   = cpg.identifier.name("y")
     def flows  = sink.reachableByFlows(source)
 
-    pendingUntilFixed {
-      flows.map(flowToResultPairs).toSet shouldBe
-        Set(
-          List[(String, Option[Integer])](
-            ("main(argc, argv)", 2),
-            ("x = argv[1]", 3),
-            ("y = x", 4),
-            ("z = y", 5)
-          ),
-          List[(String, Option[Integer])](
-            ("main(argc, argv)", 2),
-            ("x = argv[1]", 3),
-            ("y = x", 4)
-          )
+    flows.map(flowToResultPairs).toSet shouldBe
+      Set(
+        List[(String, Option[Integer])](
+          ("main(this, argc, argv)", 2),
+          ("x = argv[1]", 3),
+          ("y = x", 4),
+          ("z = y", 5)
+        ),
+        List[(String, Option[Integer])](
+          ("main(this, argc, argv)", 2),
+          ("x = argv[1]", 3),
+          ("y = x", 4)
         )
-    }
+      )
   }
 }
 
@@ -612,7 +595,7 @@ class JSDataFlowTest27 extends DataFlowCodeToCpgSuite {
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe
-      Set(List(("free(y)", Some(3)), ("free(x)", Some(4)), ("RET", Some(2))),
+      Set(List(("free(y)", Some(3)), ("RET", Some(2))),
           List(("free(x)", Some(4)), ("RET", Some(2))))
   }
 }
