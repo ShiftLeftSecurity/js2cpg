@@ -36,7 +36,8 @@ class TranspilationRunner(projectPath: Path,
     if (subDir.isEmpty) {
       val otherTranspilers = Seq(new VueTranspiler(config, projectPath),
                                  new EjsTranspiler(config, projectPath),
-                                 new PugTranspiler(config, projectPath))
+                                 new PugTranspiler(config, projectPath),
+                                 new SwigTranspiler(config, projectPath))
       val base = baseTranspilers.copy(
         transpilers = baseTranspilers.transpilers.prepended(new NuxtTranspiler(config, projectPath))
       )

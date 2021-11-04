@@ -1,0 +1,21 @@
+{% extends 'b.html' %}
+
+{% block title %}My Page{% endblock %}
+
+{% block head %}
+{% parent %}
+<link rel="stylesheet" href="custom.css">
+{% endblock %}
+
+{% block content %}
+<p>This is just an awesome page.</p>
+{% endblock %}
+
+{% if foo %}bar{% endif %}
+
+// Create a list of people, only if there are items in the people array
+{% for person in people %}
+{% if loop.first %}<ol>{% endif %}
+    <li>{{ person.name }}</li>
+    {% if loop.last %}</ol>{% endif %}
+{% endfor %}

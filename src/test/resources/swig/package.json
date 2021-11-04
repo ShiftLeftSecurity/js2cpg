@@ -1,0 +1,7 @@
+{
+  "name": "swig-test-project",
+  "version": "0.0.1",
+  "dependencies": {
+    "swig": "^1.4.2"
+  }
+}

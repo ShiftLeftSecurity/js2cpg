@@ -6,7 +6,7 @@ import io.shiftleft.codepropertygraph.cpgloading.{CpgLoader, CpgLoaderConfig}
 import io.shiftleft.codepropertygraph.generated.{NodeTypes, PropertyNames}
 import io.shiftleft.js2cpg.core
 import io.shiftleft.js2cpg.core.Js2CpgMain
-import io.shiftleft.js2cpg.io.FileDefaults.{JS_SUFFIX, TS_SUFFIX}
+import io.shiftleft.js2cpg.io.FileDefaults.JS_SUFFIX
 import io.shiftleft.js2cpg.io.FileUtils
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.tags.Slow
@@ -83,12 +83,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
           val jsFiles = FileUtils
             .getFileTree(tmpProjectPath.path, core.Config(), JS_SUFFIX)
             .map(f => (f, tmpProjectPath.path))
-          val tsFiles = FileUtils
-            .getFileTree(tmpProjectPath.path, core.Config(), TS_SUFFIX)
-            .map(f => (f, tmpProjectPath.path))
 
-          val expectedTsFiles = List(((tmpProjectPath / "a.ts").path, tmpProjectPath.path),
-                                     ((tmpProjectPath / "b.ts").path, tmpProjectPath.path))
           val expectedJsFiles =
             List(((transpileOutDir / "a.js").path, transpileOutDir.path),
                  ((transpileOutDir / "b.js").path, transpileOutDir.path))
@@ -231,9 +226,30 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
             .loadFromOverflowDb(
               CpgLoaderConfig.withDefaults.withOverflowConfig(
                 Config.withDefaults.withStorageLocation(cpgPath)))
-        // Sadly, calling the pug transpiler via pug cli does not support source maps:
         fileNames(cpg) should contain only "test.js"
+        // Sadly, calling the Pug transpiler via Pug cli does not support source maps.
         lineNumbers(cpg) should contain allElementsOf List(1, 2, 4, 7, 9)
+      }
+    }
+
+    "generate js file correctly for a swig template file" in {
+      val projectPath = getClass.getResource("/swig").toURI
+      File.usingTemporaryDirectory() { tmpDir: File =>
+        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+
+        val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
+        Js2CpgMain.main(
+          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-ts", "--no-babel"))
+
+        val cpg =
+          CpgLoader
+            .loadFromOverflowDb(
+              CpgLoaderConfig.withDefaults.withOverflowConfig(
+                Config.withDefaults.withStorageLocation(cpgPath)))
+        fileNames(cpg) should contain theSameElementsAs List(
+          s"app${java.io.File.separator}views${java.io.File.separator}a.html",
+          s"app${java.io.File.separator}views${java.io.File.separator}b.html")
+      // Sadly, calling the Swig transpiler via Swig cli does not support source maps
       }
     }
 
