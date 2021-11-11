@@ -1,4 +1,4 @@
-val cpgVersion = "1.3.390"
+val cpgVersion = "1.3.429"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
@@ -15,7 +15,7 @@ Global / excludeLintKeys += Fast / configuration
 Global / excludeLintKeys += gitCommitString
 
 lazy val commonSettings = Seq(
-  scalaVersion := "2.13.6",
+  scalaVersion := "2.13.7",
   organization := "io.shiftleft",
   scalacOptions ++= Seq(
     // Emit warning and location for usages of deprecated APIs.
