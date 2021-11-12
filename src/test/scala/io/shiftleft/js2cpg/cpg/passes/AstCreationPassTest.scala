@@ -148,13 +148,12 @@ class AstCreationPassTest extends AbstractPassTest {
       def call = methodBlock.expandAst(NodeTypes.CALL)
       call.checkNodeCount(1)
       call.checkProperty(PropertyNames.NAME, "__Runtime.TO_STRING")
-      call.checkProperty(PropertyNames.CODE, s"__Runtime.TO_STRING(`$${x + 1}`)")
+      call.checkProperty(PropertyNames.CODE, "__Runtime.TO_STRING(x + 1)")
 
       def argument = call.expandAst(NodeTypes.CALL)
       argument.checkNodeCount(1)
-      // order 1 and 3 are " literals
-      argument.checkProperty(PropertyNames.ORDER, 2)
-      argument.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
+      argument.checkProperty(PropertyNames.ORDER, 1)
+      argument.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
       argument.checkProperty(PropertyNames.CODE, "x + 1")
     }
 
@@ -169,7 +168,7 @@ class AstCreationPassTest extends AbstractPassTest {
         def rawCall = methodBlock.expandAst(NodeTypes.CALL)
         rawCall.checkNodeCount(1)
         rawCall.checkProperty(PropertyNames.CODE,
-                              s"String.raw(__Runtime.TO_STRING(`../$${0}\\..`), 42)")
+                              """String.raw(__Runtime.TO_STRING("../","\.."), 42)""")
 
         def rawCallArg = rawCall.expandAst(NodeTypes.LITERAL)
         rawCallArg.checkNodeCount(1)
@@ -182,7 +181,7 @@ class AstCreationPassTest extends AbstractPassTest {
         runtimeCall.checkNodeCount(1)
         runtimeCall.checkProperty(PropertyNames.ORDER, 2)
         runtimeCall.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
-        runtimeCall.checkProperty(PropertyNames.CODE, s"__Runtime.TO_STRING(`../$${0}\\..`)")
+        runtimeCall.checkProperty(PropertyNames.CODE, """__Runtime.TO_STRING("../","\..")""")
 
         def argument1 =
           runtimeCall.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "\"../\"")

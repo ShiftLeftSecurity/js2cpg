@@ -1718,17 +1718,21 @@ class AstCreator(diffGraph: DiffGraph.Builder, source: JsSource, usedIdentNodes:
   }
 
   override def visit(templateLiteralNode: TemplateLiteralNode): NewNode = {
+    val args = templateLiteralNode match {
+      case node: TemplateLiteralNode.TaggedTemplateLiteralNode =>
+        node.getRawStrings.asScala
+      case node: TemplateLiteralNode.UntaggedTemplateLiteralNode =>
+        node.getExpressions.asScala.zipWithIndex.collect {
+          case (expr, i) if i % 2 != 0 => expr
+        }
+    }
+
     val callId = astNodeBuilder.createCallNode(
-      s"__Runtime.TO_STRING(${templateLiteralNode.toString()})",
+      s"__Runtime.TO_STRING(${args.mkString(",")})",
       s"__Runtime.TO_STRING",
       DispatchTypes.STATIC_DISPATCH,
       astNodeBuilder.lineAndColumn(templateLiteralNode)
     )
-
-    val args = templateLiteralNode match {
-      case node: TemplateLiteralNode.TaggedTemplateLiteralNode   => node.getRawStrings.asScala
-      case node: TemplateLiteralNode.UntaggedTemplateLiteralNode => node.getExpressions.asScala
-    }
 
     val callOrder    = new OrderTracker()
     val callArgIndex = new OrderTracker()
