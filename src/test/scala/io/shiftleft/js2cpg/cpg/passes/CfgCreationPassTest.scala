@@ -70,25 +70,31 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
     }
 
     "have correct structure for untagged runtime node" in {
-      new CfgFixture(f"`$${x + 1}`") {
-        succOf(":program") shouldBe expected(("x", AlwaysEdge))
+      new CfgFixture(s"`$${x + 1}`") {
+        succOf(":program") shouldBe expected(("\"\"", AlwaysEdge))
+        succOf("\"\"") shouldBe expected(("x", AlwaysEdge))
         succOf("x") shouldBe expected(("1", AlwaysEdge))
         succOf("1") shouldBe expected(("x + 1", AlwaysEdge))
-        succOf("x + 1") shouldBe expected((f"`$${x + 1}`", AlwaysEdge))
-        succOf(f"`$${x + 1}`") shouldBe expected(("RET", AlwaysEdge))
+        succOf("x + 1") shouldBe expected(("\"\"", 1, AlwaysEdge))
+        succOf("\"\"", 1) shouldBe expected((s"__Runtime.TO_STRING(`$${x + 1}`)", AlwaysEdge))
+        succOf(s"__Runtime.TO_STRING(`$${x + 1}`)") shouldBe expected(("RET", AlwaysEdge))
       }
     }
 
     "have correct structure for tagged runtime node" in {
-      new CfgFixture(f"String.raw`../${42}\\..`") {
+      new CfgFixture(s"String.raw`../$${42}\\..`") {
         succOf(":program") shouldBe expected(("String", AlwaysEdge))
         succOf("String") shouldBe expected(("raw", AlwaysEdge))
         succOf("raw") shouldBe expected(("String.raw", AlwaysEdge))
         succOf("String.raw") shouldBe expected(("String", 1, AlwaysEdge))
-        succOf("String", 1) shouldBe expected(("\"../42\\..\"", AlwaysEdge))
-        succOf("\"../42\\..\"") shouldBe expected(("`../42\\..`", AlwaysEdge))
-        succOf("`../42\\..`") shouldBe expected(("String.raw(`../42\\..`)", AlwaysEdge))
-        succOf("String.raw(`../42\\..`)") shouldBe expected(("RET", AlwaysEdge))
+        succOf("String", 1) shouldBe expected(("\"../\"", AlwaysEdge))
+        succOf("\"../\"") shouldBe expected(("\"\\..\"", AlwaysEdge))
+        succOf("\"\\..\"") shouldBe expected((s"__Runtime.TO_STRING(`../$${0}\\..`)", AlwaysEdge))
+        succOf(s"__Runtime.TO_STRING(`../$${0}\\..`)") shouldBe expected(("42", AlwaysEdge))
+        succOf("42") shouldBe expected(
+          (s"String.raw(__Runtime.TO_STRING(`../$${0}\\..`), 42)", AlwaysEdge))
+        succOf(s"String.raw(__Runtime.TO_STRING(`../$${0}\\..`), 42)") shouldBe expected(
+          ("RET", AlwaysEdge))
       }
     }
 

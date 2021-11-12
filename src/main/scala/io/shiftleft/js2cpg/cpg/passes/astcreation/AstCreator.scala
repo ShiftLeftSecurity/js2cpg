@@ -1719,19 +1719,15 @@ class AstCreator(diffGraph: DiffGraph.Builder, source: JsSource, usedIdentNodes:
 
   override def visit(templateLiteralNode: TemplateLiteralNode): NewNode = {
     val callId = astNodeBuilder.createCallNode(
-      templateLiteralNode.toString(),
+      s"__Runtime.TO_STRING(${templateLiteralNode.toString()})",
       s"__Runtime.TO_STRING",
       DispatchTypes.STATIC_DISPATCH,
       astNodeBuilder.lineAndColumn(templateLiteralNode)
     )
 
     val args = templateLiteralNode match {
-      case node: TemplateLiteralNode.TaggedTemplateLiteralNode =>
-        node.getRawStrings.asScala
-      case node: TemplateLiteralNode.UntaggedTemplateLiteralNode =>
-        node.getExpressions.asScala.zipWithIndex.collect {
-          case (expression, i) if i % 2 != 0 => expression
-        }
+      case node: TemplateLiteralNode.TaggedTemplateLiteralNode   => node.getRawStrings.asScala
+      case node: TemplateLiteralNode.UntaggedTemplateLiteralNode => node.getExpressions.asScala
     }
 
     args.foreach { expression =>
