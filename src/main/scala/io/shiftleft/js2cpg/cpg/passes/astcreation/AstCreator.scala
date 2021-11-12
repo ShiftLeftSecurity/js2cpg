@@ -1730,10 +1730,10 @@ class AstCreator(diffGraph: DiffGraph.Builder, source: JsSource, usedIdentNodes:
       case node: TemplateLiteralNode.UntaggedTemplateLiteralNode => node.getExpressions.asScala
     }
 
+    val callOrder    = new OrderTracker()
+    val callArgIndex = new OrderTracker()
     args.foreach { expression =>
-      val callOrder    = new OrderTracker()
-      val callArgIndex = new OrderTracker()
-      val argId        = expression.accept(this)
+      val argId = expression.accept(this)
       astEdgeBuilder.addAstEdge(argId, callId, callOrder)
       astEdgeBuilder.addArgumentEdge(argId, callId, callArgIndex)
 

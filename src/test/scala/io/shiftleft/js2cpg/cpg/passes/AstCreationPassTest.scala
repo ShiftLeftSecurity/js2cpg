@@ -152,6 +152,9 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def argument = call.expandAst(NodeTypes.CALL)
       argument.checkNodeCount(1)
+      // order 1 and 3 are " literals
+      argument.checkProperty(PropertyNames.ORDER, 2)
+      argument.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
       argument.checkProperty(PropertyNames.CODE, "x + 1")
     }
 
@@ -170,20 +173,28 @@ class AstCreationPassTest extends AbstractPassTest {
 
         def rawCallArg = rawCall.expandAst(NodeTypes.LITERAL)
         rawCallArg.checkNodeCount(1)
+        rawCallArg.checkProperty(PropertyNames.ORDER, 3)
+        rawCallArg.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
         rawCallArg.checkProperty(PropertyNames.CODE, "42")
 
         def runtimeCall =
           rawCall.expandAst(NodeTypes.CALL).filter(PropertyNames.NAME, "__Runtime.TO_STRING")
         runtimeCall.checkNodeCount(1)
+        runtimeCall.checkProperty(PropertyNames.ORDER, 2)
+        runtimeCall.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
         runtimeCall.checkProperty(PropertyNames.CODE, s"__Runtime.TO_STRING(`../$${0}\\..`)")
 
         def argument1 =
           runtimeCall.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "\"../\"")
         argument1.checkNodeCount(1)
+        argument1.checkProperty(PropertyNames.ORDER, 1)
+        argument1.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
 
         def argument2 =
           runtimeCall.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "\"\\..\"")
         argument2.checkNodeCount(1)
+        argument2.checkProperty(PropertyNames.ORDER, 2)
+        argument2.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
     }
 
     "have correct structure for try" in AstFixture("""
