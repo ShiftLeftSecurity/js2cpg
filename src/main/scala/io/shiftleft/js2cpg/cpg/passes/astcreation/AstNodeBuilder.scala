@@ -1,34 +1,7 @@
 package io.shiftleft.js2cpg.cpg.passes.astcreation
 
 import com.oracle.js.parser.ir._
-import io.shiftleft.codepropertygraph.generated.nodes.{
-  HasCode,
-  NewBinding,
-  NewBlock,
-  NewCall,
-  NewClosureBinding,
-  NewControlStructure,
-  NewDependency,
-  NewFieldIdentifier,
-  NewFile,
-  NewIdentifier,
-  NewJumpTarget,
-  NewLiteral,
-  NewLocal,
-  NewMember,
-  NewMethod,
-  NewMethodParameterIn,
-  NewMethodRef,
-  NewMethodReturn,
-  NewModifier,
-  NewNamespaceBlock,
-  NewNode,
-  NewReturn,
-  NewType,
-  NewTypeDecl,
-  NewTypeRef,
-  NewUnknown
-}
+import io.shiftleft.codepropertygraph.generated.nodes._
 import io.shiftleft.codepropertygraph.generated.{DispatchTypes, EvaluationStrategies, Operators}
 import io.shiftleft.js2cpg.cpg.datastructures.{LineAndColumn, OrderTracker}
 import io.shiftleft.js2cpg.cpg.datastructures.scope.{MethodScope, Scope}

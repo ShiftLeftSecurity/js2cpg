@@ -1,4 +1,4 @@
-val cpgVersion = "1.3.429"
+val cpgVersion = "1.3.431"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
@@ -82,15 +82,15 @@ lazy val commonSettings = Seq(
     "io.shiftleft"             %% "codepropertygraph" % cpgVersion,
     "io.shiftleft"             %% "semanticcpg"       % cpgVersion,
     "com.github.scopt"         %% "scopt"             % "4.0.1",
-    "org.graalvm.js"           % "js"                 % "21.1.0",
+    "org.graalvm.js"           % "js"                 % "21.3.0",
     "com.github.pathikrit"     %% "better-files"      % "3.9.1",
     "org.slf4j"                % "slf4j-api"          % "1.7.32",
     "org.apache.logging.log4j" % "log4j-slf4j-impl"   % "2.14.1" % Runtime,
     "com.typesafe.play"        %% "play-json"         % "2.9.2",
-    "com.fasterxml.jackson"    % "jackson-base"       % "2.12.5",
+    "com.fasterxml.jackson"    % "jackson-base"       % "2.13.0",
     "com.atlassian.sourcemap"  % "sourcemap"          % "2.0.0",
     "commons-io"               % "commons-io"         % "2.11.0",
-    "org.scalatest"            %% "scalatest"         % "3.2.9" % Test
+    "org.scalatest"            %% "scalatest"         % "3.2.10" % Test
   ),
   Test / fork := true
 )

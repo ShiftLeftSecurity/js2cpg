@@ -13,14 +13,13 @@ import io.shiftleft.codepropertygraph.generated.{
   Operators,
   PropertyNames
 }
-import io.shiftleft.codepropertygraph.generated.nodes.TypeDecl
 import io.shiftleft.js2cpg.core.{Config, Report}
 import io.shiftleft.js2cpg.io.FileDefaults.JS_SUFFIX
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.passes.IntervalKeyPool
 import io.shiftleft.semanticcpg.language._
 import overflowdb.Node
-import overflowdb.traversal.Traversal
+import overflowdb.traversal.{NodeOps, Traversal}
 
 class AstCreationPassTest extends AbstractPassTest {
 
@@ -139,21 +138,42 @@ class AstCreationPassTest extends AbstractPassTest {
       tmpReturn.checkProperty(PropertyNames.NAME, "_tmp_0")
     }
 
-    "have correct structure for runtime node" in AstFixture(f"`$${x + 1}`") { cpg =>
+    "have correct structure for untagged runtime node" in AstFixture(f"`$${x + 1}`") { cpg =>
       def method = cpg.method.nameExact(":program")
       method.checkNodeCount(1)
 
       def methodBlock = method.expandAst(NodeTypes.BLOCK)
       methodBlock.checkNodeCount(1)
 
-      def call =
-        methodBlock.expandAst(NodeTypes.CALL).expandAst(NodeTypes.CALL).expandAst(NodeTypes.CALL)
+      def call = methodBlock.expandAst(NodeTypes.CALL)
       call.checkNodeCount(1)
       call.checkProperty(PropertyNames.NAME, "__Runtime.TO_STRING")
 
       def argument = call.expandAst(NodeTypes.CALL)
       argument.checkNodeCount(1)
       argument.checkProperty(PropertyNames.CODE, "x + 1")
+    }
+
+    "have correct structure for tagged runtime node" in AstFixture(f"String.raw`../${42}\\..`") {
+      cpg =>
+        def method = cpg.method.nameExact(":program")
+        method.checkNodeCount(1)
+
+        def methodBlock = method.expandAst(NodeTypes.BLOCK)
+        methodBlock.checkNodeCount(1)
+
+        def call =
+          methodBlock.expandAst(NodeTypes.CALL).expandAst(NodeTypes.CALL)
+
+        def runtime = call.filter(PropertyNames.NAME, "__Runtime.TO_STRING")
+        runtime.checkNodeCount(1)
+
+        def raw = call.filter(PropertyNames.CODE, "String.raw")
+        raw.checkNodeCount(1)
+
+        def argument = runtime.expandAst(NodeTypes.LITERAL)
+        argument.checkNodeCount(1)
+        argument.checkProperty(PropertyNames.CODE, "\"../42\\..\"")
     }
 
     "have correct structure for try" in AstFixture("""
