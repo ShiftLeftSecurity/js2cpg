@@ -13,7 +13,13 @@ import org.slf4j.LoggerFactory
 import scala.jdk.CollectionConverters._
 import scala.util.Using
 
+object JsSource {
+  val tmpDir: String = System.getProperty("java.io.tmpdir")
+}
+
 class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
+
+  import JsSource.tmpDir
 
   private val logger = LoggerFactory.getLogger(getClass)
 

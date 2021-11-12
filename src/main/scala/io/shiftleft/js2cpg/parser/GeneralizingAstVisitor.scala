@@ -233,7 +233,7 @@ class GeneralizingAstVisitor[T]
     visit(node.asInstanceOf[Statement])
   }
 
-  def visit(node: TemplateLiteralNode): T = {
+  def visit(node: RuntimeNode): T = {
     visit(node.asInstanceOf[Expression])
   }
 
@@ -417,7 +417,7 @@ class GeneralizingAstVisitor[T]
     visit(node)
   }
 
-  override def enterTemplateLiteralNode(node: TemplateLiteralNode): T = {
+  override def enterRuntimeNode(node: RuntimeNode): T = {
     visit(node)
   }
 

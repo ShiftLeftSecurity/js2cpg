@@ -204,11 +204,11 @@ abstract class DefaultAstVisitor(lexicalContext: LexicalContext = new LexicalCon
   override def leaveReturnNode(returnNode: ReturnNode): Node =
     super.leaveReturnNode(returnNode)
 
-  override def enterTemplateLiteralNode(templateLiteralNode: TemplateLiteralNode): Boolean =
-    super.enterTemplateLiteralNode(templateLiteralNode)
+  override def enterRuntimeNode(runtimeNode: RuntimeNode): Boolean =
+    super.enterRuntimeNode(runtimeNode)
 
-  override def leaveTemplateLiteralNode(templateLiteralNode: TemplateLiteralNode): Node =
-    super.leaveTemplateLiteralNode(templateLiteralNode)
+  override def leaveRuntimeNode(runtimeNode: RuntimeNode): Node =
+    super.leaveRuntimeNode(runtimeNode)
 
   override def enterSwitchNode(switchNode: SwitchNode): Boolean =
     super.enterSwitchNode(switchNode)
