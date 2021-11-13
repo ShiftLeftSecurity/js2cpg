@@ -69,13 +69,31 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
       }
     }
 
+    "have correct structure for untagged runtime node in call" in {
+      new CfgFixture(s"foo(`Hello $${world}!`)") {
+        succOf(":program") shouldBe expected(("foo", AlwaysEdge))
+        succOf("foo") shouldBe expected(("this", AlwaysEdge))
+        succOf("this") shouldBe expected(("\"Hello \"", AlwaysEdge))
+        succOf("\"Hello \"") shouldBe expected(("world", AlwaysEdge))
+        succOf("world") shouldBe expected(("\"!\"", AlwaysEdge))
+        succOf("\"!\"") shouldBe expected(
+          ("__Runtime.TO_STRING(\"Hello \",world,\"!\")", AlwaysEdge))
+        succOf("__Runtime.TO_STRING(\"Hello \",world,\"!\")") shouldBe expected(
+          ("foo(__Runtime.TO_STRING(\"Hello \",world,\"!\"))", AlwaysEdge))
+        succOf("foo(__Runtime.TO_STRING(\"Hello \",world,\"!\"))") shouldBe expected(
+          ("RET", AlwaysEdge))
+      }
+    }
+
     "have correct structure for untagged runtime node" in {
       new CfgFixture(s"`$${x + 1}`") {
-        succOf(":program") shouldBe expected(("x", AlwaysEdge))
+        succOf(":program") shouldBe expected(("\"\"", AlwaysEdge))
+        succOf("\"\"") shouldBe expected(("x", AlwaysEdge))
         succOf("x") shouldBe expected(("1", AlwaysEdge))
         succOf("1") shouldBe expected(("x + 1", AlwaysEdge))
-        succOf("x + 1") shouldBe expected(("__Runtime.TO_STRING(x + 1)", AlwaysEdge))
-        succOf("__Runtime.TO_STRING(x + 1)") shouldBe expected(("RET", AlwaysEdge))
+        succOf("x + 1") shouldBe expected(("\"\"", 1, AlwaysEdge))
+        succOf("\"\"", 1) shouldBe expected(("__Runtime.TO_STRING(\"\",x + 1,\"\")", AlwaysEdge))
+        succOf("__Runtime.TO_STRING(\"\",x + 1,\"\")") shouldBe expected(("RET", AlwaysEdge))
       }
     }
 

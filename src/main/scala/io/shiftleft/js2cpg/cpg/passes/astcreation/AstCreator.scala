@@ -1722,9 +1722,7 @@ class AstCreator(diffGraph: DiffGraph.Builder, source: JsSource, usedIdentNodes:
       case node: TemplateLiteralNode.TaggedTemplateLiteralNode =>
         node.getRawStrings.asScala
       case node: TemplateLiteralNode.UntaggedTemplateLiteralNode =>
-        node.getExpressions.asScala.zipWithIndex.collect {
-          case (expr, i) if i % 2 != 0 => expr
-        }
+        node.getExpressions.asScala
     }
 
     val callId = astNodeBuilder.createCallNode(

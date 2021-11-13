@@ -138,6 +138,39 @@ class AstCreationPassTest extends AbstractPassTest {
       tmpReturn.checkProperty(PropertyNames.NAME, "_tmp_0")
     }
 
+    "have correct structure for untagged runtime node in call" in AstFixture(
+      s"foo(`Hello $${world}!`)") { cpg =>
+      def method = cpg.method.nameExact(":program")
+      method.checkNodeCount(1)
+
+      def methodBlock = method.expandAst(NodeTypes.BLOCK)
+      methodBlock.checkNodeCount(1)
+
+      def fooCall = methodBlock.expandAst(NodeTypes.CALL)
+      fooCall.checkNodeCount(1)
+      fooCall.checkProperty(PropertyNames.CODE, """foo(__Runtime.TO_STRING("Hello ",world,"!"))""")
+
+      def templateCall = fooCall.expandAst(NodeTypes.CALL)
+      templateCall.checkNodeCount(1)
+      templateCall.checkProperty(PropertyNames.NAME, "__Runtime.TO_STRING")
+      templateCall.checkProperty(PropertyNames.CODE, """__Runtime.TO_STRING("Hello ",world,"!")""")
+
+      def argument1 = templateCall.expandAst().filter(PropertyNames.ORDER, 1)
+      argument1.checkNodeCount(1)
+      argument1.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
+      argument1.checkProperty(PropertyNames.CODE, "\"Hello \"")
+
+      def argument2 = templateCall.expandAst().filter(PropertyNames.ORDER, 2)
+      argument2.checkNodeCount(1)
+      argument2.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
+      argument2.checkProperty(PropertyNames.CODE, "world")
+
+      def argument3 = templateCall.expandAst().filter(PropertyNames.ORDER, 3)
+      argument3.checkNodeCount(1)
+      argument3.checkProperty(PropertyNames.ARGUMENT_INDEX, 3)
+      argument3.checkProperty(PropertyNames.CODE, "\"!\"")
+    }
+
     "have correct structure for untagged runtime node" in AstFixture(s"`$${x + 1}`") { cpg =>
       def method = cpg.method.nameExact(":program")
       method.checkNodeCount(1)
@@ -148,13 +181,22 @@ class AstCreationPassTest extends AbstractPassTest {
       def call = methodBlock.expandAst(NodeTypes.CALL)
       call.checkNodeCount(1)
       call.checkProperty(PropertyNames.NAME, "__Runtime.TO_STRING")
-      call.checkProperty(PropertyNames.CODE, "__Runtime.TO_STRING(x + 1)")
+      call.checkProperty(PropertyNames.CODE, "__Runtime.TO_STRING(\"\",x + 1,\"\")")
 
-      def argument = call.expandAst(NodeTypes.CALL)
-      argument.checkNodeCount(1)
-      argument.checkProperty(PropertyNames.ORDER, 1)
-      argument.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
-      argument.checkProperty(PropertyNames.CODE, "x + 1")
+      def argument1 = call.expandAst().filter(PropertyNames.ORDER, 1)
+      argument1.checkNodeCount(1)
+      argument1.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
+      argument1.checkProperty(PropertyNames.CODE, "\"\"")
+
+      def argument2 = call.expandAst().filter(PropertyNames.ORDER, 2)
+      argument2.checkNodeCount(1)
+      argument2.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
+      argument2.checkProperty(PropertyNames.CODE, "x + 1")
+
+      def argument3 = call.expandAst().filter(PropertyNames.ORDER, 3)
+      argument3.checkNodeCount(1)
+      argument3.checkProperty(PropertyNames.ARGUMENT_INDEX, 3)
+      argument3.checkProperty(PropertyNames.CODE, "\"\"")
     }
 
     "have correct structure for tagged runtime node" in AstFixture(s"String.raw`../$${42}\\..`") {
