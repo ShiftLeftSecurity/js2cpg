@@ -10,8 +10,8 @@ object NpmEnvironment {
   // even if multiple transpilers require this specific environment.
   private var isValid: Option[Boolean] = None
 
-  val YARN_INSTALL = "yarn install --prefer-offline"
-  val NPM_INSTALL  = "npm install --prefer-offline --no-audit --progress=false"
+  val YARN_INSTALL = "yarn install --prefer-offline --ignore-scripts"
+  val NPM_INSTALL  = "npm install --prefer-offline --no-audit --progress=false --ignore-scripts"
 }
 
 trait NpmEnvironment {
