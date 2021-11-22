@@ -31,9 +31,9 @@ import com.oracle.js.parser.ir.{
   ParameterNode,
   PropertyNode,
   ReturnNode,
-  RuntimeNode,
   Statement,
   SwitchNode,
+  TemplateLiteralNode,
   TernaryNode,
   ThrowNode,
   TryNode,
@@ -44,7 +44,6 @@ import com.oracle.js.parser.ir.{
 }
 import com.oracle.js.parser.ir.LiteralNode.ArrayLiteralNode
 import io.shiftleft.codepropertygraph.generated.nodes.{
-  NewNode,
   NewBlock,
   NewCall,
   NewControlStructure,
@@ -53,6 +52,7 @@ import io.shiftleft.codepropertygraph.generated.nodes.{
   NewMethod,
   NewMethodRef,
   NewNamespaceBlock,
+  NewNode,
   NewTypeDecl,
   NewTypeRef
 }
@@ -64,17 +64,7 @@ import io.shiftleft.codepropertygraph.generated.{
 }
 import io.shiftleft.js2cpg.cpg.datastructures.Stack._
 import io.shiftleft.js2cpg.cpg.datastructures._
-import io.shiftleft.js2cpg.cpg.datastructures.scope.{
-  BlockScope,
-  BlockScopeElement,
-  MethodScope,
-  MethodScopeElement,
-  ResolvedReference,
-  Scope,
-  ScopeElement,
-  ScopeElementIterator,
-  ScopeType
-}
+import io.shiftleft.js2cpg.cpg.datastructures.scope._
 import io.shiftleft.js2cpg.cpg.passes.{Defines, EcmaBuiltins, PassHelpers}
 import io.shiftleft.js2cpg.cpg.passes.PassHelpers.ParamNodeInitKind
 import io.shiftleft.js2cpg.parser.{GeneralizingAstVisitor, JsSource}
@@ -1727,20 +1717,29 @@ class AstCreator(diffGraph: DiffGraph.Builder, source: JsSource, usedIdentNodes:
     }
   }
 
-  override def visit(runtimeNode: RuntimeNode): NewNode = {
-    val callId = astNodeBuilder.createCallNode(runtimeNode.toString(),
-                                               s"__Runtime.${runtimeNode.getRequest.toString}",
-                                               DispatchTypes.STATIC_DISPATCH,
-                                               astNodeBuilder.lineAndColumn(runtimeNode))
+  override def visit(templateLiteralNode: TemplateLiteralNode): NewNode = {
+    val args = templateLiteralNode match {
+      case node: TemplateLiteralNode.TaggedTemplateLiteralNode =>
+        node.getRawStrings.asScala
+      case node: TemplateLiteralNode.UntaggedTemplateLiteralNode =>
+        node.getExpressions.asScala
+    }
+
+    val callId = astNodeBuilder.createCallNode(
+      s"__Runtime.TO_STRING(${args.mkString(",")})",
+      s"__Runtime.TO_STRING",
+      DispatchTypes.STATIC_DISPATCH,
+      astNodeBuilder.lineAndColumn(templateLiteralNode)
+    )
 
     val callOrder    = new OrderTracker()
     val callArgIndex = new OrderTracker()
-    runtimeNode.getArgs.forEach { arg =>
-      val argId = arg.accept(this)
+    args.foreach { expression =>
+      val argId = expression.accept(this)
       astEdgeBuilder.addAstEdge(argId, callId, callOrder)
       astEdgeBuilder.addArgumentEdge(argId, callId, callArgIndex)
-    }
 
+    }
     callId
   }
 
