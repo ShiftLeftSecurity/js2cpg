@@ -14,6 +14,8 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
     with NpmEnvironment {
 
   private val logger = LoggerFactory.getLogger(getClass)
+        
+  private val NODE_OPTIONS: Map[String, String] = Map("NODE_OPTIONS" -> "--openssl-legacy-provider")
 
   override def shouldRun(): Boolean = config.vueTranspiling && isVueProject
 
@@ -39,7 +41,7 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
       val vue     = Paths.get(projectPath.toString, "node_modules", ".bin", "vue-cli-service")
       val command = s"$vue build --dest $tmpTranspileDir --mode development --no-clean"
       logger.debug(s"\t+ Vue.js transpiling $projectPath to $tmpTranspileDir")
-      ExternalCommand.run(command, projectPath.toString) match {
+      ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
         case Success(result) =>
           logger.debug(s"\t+ Vue.js transpiling finished. $result")
         case Failure(exception) =>
