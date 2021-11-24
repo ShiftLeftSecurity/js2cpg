@@ -391,14 +391,18 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     modifier
   }
 
-  def createBlockNode(node: Node): NewBlock = {
+  def createBlockNode(node: Node, isProgramBlock: Boolean = false): NewBlock = {
     val lineColumn = lineAndColumn(node)
     val line       = lineColumn.line
     val column     = lineColumn.column
-    val code       = sanitizeCode(node)
+    val code = if (isProgramBlock) {
+      sanitizeCode(node)
+    } else {
+      shortenCode(sanitizeCode(node))
+    }
     val block = NewBlock()
       .typeFullName(Defines.ANY.label)
-      .code(shortenCode(code))
+      .code(code)
       .lineNumber(line)
       .columnNumber(column)
     diffGraph.addNode(block)
