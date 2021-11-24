@@ -8,6 +8,7 @@ import io.shiftleft.js2cpg.cpg.datastructures.scope.{MethodScope, Scope}
 import io.shiftleft.js2cpg.cpg.passes.Defines
 import io.shiftleft.js2cpg.parser.JsSource
 import io.shiftleft.passes.DiffGraph
+import org.apache.commons.lang.StringUtils
 
 class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
                                       private val astEdgeBuilder: AstEdgeBuilder,
@@ -21,6 +22,10 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     case code: HasCode => code.code
     case _             => ""
   }
+
+  private val MAX_CODE_LENGTH: Int = 1000
+
+  private def shortenCode(code: String): String = StringUtils.abbreviate(code, MAX_CODE_LENGTH)
 
   def lineAndColumn(node: Node): LineAndColumn = {
     LineAndColumn(source.getLine(node), source.getColumn(node))
@@ -45,7 +50,7 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     val column     = lineColumn.column
     val param = NewMethodParameterIn()
       .name(name)
-      .code(code)
+      .code(shortenCode(code))
       .evaluationStrategy(EvaluationStrategies.BY_VALUE)
       .lineNumber(line)
       .columnNumber(column)
@@ -80,7 +85,7 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
       .parserTypeName(parserNode.getClass.getSimpleName)
       .lineNumber(lineColumn.line)
       .columnNumber(lineColumn.column)
-      .code(code)
+      .code(shortenCode(code))
       .typeFullName(Defines.ANY.label)
 
     diffGraph.addNode(unknown)
@@ -113,7 +118,7 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
 
     val identifier = NewIdentifier()
       .name(name)
-      .code(name)
+      .code(shortenCode(name))
       .lineNumber(line)
       .columnNumber(column)
       .typeFullName(Defines.ANY.label)
@@ -128,7 +133,7 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     val column     = lineColumn.column
 
     val fieldIdentifier = NewFieldIdentifier()
-      .code(name)
+      .code(shortenCode(name))
       .canonicalName(name)
       .lineNumber(line)
       .columnNumber(column)
@@ -160,7 +165,7 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     val line   = lineAndColumn.line
     val column = lineAndColumn.column
     val call = NewCall()
-      .code(code)
+      .code(shortenCode(code))
       .name(methodName)
       .methodFullName(fullName)
       .dispatchType(DispatchTypes.STATIC_DISPATCH)
@@ -239,7 +244,7 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     val line   = lineAndColumn.line
     val column = lineAndColumn.column
     val literal = NewLiteral()
-      .code(code)
+      .code(shortenCode(code))
       .typeFullName(Defines.ANY.label)
       .lineNumber(line)
       .columnNumber(column)
@@ -290,7 +295,7 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     val line   = lineAndColumn.line
     val column = lineAndColumn.column
     val call = NewCall()
-      .code(code)
+      .code(shortenCode(code))
       .name(callName)
       .methodFullName(callName)
       .dispatchType(dispatchType)
@@ -337,7 +342,7 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     val line       = lineColumn.line
     val column     = lineColumn.column
     val methodRef = NewMethodRef()
-      .code(code)
+      .code(shortenCode(code))
       .methodFullName(methodFullName)
       .typeFullName(methodFullName)
       .lineNumber(line)
@@ -351,7 +356,7 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     val line       = lineColumn.line
     val column     = lineColumn.column
     val typeRef = NewTypeRef()
-      .code(code)
+      .code(shortenCode(code))
       .typeFullName(typeFullName)
       .lineNumber(line)
       .columnNumber(column)
@@ -370,7 +375,7 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     val method = NewMethod()
       .name(methodName)
       .filename(source.filePath)
-      .code(code)
+      .code(shortenCode(code))
       .fullName(methodFullName)
       .isExternal(false)
       .lineNumber(line)
@@ -386,11 +391,15 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     modifier
   }
 
-  def createBlockNode(node: Node): NewBlock = {
+  def createBlockNode(node: Node, isProgramBlock: Boolean = false): NewBlock = {
     val lineColumn = lineAndColumn(node)
     val line       = lineColumn.line
     val column     = lineColumn.column
-    val code       = sanitizeCode(node)
+    val code = if (isProgramBlock) {
+      sanitizeCode(node)
+    } else {
+      shortenCode(sanitizeCode(node))
+    }
     val block = NewBlock()
       .typeFullName(Defines.ANY.label)
       .code(code)
@@ -406,7 +415,7 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     val code   = "RET"
 
     val ret = NewMethodReturn()
-      .code(code)
+      .code(shortenCode(code))
       .evaluationStrategy(EvaluationStrategies.BY_VALUE)
       .typeFullName(Defines.ANY.label)
       .lineNumber(line)
@@ -436,7 +445,7 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     val jumpTarget = NewJumpTarget()
       .parserTypeName(caseNode.getClass.getSimpleName)
       .name(if (caseNode.toString().startsWith("case")) "case" else "default")
-      .code(caseNode.toString())
+      .code(shortenCode(caseNode.toString()))
     diffGraph.addNode(jumpTarget)
     jumpTarget
   }
@@ -444,14 +453,14 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
   def createControlStructureNode(node: Node, controlStructureType: String): NewControlStructure = {
     val controlStructure = NewControlStructure()
       .controlStructureType(controlStructureType)
-      .code(source.getString(node))
+      .code(shortenCode(source.getString(node)))
     diffGraph.addNode(controlStructure)
     controlStructure
   }
 
   def createMemberNode(name: String, node: Node, dynamicTypeOption: Option[String]): NewMember = {
     val member = NewMember()
-      .code(source.getString(node))
+      .code(shortenCode(source.getString(node)))
       .name(name)
       .typeFullName(Defines.ANY.label)
       .dynamicTypeHintFullName(dynamicTypeOption.toList)
@@ -464,7 +473,7 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
                       closureBindingId: Option[String] = None): NewLocal = {
     val code = "N/A"
     val local = NewLocal()
-      .code(code)
+      .code(shortenCode(code))
       .name(name)
       .typeFullName(typeFullName)
       .closureBindingId(closureBindingId)
@@ -478,7 +487,7 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     val column     = lineColumn.column
     val code       = sanitizeCode(node)
     val ret = NewReturn()
-      .code(code)
+      .code(shortenCode(code))
       .lineNumber(line)
       .columnNumber(column)
     diffGraph.addNode(ret)

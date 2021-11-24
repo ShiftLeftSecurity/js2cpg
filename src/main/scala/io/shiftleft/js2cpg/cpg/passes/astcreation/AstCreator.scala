@@ -331,7 +331,7 @@ class AstCreator(diffGraph: DiffGraph.Builder, source: JsSource, usedIdentNodes:
     methodAstParentStack.push(methodId)
 
     val block   = functionNode.getBody
-    val blockId = astNodeBuilder.createBlockNode(block)
+    val blockId = astNodeBuilder.createBlockNode(block, functionNode.isProgram)
     astEdgeBuilder.addAstEdge(blockId, methodId, 1)
 
     val capturingRefId =
