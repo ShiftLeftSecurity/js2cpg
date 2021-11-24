@@ -19,7 +19,7 @@ object TsConfigJsonParser {
         val moduleOption = (json \ "compilerOptions" \ "module")
           .asOpt[String]
         moduleOption match {
-          case Some(module) if module == ESNEXT || module == ES2020 => ES2020
+          case Some(module) if module == ESNEXT || module == ES2020 => ESNEXT
           case _                                                    => DEFAULT_MODULE
         }
       case Failure(exception) =>
