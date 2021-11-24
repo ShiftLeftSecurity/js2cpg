@@ -45,6 +45,18 @@ trait NpmEnvironment {
     }
   }
 
+  protected def nodeVersion(): Option[String] = {
+    logger.debug(s"\t+ Checking node ...")
+    ExternalCommand.run("node -v", projectPath.toString) match {
+      case Success(result) =>
+        logger.debug(s"\t+ node is available: $result")
+        Some(result)
+      case Failure(_) =>
+        logger.error("\t- node is not installed.")
+        None
+    }
+  }
+
   protected def valid(): Boolean = isValid match {
     case Some(value) =>
       value
