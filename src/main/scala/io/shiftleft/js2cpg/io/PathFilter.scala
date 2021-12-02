@@ -39,13 +39,9 @@ case class PathFilter(rootPath: Path,
     * @param file the file to inspect
     * @return true iff file is a regular file and has the appropriate extension
     */
-  private def acceptFile(file: File): Boolean = extensions match {
-    case Nil =>
-      file.isRegularFile && !file.extension.contains(DTS_SUFFIX)
-    case exts =>
-      file.isRegularFile &&
+  private def acceptFile(file: File): Boolean = file.isRegularFile &&
         !file.extension.contains(DTS_SUFFIX) &&
-        exts.exists(file.toString.endsWith)
+        (extensions.isEmpty || file.extension.exists(extensions.contains))
   }
 
   private def filterFile(file: Path): FilterResult = {
