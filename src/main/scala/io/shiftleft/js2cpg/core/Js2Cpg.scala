@@ -203,6 +203,7 @@ class Js2Cpg {
 
     new AstCreationPass(File(config.srcDir), jsFilesWithRoot, cpg, functionKeyPool, report)
       .createAndApply()
+    new CallLinkerPass(cpg).createAndApply()
 
     new JsMetaDataPass(cpg, metaDataKeyPool, hash).createAndApply()
     new BuiltinTypesPass(cpg, builtinTypesKeyPool).createAndApply()
