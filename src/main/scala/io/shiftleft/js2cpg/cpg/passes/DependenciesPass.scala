@@ -17,7 +17,7 @@ class DependenciesPass(cpg: Cpg, config: Config, keyPool: KeyPool)
 
     val packagesJsons =
       (FileUtils
-        .getFileTree(Paths.get(config.srcDir), config, ".json")
+        .getFileTree(Paths.get(config.srcDir), config, List(".json"))
         .filter(_.toString.endsWith(PackageJsonParser.PACKAGE_JSON_FILENAME)) :+
         config.createPathForPackageJson()).toSet
 

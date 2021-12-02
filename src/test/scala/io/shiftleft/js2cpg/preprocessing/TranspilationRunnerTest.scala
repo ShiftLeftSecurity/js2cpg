@@ -44,7 +44,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
                                   core.Config(tsTranspiling = false)).execute()
 
           val transpiledJsFiles = FileUtils
-            .getFileTree(transpileOutDir.path, core.Config(), JS_SUFFIX)
+            .getFileTree(transpileOutDir.path, core.Config(), List(JS_SUFFIX))
             .map(f => (f, transpileOutDir.path))
 
           val expectedJsFiles = List(((transpileOutDir / "foo.js").path, transpileOutDir.path))
@@ -81,10 +81,10 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         File.usingTemporaryDirectory() { transpileOutDir: File =>
           val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
           val jsFiles = FileUtils
-            .getFileTree(tmpProjectPath.path, core.Config(), JS_SUFFIX)
+            .getFileTree(tmpProjectPath.path, core.Config(), List(JS_SUFFIX))
             .map(f => (f, tmpProjectPath.path))
           val tsFiles = FileUtils
-            .getFileTree(tmpProjectPath.path, core.Config(), TS_SUFFIX)
+            .getFileTree(tmpProjectPath.path, core.Config(), List(TS_SUFFIX))
             .map(f => (f, tmpProjectPath.path))
 
           val expectedTsFiles = List(((tmpProjectPath / "a.ts").path, tmpProjectPath.path),
@@ -100,7 +100,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
                                   core.Config(babelTranspiling = false)).execute()
 
           val transpiledJsFiles = FileUtils
-            .getFileTree(transpileOutDir.path, core.Config(), JS_SUFFIX)
+            .getFileTree(transpileOutDir.path, core.Config(), List(JS_SUFFIX))
             .map(f => (f, transpileOutDir.path))
 
           val jsFilesAfterTranspilation = jsFiles ++ transpiledJsFiles
@@ -142,7 +142,27 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple multi-project Typescript project" in {
-      val projectPath = getClass.getResource("/multi").toURI
+      val projectPath = getClass.getResource("/multisimple").toURI
+      File.usingTemporaryDirectory() { tmpDir: File =>
+        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+
+        val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
+        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath))
+
+        val cpg =
+          CpgLoader
+            .loadFromOverflowDb(
+              CpgLoaderConfig.withDefaults.withOverflowConfig(
+                Config.withDefaults.withStorageLocation(cpgPath)))
+        fileNames(cpg) should contain theSameElementsAs List("a.js",
+                                                             "b.ts",
+                                                             s"a${java.io.File.separator}a.ts",
+                                                             s"b${java.io.File.separator}b.js")
+      }
+    }
+
+    "generate js files correctly for a multi-project Typescript project (using solution config)" in {
+      val projectPath = getClass.getResource("/multisolutionconfig").toURI
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
@@ -160,13 +180,13 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
       }
     }
 
-    "generate js files correctly for a simple Vue.js project" in {
-      val projectPath = getClass.getResource("/vue").toURI
+    "generate js files correctly for a simple Vue.js 2 project" in {
+      val projectPath = getClass.getResource("/vue2").toURI
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-babel"))
+        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath))
 
         val cpg =
           CpgLoader
@@ -175,6 +195,25 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
                 Config.withDefaults.withStorageLocation(cpgPath)))
         fileNames(cpg) should contain theSameElementsAs List(s"src${java.io.File.separator}main.js",
                                                              s"src${java.io.File.separator}App.vue")
+      }
+    }
+
+    "generate js files correctly for a simple Vue.js 3 project" in {
+      val projectPath = getClass.getResource("/vue3").toURI
+      File.usingTemporaryDirectory() { tmpDir: File =>
+        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+
+        val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
+        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath))
+
+        val cpg =
+          CpgLoader
+            .loadFromOverflowDb(
+              CpgLoaderConfig.withDefaults.withOverflowConfig(
+                Config.withDefaults.withStorageLocation(cpgPath)))
+        fileNames(cpg) should contain theSameElementsAs List(
+          s"src${java.io.File.separator}views${java.io.File.separator}AboutPage.vue",
+          s"src${java.io.File.separator}App.vue")
       }
     }
 

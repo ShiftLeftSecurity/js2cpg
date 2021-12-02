@@ -24,15 +24,22 @@ object FileUtils {
   // we only want to print excluded files and folders once (Path -> Reason as String)
   private val excludedPaths = TrieMap.empty[Path, String]
 
+  private def isDirectory(path: Path): Boolean =
+    if (path == null || !Files.exists(path)) false
+    else Files.isDirectory(path)
+
   def md5(files: Seq[Path]): String = {
     val md = MessageDigest.getInstance("MD5")
-    files.sortBy(_.toRealPath().toString).foreach { path =>
-      val dis = new DigestInputStream(Files.newInputStream(path), md)
-      while (dis.available() > 0) {
-        dis.read()
+    files
+      .filterNot(p => isDirectory(p.toRealPath()))
+      .sortBy(_.toRealPath().toString)
+      .foreach { path =>
+        val dis = new DigestInputStream(Files.newInputStream(path), md)
+        while (dis.available() > 0) {
+          dis.read()
+        }
+        dis.close()
       }
-      dis.close()
-    }
     md.digest().map(b => String.format("%02x", Byte.box(b))).mkString
   }
 
@@ -49,11 +56,16 @@ object FileUtils {
     * occur during transpilation on the Windows platform and/or CI environments.
     */
   def cleanPath(sourceFileName: String): String = {
-    val replaceDots = sourceFileName.replace("../", "")
-    if ("""file:///.:.*""".r.matches(replaceDots)) {
-      replaceDots.replace("file:///", "")
+    val replacedDots = sourceFileName.replace("../", "")
+    val replacedFile = if ("""file:///.:.*""".r.matches(replacedDots)) {
+      replacedDots.replace("file:///", "")
     } else {
-      replaceDots
+      replacedDots
+    }
+    if (replacedFile.matches(".*\\.vue\\?.*$")) {
+      replacedFile.substring(0, replacedFile.lastIndexOf(".vue") + 4)
+    } else {
+      replacedFile
     }
   }
 
@@ -81,10 +93,9 @@ object FileUtils {
 
   def getFileTree(rootPath: Path,
                   config: Config,
-                  extension: String,
+                  extensions: List[String],
                   filterIgnoredFiles: Boolean = true): List[Path] = {
-    val fileCollector = FileCollector(
-      PathFilter(rootPath, config, filterIgnoredFiles, Some(extension)))
+    val fileCollector = FileCollector(PathFilter(rootPath, config, filterIgnoredFiles, extensions))
     Files.walkFileTree(rootPath, fileCollector)
     excludedPaths.addAll(fileCollector.excludedPaths)
     fileCollector.files
@@ -97,7 +108,7 @@ object FileUtils {
   )(implicit
     copyOptions: File.CopyOptions = File.CopyOptions(false)): File = {
     val fileCollector = FileCollector(
-      PathFilter(from.path, config, filterIgnoredFiles = false, None))
+      PathFilter(from.path, config, filterIgnoredFiles = false, extensions = List.empty))
     if (from.isDirectory) {
       Files.walkFileTree(
         from.path,

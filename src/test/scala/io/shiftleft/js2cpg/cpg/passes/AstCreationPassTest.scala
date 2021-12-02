@@ -13,7 +13,6 @@ import io.shiftleft.codepropertygraph.generated.{
   Operators,
   PropertyNames
 }
-import io.shiftleft.codepropertygraph.generated.nodes.TypeDecl
 import io.shiftleft.js2cpg.core.{Config, Report}
 import io.shiftleft.js2cpg.io.FileDefaults.JS_SUFFIX
 import io.shiftleft.js2cpg.io.FileUtils
@@ -139,21 +138,104 @@ class AstCreationPassTest extends AbstractPassTest {
       tmpReturn.checkProperty(PropertyNames.NAME, "_tmp_0")
     }
 
-    "have correct structure for runtime node" in AstFixture(f"`$${x + 1}`") { cpg =>
+    "have correct structure for untagged runtime node in call" in AstFixture(
+      s"foo(`Hello $${world}!`)") { cpg =>
       def method = cpg.method.nameExact(":program")
       method.checkNodeCount(1)
 
       def methodBlock = method.expandAst(NodeTypes.BLOCK)
       methodBlock.checkNodeCount(1)
 
-      def call =
-        methodBlock.expandAst(NodeTypes.CALL).expandAst(NodeTypes.CALL).expandAst(NodeTypes.CALL)
+      def fooCall = methodBlock.expandAst(NodeTypes.CALL)
+      fooCall.checkNodeCount(1)
+      fooCall.checkProperty(PropertyNames.CODE, """foo(__Runtime.TO_STRING("Hello ",world,"!"))""")
+
+      def templateCall = fooCall.expandAst(NodeTypes.CALL)
+      templateCall.checkNodeCount(1)
+      templateCall.checkProperty(PropertyNames.NAME, "__Runtime.TO_STRING")
+      templateCall.checkProperty(PropertyNames.CODE, """__Runtime.TO_STRING("Hello ",world,"!")""")
+
+      def argument1 = templateCall.expandAst().filter(PropertyNames.ORDER, 1)
+      argument1.checkNodeCount(1)
+      argument1.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
+      argument1.checkProperty(PropertyNames.CODE, "\"Hello \"")
+
+      def argument2 = templateCall.expandAst().filter(PropertyNames.ORDER, 2)
+      argument2.checkNodeCount(1)
+      argument2.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
+      argument2.checkProperty(PropertyNames.CODE, "world")
+
+      def argument3 = templateCall.expandAst().filter(PropertyNames.ORDER, 3)
+      argument3.checkNodeCount(1)
+      argument3.checkProperty(PropertyNames.ARGUMENT_INDEX, 3)
+      argument3.checkProperty(PropertyNames.CODE, "\"!\"")
+    }
+
+    "have correct structure for untagged runtime node" in AstFixture(s"`$${x + 1}`") { cpg =>
+      def method = cpg.method.nameExact(":program")
+      method.checkNodeCount(1)
+
+      def methodBlock = method.expandAst(NodeTypes.BLOCK)
+      methodBlock.checkNodeCount(1)
+
+      def call = methodBlock.expandAst(NodeTypes.CALL)
       call.checkNodeCount(1)
       call.checkProperty(PropertyNames.NAME, "__Runtime.TO_STRING")
+      call.checkProperty(PropertyNames.CODE, "__Runtime.TO_STRING(\"\",x + 1,\"\")")
 
-      def argument = call.expandAst(NodeTypes.CALL)
-      argument.checkNodeCount(1)
-      argument.checkProperty(PropertyNames.CODE, "x + 1")
+      def argument1 = call.expandAst().filter(PropertyNames.ORDER, 1)
+      argument1.checkNodeCount(1)
+      argument1.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
+      argument1.checkProperty(PropertyNames.CODE, "\"\"")
+
+      def argument2 = call.expandAst().filter(PropertyNames.ORDER, 2)
+      argument2.checkNodeCount(1)
+      argument2.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
+      argument2.checkProperty(PropertyNames.CODE, "x + 1")
+
+      def argument3 = call.expandAst().filter(PropertyNames.ORDER, 3)
+      argument3.checkNodeCount(1)
+      argument3.checkProperty(PropertyNames.ARGUMENT_INDEX, 3)
+      argument3.checkProperty(PropertyNames.CODE, "\"\"")
+    }
+
+    "have correct structure for tagged runtime node" in AstFixture(s"String.raw`../$${42}\\..`") {
+      cpg =>
+        def method = cpg.method.nameExact(":program")
+        method.checkNodeCount(1)
+
+        def methodBlock = method.expandAst(NodeTypes.BLOCK)
+        methodBlock.checkNodeCount(1)
+
+        def rawCall = methodBlock.expandAst(NodeTypes.CALL)
+        rawCall.checkNodeCount(1)
+        rawCall.checkProperty(PropertyNames.CODE,
+                              """String.raw(__Runtime.TO_STRING("../","\.."), 42)""")
+
+        def rawCallArg = rawCall.expandAst(NodeTypes.LITERAL)
+        rawCallArg.checkNodeCount(1)
+        rawCallArg.checkProperty(PropertyNames.ORDER, 3)
+        rawCallArg.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
+        rawCallArg.checkProperty(PropertyNames.CODE, "42")
+
+        def runtimeCall =
+          rawCall.expandAst(NodeTypes.CALL).filter(PropertyNames.NAME, "__Runtime.TO_STRING")
+        runtimeCall.checkNodeCount(1)
+        runtimeCall.checkProperty(PropertyNames.ORDER, 2)
+        runtimeCall.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
+        runtimeCall.checkProperty(PropertyNames.CODE, """__Runtime.TO_STRING("../","\..")""")
+
+        def argument1 =
+          runtimeCall.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "\"../\"")
+        argument1.checkNodeCount(1)
+        argument1.checkProperty(PropertyNames.ORDER, 1)
+        argument1.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
+
+        def argument2 =
+          runtimeCall.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "\"\\..\"")
+        argument2.checkNodeCount(1)
+        argument2.checkProperty(PropertyNames.ORDER, 2)
+        argument2.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
     }
 
     "have correct structure for try" in AstFixture("""
@@ -2484,7 +2566,9 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct name when using external source files" in AstFixture(
-      FileUtils.getFileTree(Paths.get("src/test/resources/closurebinding"), Config(), JS_SUFFIX)
+      FileUtils.getFileTree(Paths.get("src/test/resources/closurebinding"),
+                            Config(),
+                            List(JS_SUFFIX))
     ) { (file, cpg) =>
       def fileNode = cpg.file
       fileNode.checkNodeCount(1)

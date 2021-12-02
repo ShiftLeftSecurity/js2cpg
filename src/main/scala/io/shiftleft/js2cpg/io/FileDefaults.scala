@@ -12,6 +12,8 @@ object FileDefaults {
 
   val JS_SUFFIX: String = ".js"
 
+  val MJS_SUFFIX: String = ".mjs"
+
   val VUE_SUFFIX: String = ".vue"
 
   val HTML_SUFFIX: String = ".html"
@@ -44,7 +46,8 @@ object FileDefaults {
     ".*webpack\\..*\\.js".r,
     ".*vue\\.config\\.js".r,
     ".*babel\\.config\\.js".r,
-    ".*chunk-vendors\\.js".r,
+    ".*chunk-vendors.*\\.js".r, // commonly found in webpack / vue.js projects
+    ".*app~.*\\.js".r, // commonly found in webpack / vue.js projects
     ".*\\.chunk\\.js".r, // see: https://github.com/ShiftLeftSecurity/product/issues/8197
     ".*\\.babelrc.*".r,
     ".*\\.eslint.*".r,

@@ -70,7 +70,7 @@ class Js2Cpg {
 
   private def findProjects(projectDir: File, config: Config): List[Path] = {
     val allProjects = FileUtils
-      .getFileTree(projectDir.path, config, ".json")
+      .getFileTree(projectDir.path, config, List(".json"))
       .filter(_.toString.endsWith(PackageJsonParser.PACKAGE_JSON_FILENAME))
       .map(_.getParent)
 
@@ -97,7 +97,7 @@ class Js2Cpg {
                              dir: Path,
                              config: Config): List[(Path, Path)] = {
     val transpiledJsFiles = FileUtils
-      .getFileTree(dir, config, JS_SUFFIX)
+      .getFileTree(dir, config, List(JS_SUFFIX, MJS_SUFFIX))
       .map(f => (f, dir))
     jsFiles.filterNot {
       case (f, rootDir) =>
@@ -116,7 +116,7 @@ class Js2Cpg {
     FileUtils.logAndClearExcludedPaths()
 
     val jsFilesBeforeTranspiling = FileUtils
-      .getFileTree(newTmpProjectDir.path, config, JS_SUFFIX)
+      .getFileTree(newTmpProjectDir.path, config, List(JS_SUFFIX, MJS_SUFFIX))
       .map(f => (f, newTmpProjectDir.path))
 
     File.usingTemporaryDirectory("js2cpgTranspileOut") { tmpTranspileDir =>
@@ -180,11 +180,9 @@ class Js2Cpg {
   }
 
   private def configFiles(config: Config, extensions: List[String]): List[(Path, Path)] =
-    extensions.flatMap(
-      FileUtils
-        .getFileTree(File(config.srcDir).path, config, _, filterIgnoredFiles = false)
-        .map(f => (f, File(config.srcDir).path))
-    )
+    FileUtils
+      .getFileTree(File(config.srcDir).path, config, extensions, filterIgnoredFiles = false)
+      .map(f => (f, File(config.srcDir).path))
 
   private def generateCPG(config: Config, jsFilesWithRoot: List[(Path, Path)]): Unit = {
     val metaDataKeyPool     = new IntervalKeyPool(1, 100)
@@ -203,6 +201,7 @@ class Js2Cpg {
 
     new AstCreationPass(File(config.srcDir), jsFilesWithRoot, cpg, functionKeyPool, report)
       .createAndApply()
+    new CallLinkerPass(cpg).createAndApply()
 
     new JsMetaDataPass(cpg, metaDataKeyPool, hash).createAndApply()
     new BuiltinTypesPass(cpg, builtinTypesKeyPool).createAndApply()

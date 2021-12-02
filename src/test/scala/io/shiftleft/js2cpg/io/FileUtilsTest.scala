@@ -13,7 +13,7 @@ class FileUtilsTest extends AnyWordSpec with Matchers {
   "FileTree" should {
     "be correct for" in {
       FileUtils
-        .getFileTree(Paths.get("src/test/resources/hslnodejs"), Config(), JS_SUFFIX)
+        .getFileTree(Paths.get("src/test/resources/hslnodejs"), Config(), List(JS_SUFFIX))
         .size shouldBe 8
     }
 
@@ -28,7 +28,7 @@ class FileUtilsTest extends AnyWordSpec with Matchers {
         File.usingTemporaryDirectory() { targetDir: File =>
           val copiedDir = FileUtils.copyToDirectory(sourceDir, targetDir, Config())
 
-          val dirContent = FileUtils.getFileTree(copiedDir.path, Config(), JS_SUFFIX)
+          val dirContent = FileUtils.getFileTree(copiedDir.path, Config(), List(JS_SUFFIX))
 
           dirContent shouldBe empty
         }

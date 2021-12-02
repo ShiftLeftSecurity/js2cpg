@@ -10,8 +10,8 @@ object NpmEnvironment {
   // even if multiple transpilers require this specific environment.
   private var isValid: Option[Boolean] = None
 
-  val YARN_INSTALL = "yarn install --prefer-offline"
-  val NPM_INSTALL  = "npm install --prefer-offline --no-audit --progress=false"
+  val YARN_INSTALL = "yarn install --prefer-offline --ignore-scripts"
+  val NPM_INSTALL  = "npm install --prefer-offline --no-audit --progress=false --ignore-scripts"
 }
 
 trait NpmEnvironment {
@@ -42,6 +42,18 @@ trait NpmEnvironment {
       case Failure(exception) =>
         logger.debug(s"\t- Failed setting npm config: ${exception.getMessage}")
         false
+    }
+  }
+
+  protected def nodeVersion(): Option[String] = {
+    logger.debug(s"\t+ Checking node ...")
+    ExternalCommand.run("node -v", projectPath.toString) match {
+      case Success(result) =>
+        logger.debug(s"\t+ node is available: $result")
+        Some(result)
+      case Failure(_) =>
+        logger.error("\t- node is not installed.")
+        None
     }
   }
 
