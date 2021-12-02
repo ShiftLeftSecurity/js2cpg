@@ -31,7 +31,7 @@ object NuxtTranspiler {
       FileUtils
         .getFileTree(nuxtFolder,
                      config.copy(ignoredFiles = config.ignoredFiles :+ nuxtDistFolder),
-                     JS_SUFFIX)
+                     List(JS_SUFFIX))
         .map(f => (f, dir))
     } else { Nil }
   }

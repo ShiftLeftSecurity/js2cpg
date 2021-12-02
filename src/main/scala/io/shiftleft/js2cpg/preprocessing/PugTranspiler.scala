@@ -16,7 +16,7 @@ class PugTranspiler(override val config: Config, override val projectPath: Path)
   private val logger = LoggerFactory.getLogger(getClass)
 
   private def hasPugFiles: Boolean =
-    FileUtils.getFileTree(projectPath, config, PUG_SUFFIX).nonEmpty
+    FileUtils.getFileTree(projectPath, config, List(PUG_SUFFIX)).nonEmpty
 
   override def shouldRun(): Boolean = config.templateTranspiling && hasPugFiles
 

@@ -41,7 +41,7 @@ class TypescriptTranspiler(override val config: Config,
   private val tsc = Paths.get(projectPath.toString, "node_modules", ".bin", "tsc")
 
   private def hasTsFiles: Boolean =
-    FileUtils.getFileTree(projectPath, config, TS_SUFFIX).nonEmpty
+    FileUtils.getFileTree(projectPath, config, List(TS_SUFFIX)).nonEmpty
 
   override def shouldRun(): Boolean =
     config.tsTranspiling && (File(projectPath) / "tsconfig.json").exists && hasTsFiles && !isVueProject

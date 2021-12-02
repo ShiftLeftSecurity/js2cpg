@@ -2566,7 +2566,9 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct name when using external source files" in AstFixture(
-      FileUtils.getFileTree(Paths.get("src/test/resources/closurebinding"), Config(), JS_SUFFIX)
+      FileUtils.getFileTree(Paths.get("src/test/resources/closurebinding"),
+                            Config(),
+                            List(JS_SUFFIX))
     ) { (file, cpg) =>
       def fileNode = cpg.file
       fileNode.checkNodeCount(1)
