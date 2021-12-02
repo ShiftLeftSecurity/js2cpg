@@ -40,9 +40,8 @@ case class PathFilter(rootPath: Path,
     * @return true iff file is a regular file and has the appropriate extension
     */
   private def acceptFile(file: File): Boolean =
-      file.isRegularFile && !file.extension.contains(DTS_SUFFIX) &&
-        (extensions.isEmpty || file.extension.exists(extensions.contains))
-  }
+    file.isRegularFile && !file.extension.contains(DTS_SUFFIX) &&
+      (extensions.isEmpty || file.extension.exists(extensions.contains))
 
   private def filterFile(file: Path): FilterResult = {
     val relFile = rootPath.relativize(file)
