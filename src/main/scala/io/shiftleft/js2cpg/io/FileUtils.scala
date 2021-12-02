@@ -56,11 +56,16 @@ object FileUtils {
     * occur during transpilation on the Windows platform and/or CI environments.
     */
   def cleanPath(sourceFileName: String): String = {
-    val replaceDots = sourceFileName.replace("../", "")
-    if ("""file:///.:.*""".r.matches(replaceDots)) {
-      replaceDots.replace("file:///", "")
+    val replacedDots = sourceFileName.replace("../", "")
+    val replacedFile = if ("""file:///.:.*""".r.matches(replacedDots)) {
+      replacedDots.replace("file:///", "")
     } else {
-      replaceDots
+      replacedDots
+    }
+    if (replacedFile.matches(".*\\.vue\\?.*$")) {
+      replacedFile.substring(0, replacedFile.lastIndexOf(".vue") + 4)
+    } else {
+      replacedFile
     }
   }
 
