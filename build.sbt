@@ -80,9 +80,9 @@ lazy val commonSettings = Seq(
   ),
   libraryDependencies ++= Seq(
     "io.shiftleft"             %% "codepropertygraph" % cpgVersion,
-    "io.shiftleft"             %% "semanticcpg"       % cpgVersion,
-    "io.shiftleft"             %% "dataflowengineoss" % cpgVersion % Test,
-    "io.shiftleft"             %% "semanticcpg-tests" % cpgVersion % "compile->compile; test->test",
+    "io.shiftleft"             %% "semanticcpg"       % "1.3.440",
+    "io.joern"                 %% "dataflowengineoss" % "1.1.365",
+    "io.shiftleft"             %% "semanticcpg-tests" % "1.3.405" % "compile->compile; test->test",
     "com.github.scopt"         %% "scopt"             % "4.0.1",
     "org.graalvm.js"           % "js"                 % "21.3.0",
     "com.github.pathikrit"     %% "better-files"      % "3.9.1",

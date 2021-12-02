@@ -1,7 +1,7 @@
 package io.shiftleft.js2cpg.dataflow
 
+import io.joern.dataflowengineoss.language._
 import io.shiftleft.codepropertygraph.generated.EdgeTypes
-import io.shiftleft.dataflowengineoss.language._
 import io.shiftleft.semanticcpg.language._
 
 class JSDataFlowTest1 extends DataFlowCodeToCpgSuite {
