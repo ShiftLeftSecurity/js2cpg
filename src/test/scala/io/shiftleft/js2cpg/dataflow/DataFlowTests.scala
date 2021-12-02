@@ -439,14 +439,12 @@ class JSDataFlowTest16 extends DataFlowCodeToCpgSuite {
     def sink   = cpg.call.code("sink.*").argument(1).l
     def flows  = sink.reachableByFlows(source)
 
-    pendingUntilFixed {
-      flows.map(flowToResultPairs).toSet shouldBe Set(
-        List(("source()", Some(4)),
-             ("x = source()", Some(4)),
-             ("foo(x)", Some(5)),
-             ("foo(y)", Some(8)),
-             ("sink(y)", Some(9))))
-    }
+    flows.map(flowToResultPairs).toSet shouldBe Set(
+      List(("source()", Some(3)),
+           ("x = source()", Some(3)),
+           ("foo(x)", Some(4)),
+           ("foo(this, y)", Some(7)),
+           ("sink(y)", Some(8))))
   }
 }
 
@@ -466,16 +464,13 @@ class JSDataFlowTest17 extends DataFlowCodeToCpgSuite {
     def sink   = cpg.call.code("sink.*").argument(1).l
     def flows  = sink.reachableByFlows(source)
 
-    pendingUntilFixed {
-      flows.map(flowToResultPairs).toSet shouldBe Set(
-        List(("source()", Some(4)),
-             ("return source();", Some(4)),
-             ("int", Some(3)),
-             ("bar()", Some(8)),
-             ("y = bar()", Some(8)),
-             ("sink(y)", Some(9)))
-      )
-    }
+    flows.map(flowToResultPairs).toSet shouldBe Set(
+      List(("source()", Some(3)),
+           ("return source()", Some(3)),
+           ("RET", Some(2)),
+           ("bar()", Some(7)),
+           ("y = bar()", Some(7)),
+           ("sink(y)", Some(8))))
   }
 
   "Test 17.2 : allow using formal parameters as sink" in {
