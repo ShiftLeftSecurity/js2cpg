@@ -93,10 +93,9 @@ object FileUtils {
 
   def getFileTree(rootPath: Path,
                   config: Config,
-                  extension: String,
+                  extensions: List[String],
                   filterIgnoredFiles: Boolean = true): List[Path] = {
-    val fileCollector = FileCollector(
-      PathFilter(rootPath, config, filterIgnoredFiles, Some(extension)))
+    val fileCollector = FileCollector(PathFilter(rootPath, config, filterIgnoredFiles, extensions))
     Files.walkFileTree(rootPath, fileCollector)
     excludedPaths.addAll(fileCollector.excludedPaths)
     fileCollector.files
@@ -109,7 +108,7 @@ object FileUtils {
   )(implicit
     copyOptions: File.CopyOptions = File.CopyOptions(false)): File = {
     val fileCollector = FileCollector(
-      PathFilter(from.path, config, filterIgnoredFiles = false, None))
+      PathFilter(from.path, config, filterIgnoredFiles = false, extensions = List.empty))
     if (from.isDirectory) {
       Files.walkFileTree(
         from.path,

@@ -11,7 +11,7 @@ import scala.util.{Failure, Try}
 case class PathFilter(rootPath: Path,
                       config: Config,
                       filterIgnoredFiles: Boolean,
-                      extension: Option[String])
+                      extensions: List[String])
     extends (Path => FilterResult) {
 
   private val logger = LoggerFactory.getLogger(PathFilter.getClass)
@@ -39,12 +39,9 @@ case class PathFilter(rootPath: Path,
     * @param file the file to inspect
     * @return true iff file is a regular file and has the appropriate extension
     */
-  private def acceptFile(file: File): Boolean = extension match {
-    case Some(ext) =>
-      file.isRegularFile && !file.extension.contains(DTS_SUFFIX) && file.toString.endsWith(ext)
-    case None =>
-      file.isRegularFile && !file.extension.contains(DTS_SUFFIX)
-  }
+  private def acceptFile(file: File): Boolean =
+    file.isRegularFile && !file.extension.contains(DTS_SUFFIX) &&
+      (extensions.isEmpty || file.extension.exists(extensions.contains))
 
   private def filterFile(file: Path): FilterResult = {
     val relFile = rootPath.relativize(file)

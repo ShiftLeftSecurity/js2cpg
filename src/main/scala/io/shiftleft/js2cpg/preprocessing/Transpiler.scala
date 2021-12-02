@@ -38,7 +38,7 @@ trait Transpiler {
   protected val projectPath: Path
 
   private def hasVueFiles: Boolean =
-    FileUtils.getFileTree(projectPath, config, VUE_SUFFIX).nonEmpty
+    FileUtils.getFileTree(projectPath, config, List(VUE_SUFFIX)).nonEmpty
 
   protected def isVueProject: Boolean = {
     val hasVueDep =

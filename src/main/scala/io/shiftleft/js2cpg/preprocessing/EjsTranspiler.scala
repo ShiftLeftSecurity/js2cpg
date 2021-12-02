@@ -24,7 +24,7 @@ class EjsTranspiler(override val config: Config, override val projectPath: Path)
   private lazy val ejsFiles: List[Path] = allEjsFiles()
 
   private def allEjsFiles(): List[Path] =
-    FileUtils.getFileTree(projectPath, config, EJS_SUFFIX)
+    FileUtils.getFileTree(projectPath, config, List(EJS_SUFFIX))
 
   private def offset(str: String): Int =
     (str.trim.linesIterator.length - str.linesIterator.length) + 1

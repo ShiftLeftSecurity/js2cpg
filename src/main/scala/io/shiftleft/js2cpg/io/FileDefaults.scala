@@ -12,6 +12,8 @@ object FileDefaults {
 
   val JS_SUFFIX: String = ".js"
 
+  val MJS_SUFFIX: String = ".mjs"
+
   val VUE_SUFFIX: String = ".vue"
 
   val HTML_SUFFIX: String = ".html"

@@ -97,7 +97,7 @@ class TranspilationRunner(projectPath: Path,
         }
 
         FileUtils
-          .getFileTree(slPrivateDir.path, config, JS_SUFFIX)
+          .getFileTree(slPrivateDir.path, config, List(JS_SUFFIX, MJS_SUFFIX))
           .map(f => (f, slPrivateDir.path))
       } else List.empty
     }

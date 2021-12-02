@@ -44,7 +44,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
                                   core.Config(tsTranspiling = false)).execute()
 
           val transpiledJsFiles = FileUtils
-            .getFileTree(transpileOutDir.path, core.Config(), JS_SUFFIX)
+            .getFileTree(transpileOutDir.path, core.Config(), List(JS_SUFFIX))
             .map(f => (f, transpileOutDir.path))
 
           val expectedJsFiles = List(((transpileOutDir / "foo.js").path, transpileOutDir.path))
@@ -81,10 +81,10 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         File.usingTemporaryDirectory() { transpileOutDir: File =>
           val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
           val jsFiles = FileUtils
-            .getFileTree(tmpProjectPath.path, core.Config(), JS_SUFFIX)
+            .getFileTree(tmpProjectPath.path, core.Config(), List(JS_SUFFIX))
             .map(f => (f, tmpProjectPath.path))
           val tsFiles = FileUtils
-            .getFileTree(tmpProjectPath.path, core.Config(), TS_SUFFIX)
+            .getFileTree(tmpProjectPath.path, core.Config(), List(TS_SUFFIX))
             .map(f => (f, tmpProjectPath.path))
 
           val expectedTsFiles = List(((tmpProjectPath / "a.ts").path, tmpProjectPath.path),
@@ -100,7 +100,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
                                   core.Config(babelTranspiling = false)).execute()
 
           val transpiledJsFiles = FileUtils
-            .getFileTree(transpileOutDir.path, core.Config(), JS_SUFFIX)
+            .getFileTree(transpileOutDir.path, core.Config(), List(JS_SUFFIX))
             .map(f => (f, transpileOutDir.path))
 
           val jsFilesAfterTranspilation = jsFiles ++ transpiledJsFiles
