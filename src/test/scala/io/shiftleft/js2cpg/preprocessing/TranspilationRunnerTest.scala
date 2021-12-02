@@ -180,8 +180,8 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
       }
     }
 
-    "generate js files correctly for a simple Vue.js project" in {
-      val projectPath = getClass.getResource("/vue").toURI
+    "generate js files correctly for a simple Vue.js 2 project" in {
+      val projectPath = getClass.getResource("/vue2").toURI
       File.usingTemporaryDirectory() { tmpDir: File =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
@@ -195,6 +195,25 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
                 Config.withDefaults.withStorageLocation(cpgPath)))
         fileNames(cpg) should contain theSameElementsAs List(s"src${java.io.File.separator}main.js",
                                                              s"src${java.io.File.separator}App.vue")
+      }
+    }
+
+    "generate js files correctly for a simple Vue.js 3 project" in {
+      val projectPath = getClass.getResource("/vue3").toURI
+      File.usingTemporaryDirectory() { tmpDir: File =>
+        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+
+        val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
+        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath))
+
+        val cpg =
+          CpgLoader
+            .loadFromOverflowDb(
+              CpgLoaderConfig.withDefaults.withOverflowConfig(
+                Config.withDefaults.withStorageLocation(cpgPath)))
+        fileNames(cpg) should contain theSameElementsAs List(
+          s"src${java.io.File.separator}views${java.io.File.separator}AboutPage.vue",
+          s"src${java.io.File.separator}App.vue")
       }
     }
 
