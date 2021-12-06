@@ -48,7 +48,7 @@ class JSDataFlowTest1 extends DataFlowCodeToCpgSuite {
       | };
       """.stripMargin
 
-  "Test 1: flow from function call read to multiple versions of the same variable" in {
+  "Flow from function call read to multiple versions of the same variable" in {
     def source = cpg.identifier.name("sz")
     def sink   = cpg.call.code("read.*")
     def flows  = sink.reachableByFlows(source)
@@ -85,7 +85,7 @@ class JSDataFlowTest2 extends DataFlowCodeToCpgSuite {
       | };
       """.stripMargin
 
-  "Test 3: flow from function call argument" in {
+  "Flow from function call argument" in {
     implicit val callResolver: NoResolve.type = NoResolve
     def source                                = cpg.identifier.name("a")
     def sink                                  = cpg.call.code("foo.*").argument
@@ -112,7 +112,7 @@ class JSDataFlowTest3 extends DataFlowCodeToCpgSuite {
       | };
       """.stripMargin
 
-  "Test 4: flow chains from x to a" in {
+  "Flow chains from x to a" in {
     def source = cpg.identifier.name("a")
     def sink   = cpg.identifier.name("x")
     def flows  = sink.reachableByFlows(source)
@@ -136,7 +136,7 @@ class JSDataFlowTest4 extends DataFlowCodeToCpgSuite {
       | };
       """.stripMargin
 
-  "Test 5: flow from method return to a" in {
+  "Flow from method return to a" in {
     def source = cpg.identifier.name("a")
     def sink   = cpg.method(".*flow").ast.isReturn
     def flows  = sink.reachableByFlows(source)
@@ -170,7 +170,7 @@ class JSDataFlowTest5 extends DataFlowCodeToCpgSuite {
       | }
       """.stripMargin
 
-  "Test 6: flow with nested if-statements from method return to a" in {
+  "Flow with nested if-statements from method return to a" in {
     def source = cpg.call.code("a < 10").argument.code("a")
     def sink   = cpg.method(".*nested").ast.isReturn
     def flows  = sink.reachableByFlows(source)
@@ -206,7 +206,7 @@ class JSDataFlowTest6 extends DataFlowCodeToCpgSuite {
       | };
       """.stripMargin
 
-  "Test 7: flow with nested if-statements to `return x`" in {
+  "Flow with nested if-statements to `return x`" in {
     def source = cpg.identifier.name("x")
     def sink   = cpg.method(".*nested").ast.isReturn
     def flows  = sink.reachableByFlows(source)
@@ -233,7 +233,7 @@ class JSDataFlowTest7 extends DataFlowCodeToCpgSuite {
       |  }
       """.stripMargin
 
-  "Test 8: flow chain from function argument of foo to a" in {
+  "Flow chain from function argument of foo to a" in {
     implicit val callResolver: NoResolve.type = NoResolve
     def source                                = cpg.identifier.name("a")
     def sink                                  = cpg.call.code("foo.*").argument
@@ -254,7 +254,7 @@ class JSDataFlowTest8 extends DataFlowCodeToCpgSuite {
       |  }
       """.stripMargin
 
-  "Test 9: flow from function foo to a" in {
+  "Flow from function foo to a" in {
     def source = cpg.identifier.name("a")
     def sink   = cpg.call.code("foo.*").argument(1)
     def flows  = sink.reachableByFlows(source)
@@ -287,7 +287,7 @@ class JSDataFlowTest9 extends DataFlowCodeToCpgSuite {
       |}
       """.stripMargin
 
-  "Test 10: flow with member access in expression to identifier x" in {
+  "Flow with member access in expression to identifier x" in {
     def source = cpg.identifier.name("x")
     def sink   = cpg.call.code("node.value2")
     def flows  = sink.reachableByFlows(source)
@@ -314,7 +314,7 @@ class JSDataFlowTest10 extends DataFlowCodeToCpgSuite {
       | }
       """.stripMargin
 
-  "Test 11: flow chain from x to literal 37" in {
+  "Flow chain from x to literal 37" in {
     def source = cpg.literal.code("37")
     def sink   = cpg.identifier.name("x")
     def flows  = sink.reachableByFlows(source)
@@ -336,7 +336,7 @@ class JSDataFlowTest11 extends DataFlowCodeToCpgSuite {
       | }
        """.stripMargin
 
-  "Test 12: flow with short hand assignment operator" in {
+  "Flow with short hand assignment operator" in {
     def source = cpg.call.code("a = 37").argument(2)
     def sink   = cpg.call.code("z \\+= a").argument(1)
     def flows  = sink.reachableByFlows(source)
@@ -364,7 +364,7 @@ class JSDataFlowTest12 extends DataFlowCodeToCpgSuite {
       | }
       """.stripMargin
 
-  "Test 13: flow after short hand assignment" in {
+  "Flow after short hand assignment" in {
     def source = cpg.call.code("a = 37").argument(1)
     def sink   = cpg.identifier.name("w")
     def flows  = sink.reachableByFlows(source)
@@ -393,7 +393,7 @@ class JSDataFlowTest13 extends DataFlowCodeToCpgSuite {
       | };
       """.stripMargin
 
-  "Test 14: flow from array method parameter to identifier" in {
+  "Flow from array method parameter to identifier" in {
     def source = cpg.method(".*main").parameter
     def sink   = cpg.identifier.name("y")
     def flows  = sink.reachableByFlows(source)
@@ -424,7 +424,7 @@ class JSDataFlowTest14 extends DataFlowCodeToCpgSuite {
        | }
       """.stripMargin
 
-  "Test 15: conditional expressions" in {
+  "Flow for conditional expressions" in {
     def source = cpg.method.parameter.name("y")
     def sink   = cpg.identifier.name("z")
     def flows  = sink.reachableByFlows(source)
@@ -443,7 +443,7 @@ class JSDataFlowTest15 extends DataFlowCodeToCpgSuite {
     |  sink(y);
     |};""".stripMargin
 
-  "Test 16: find source in caller" in {
+  "Flow for source in caller" in {
     def source = cpg.call.code("source.*")
     def sink   = cpg.call.code("sink.*").argument(1)
     def flows  = sink.reachableByFlows(source)
@@ -470,7 +470,7 @@ class JSDataFlowTest16 extends DataFlowCodeToCpgSuite {
     |  sink(y);
     |};""".stripMargin
 
-  "Test 17.1: find source in callee" in {
+  "Flow for source in callee" in {
     def source = cpg.call.code("source.*")
     def sink   = cpg.call.code("sink.*").argument(1)
     def flows  = sink.reachableByFlows(source)
@@ -484,7 +484,7 @@ class JSDataFlowTest16 extends DataFlowCodeToCpgSuite {
            ("sink(y)", 10)))
   }
 
-  "Test 17.2 : allow using formal parameters as sink" in {
+  "Flow for using formal parameters as sink" in {
     def source = cpg.call.code("source.*")
     def sink   = cpg.method(".*sink").parameter.index(1)
     def flows  = sink.reachableByFlows(source)
@@ -524,7 +524,7 @@ class JSDataFlowTest17 extends DataFlowCodeToCpgSuite {
       | };
       |""".stripMargin
 
-  "Test 18: struct data flow" in {
+  "Flow for struct data" in {
     def source = cpg.call.code("source.*")
     def sink   = cpg.call.code("sink.*").argument
     def flows  = sink.reachableByFlows(source)
@@ -546,7 +546,7 @@ class JSDataFlowTest18 extends DataFlowCodeToCpgSuite {
       | }
       |""".stripMargin
 
-  "Test 22: find flows (pointer-to-object)" in {
+  "Flow for object element access" in {
     def source = cpg.call.code("source.*")
     def sink   = cpg.call.code("sink.*").argument
     def flows  = sink.reachableByFlows(source)
@@ -567,7 +567,7 @@ class JSDataFlowTest19 extends DataFlowCodeToCpgSuite {
       |
       |""".stripMargin
 
-  "Test 25: should report flow if access passed to source" in {
+  "Flow for object element access passed to source" in {
     def source = cpg.call.code("source.*").argument
     def sink   = cpg.call.code("sink.*").argument
     def flows  = sink.reachableByFlows(source)
@@ -585,7 +585,7 @@ class JSDataFlowTest20 extends DataFlowCodeToCpgSuite {
       |};
       |""".stripMargin
 
-  "Test 27: find flows of last statements to METHOD_RETURN" in {
+  "Flows for statements to METHOD_RETURN" in {
     def source = cpg.call.code("free.*").argument(1)
     def sink   = cpg.method(".*foo").methodReturn
     def flows  = sink.reachableByFlows(source)
@@ -603,7 +603,7 @@ class JSDataFlowTest21 extends DataFlowCodeToCpgSuite {
       | };
     """.stripMargin
 
-  "Test 31: should not create edges from call to ret twice" in {
+  "Should not create edges from call to ret twice" in {
     cpg.call
       .code("bar.*")
       .outE(EdgeTypes.REACHING_DEF)
@@ -618,7 +618,7 @@ class JSDataFlowTest22 extends DataFlowCodeToCpgSuite {
        |   g(x, y);
        | };""".stripMargin
 
-  "Test 32: should find flow from outer params to inner params" in {
+  "Flow from outer params to inner params" in {
     def source = cpg.method(".*f").parameter
     def sink   = cpg.call.code("g.*").argument
     sink.size shouldBe 3   // incl. this
