@@ -10,8 +10,7 @@ import java.nio.file.{Path, Paths}
 import scala.util.{Failure, Success}
 
 class PugTranspiler(override val config: Config, override val projectPath: Path)
-    extends Transpiler
-    with NpmEnvironment {
+    extends Transpiler {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
@@ -21,10 +20,10 @@ class PugTranspiler(override val config: Config, override val projectPath: Path)
   override def shouldRun(): Boolean = config.templateTranspiling && hasPugFiles
 
   private def installPugPlugins(): Boolean = {
-    val command = if ((File(projectPath) / "yarn.lock").exists) {
-      s"yarn add pug-cli --dev && ${NpmEnvironment.YARN_INSTALL}"
+    val command = if (yarnAvailable()) {
+      s"yarn add pug-cli --dev && ${TranspilingEnvironment.YARN_INSTALL}"
     } else {
-      s"npm install --save-dev pug-cli && ${NpmEnvironment.NPM_INSTALL}"
+      s"npm install --save-dev pug-cli && ${TranspilingEnvironment.NPM_INSTALL}"
     }
     logger.debug(s"\t+ Installing Pug plugins ...")
     ExternalCommand.run(command, projectPath.toString) match {

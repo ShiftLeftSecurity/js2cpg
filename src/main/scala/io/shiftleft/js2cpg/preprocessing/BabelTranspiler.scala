@@ -13,12 +13,12 @@ class BabelTranspiler(override val config: Config,
                       override val projectPath: Path,
                       subDir: Option[Path] = None,
                       inDir: Option[Path] = None)
-    extends Transpiler
-    with NpmEnvironment {
+    extends Transpiler {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  override def shouldRun(): Boolean = config.babelTranspiling && !isVueProject
+  override def shouldRun(): Boolean =
+    config.babelTranspiling && !VueTranspiler.isVueProject(config, projectPath)
 
   private def constructIgnoreDirArgs: String = {
     val ignores = if (config.ignoreTests) {

@@ -83,12 +83,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
           val jsFiles = FileUtils
             .getFileTree(tmpProjectPath.path, core.Config(), List(JS_SUFFIX))
             .map(f => (f, tmpProjectPath.path))
-          val tsFiles = FileUtils
-            .getFileTree(tmpProjectPath.path, core.Config(), List(TS_SUFFIX))
-            .map(f => (f, tmpProjectPath.path))
 
-          val expectedTsFiles = List(((tmpProjectPath / "a.ts").path, tmpProjectPath.path),
-                                     ((tmpProjectPath / "b.ts").path, tmpProjectPath.path))
           val expectedJsFiles =
             List(((transpileOutDir / "a.js").path, transpileOutDir.path),
                  ((transpileOutDir / "b.js").path, transpileOutDir.path))

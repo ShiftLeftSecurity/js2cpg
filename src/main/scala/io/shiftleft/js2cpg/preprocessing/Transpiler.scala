@@ -8,7 +8,7 @@ import io.shiftleft.js2cpg.parser.PackageJsonParser
 
 import java.nio.file.Path
 
-trait Transpiler {
+trait Transpiler extends TranspilingEnvironment {
 
   protected val DEFAULT_IGNORED_DIRS: List[String] = List(
     "build",
@@ -36,17 +36,6 @@ trait Transpiler {
 
   protected val config: Config
   protected val projectPath: Path
-
-  private def hasVueFiles: Boolean =
-    FileUtils.getFileTree(projectPath, config, List(VUE_SUFFIX)).nonEmpty
-
-  protected def isVueProject: Boolean = {
-    val hasVueDep =
-      new PackageJsonParser((File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME).path)
-        .dependencies()
-        .contains("vue")
-    hasVueDep || hasVueFiles
-  }
 
   def shouldRun(): Boolean
 

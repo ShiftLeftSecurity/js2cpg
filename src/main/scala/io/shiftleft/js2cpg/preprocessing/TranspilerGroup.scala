@@ -28,23 +28,11 @@ case class TranspilerGroup(override val config: Config,
       "@babel/plugin-proposal-nullish-coalescing-operator " +
       "@babel/plugin-transform-property-mutators"
 
-  private def isYarnAvailable: Boolean = {
-    logger.debug("\t+ Checking yarn ...")
-    ExternalCommand.run("yarn -v", projectPath.toString) match {
-      case Success(result) =>
-        logger.debug(s"\t+ yarn is available: $result")
-        true
-      case Failure(_) =>
-        logger.error("\t- yarn is not installed. Transpiling sources will not be available.")
-        false
-    }
-  }
-
   private def installPlugins(): Boolean = {
-    val command = if ((File(projectPath) / "yarn.lock").exists && isYarnAvailable) {
-      s"yarn add $BABEL_PLUGINS --dev -W && ${NpmEnvironment.YARN_INSTALL}"
+    val command = if (yarnAvailable()) {
+      s"yarn add $BABEL_PLUGINS --dev -W && ${TranspilingEnvironment.YARN_INSTALL}"
     } else {
-      s"npm install --save-dev $BABEL_PLUGINS && ${NpmEnvironment.NPM_INSTALL}"
+      s"npm install --save-dev $BABEL_PLUGINS && ${TranspilingEnvironment.NPM_INSTALL}"
     }
     logger.info("Installing project dependencies and plugins. This might take a while.")
     logger.debug("\t+ Installing plugins ...")

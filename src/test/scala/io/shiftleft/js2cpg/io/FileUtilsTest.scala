@@ -26,10 +26,8 @@ class FileUtilsTest extends AnyWordSpec with Matchers {
         (sourceDir / ".folder" / "e.js").createIfNotExists(createParents = true)
 
         File.usingTemporaryDirectory() { targetDir: File =>
-          val copiedDir = FileUtils.copyToDirectory(sourceDir, targetDir, Config())
-
+          val copiedDir  = FileUtils.copyToDirectory(sourceDir, targetDir, Config())
           val dirContent = FileUtils.getFileTree(copiedDir.path, Config(), List(JS_SUFFIX))
-
           dirContent shouldBe empty
         }
       }
