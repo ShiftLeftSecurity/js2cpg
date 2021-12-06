@@ -3,6 +3,33 @@ package io.shiftleft.js2cpg.dataflow
 import io.joern.dataflowengineoss.language._
 import io.shiftleft.codepropertygraph.generated.EdgeTypes
 import io.shiftleft.semanticcpg.language._
+import org.scalatest.Suites
+
+class DataFlowTestSuite
+    extends Suites(
+      new JSDataFlowTest1,
+      new JSDataFlowTest2,
+      new JSDataFlowTest3,
+      new JSDataFlowTest4,
+      new JSDataFlowTest5,
+      new JSDataFlowTest6,
+      new JSDataFlowTest7,
+      new JSDataFlowTest8,
+      new JSDataFlowTest9,
+      new JSDataFlowTest10,
+      new JSDataFlowTest11,
+      new JSDataFlowTest12,
+      new JSDataFlowTest13,
+      new JSDataFlowTest14,
+      new JSDataFlowTest15,
+      new JSDataFlowTest16,
+      new JSDataFlowTest17,
+      new JSDataFlowTest18,
+      new JSDataFlowTest19,
+      new JSDataFlowTest20,
+      new JSDataFlowTest21,
+      new JSDataFlowTest22
+    )
 
 class JSDataFlowTest1 extends DataFlowCodeToCpgSuite {
 
@@ -22,31 +49,30 @@ class JSDataFlowTest1 extends DataFlowCodeToCpgSuite {
       """.stripMargin
 
   "Test 1: flow from function call read to multiple versions of the same variable" in {
-
-    def source = cpg.identifier.name("sz").l
-    def sink   = cpg.call.code("read.*").l
+    def source = cpg.identifier.name("sz")
+    def sink   = cpg.call.code("read.*")
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe
       Set(
-        List(("read(fd, buff, sz)", Some(11))),
-        List(("sz = 0", Some(5)), ("read(fd, buff, sz)", Some(11))),
-        List(("sz = 20", Some(6)), ("read(fd, buff, sz)", Some(11))),
-        List(("sz = 200", Some(7)), ("read(fd, buff, sz)", Some(11))),
-        List(("sz = 41", Some(8)), ("read(fd, buff, sz)", Some(11))),
-        List(("sz = -5", Some(9)), ("read(fd, buff, sz)", Some(11)))
+        List(("read(fd, buff, sz)", 11)),
+        List(("sz = 0", 5), ("read(fd, buff, sz)", 11)),
+        List(("sz = 20", 6), ("read(fd, buff, sz)", 11)),
+        List(("sz = 200", 7), ("read(fd, buff, sz)", 11)),
+        List(("sz = 41", 8), ("read(fd, buff, sz)", 11)),
+        List(("sz = -5", 9), ("read(fd, buff, sz)", 11))
       )
 
-    // pretty printing for flows
     def flowsPretty = flows.p.mkString
     flowsPretty.should(include("sz = 20"))
     flowsPretty.should(include("read(fd, buff, sz)"))
+
     val tmpSourceFile = flows.head.elements.head.method.filename
     flowsPretty.should(include(tmpSourceFile))
   }
 }
 
-class JSDataFlowTest3 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest2 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
       | function foo(x) {};
@@ -61,18 +87,18 @@ class JSDataFlowTest3 extends DataFlowCodeToCpgSuite {
 
   "Test 3: flow from function call argument" in {
     implicit val callResolver: NoResolve.type = NoResolve
-    def source                                = cpg.identifier.name("a").l
-    def sink                                  = cpg.call.code("foo.*").argument.l
+    def source                                = cpg.identifier.name("a")
+    def sink                                  = cpg.call.code("foo.*").argument
     def flows                                 = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe
-      Set(List(("foo(a)", Some(7))),
-          List(("a = 10", Some(5)), ("a < y", Some(6)), ("foo(a)", Some(7))),
-          List(("a < y", Some(6)), ("foo(a)", Some(7))))
+      Set(List(("foo(a)", 7)),
+          List(("a = 10", 5), ("a < y", 6), ("foo(a)", 7)),
+          List(("a < y", 6), ("foo(a)", 7)))
   }
 }
 
-class JSDataFlowTest4 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest3 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
       | function flow() {
@@ -87,28 +113,19 @@ class JSDataFlowTest4 extends DataFlowCodeToCpgSuite {
       """.stripMargin
 
   "Test 4: flow chains from x to a" in {
-    def source = cpg.identifier.name("a").l
-    def sink   = cpg.identifier.name("x").l
+    def source = cpg.identifier.name("a")
+    def sink   = cpg.identifier.name("x")
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe
       Set(
-        List(("a = 55", Some(3)),
-             ("b = a", Some(4)),
-             ("b + c", Some(6)),
-             ("z = b + c", Some(6)),
-             ("z++", Some(7)),
-             ("x = z", Some(9))),
-        List(("b = a", Some(4)),
-             ("b + c", Some(6)),
-             ("z = b + c", Some(6)),
-             ("z++", Some(7)),
-             ("x = z", Some(9)))
+        List(("a = 55", 3), ("b = a", 4), ("b + c", 6), ("z = b + c", 6), ("z++", 7), ("x = z", 9)),
+        List(("b = a", 4), ("b + c", 6), ("z = b + c", 6), ("z++", 7), ("x = z", 9))
       )
   }
 }
 
-class JSDataFlowTest5 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest4 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
       | function flow(a){
@@ -120,13 +137,13 @@ class JSDataFlowTest5 extends DataFlowCodeToCpgSuite {
       """.stripMargin
 
   "Test 5: flow from method return to a" in {
-    def source = cpg.identifier.name("a").l
-    def sink   = cpg.method(".*flow").ast.isReturn.l
+    def source = cpg.identifier.name("a")
+    def sink   = cpg.method(".*flow").ast.isReturn
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe
       Set(
-        List[(String, Option[Integer])](
+        List(
           ("z = a", 3),
           ("b = z", 4),
           ("return b", 6),
@@ -134,7 +151,7 @@ class JSDataFlowTest5 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest6 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest5 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
       | function nested(a){
@@ -154,23 +171,23 @@ class JSDataFlowTest6 extends DataFlowCodeToCpgSuite {
       """.stripMargin
 
   "Test 6: flow with nested if-statements from method return to a" in {
-    def source = cpg.call.code("a < 10").argument.code("a").l
-    def sink   = cpg.method(".*nested").ast.isReturn.l
+    def source = cpg.call.code("a < 10").argument.code("a")
+    def sink   = cpg.method(".*nested").ast.isReturn
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe
       Set(
-        List[(String, Option[Integer])](
-          ("a < 10", Some(5)),
-          ("a < 5", Some(6)),
-          ("a < 2", Some(7)),
+        List(
+          ("a < 10", 5),
+          ("a < 5", 6),
+          ("a < 2", 7),
           ("x = a", 8),
           ("return x", 14),
         ))
   }
 }
 
-class JSDataFlowTest7 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest6 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
       | function nested(a) {
@@ -190,21 +207,21 @@ class JSDataFlowTest7 extends DataFlowCodeToCpgSuite {
       """.stripMargin
 
   "Test 7: flow with nested if-statements to `return x`" in {
-    def source = cpg.identifier.name("x").l
-    def sink   = cpg.method(".*nested").ast.isReturn.l
+    def source = cpg.identifier.name("x")
+    def sink   = cpg.method(".*nested").ast.isReturn
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe
       Set(
-        List(("return x", Some(14))),
-        List(("x = z", Some(12)), ("return x", Some(14))),
-        List(("x = 0", Some(3)), ("return x", Some(14))),
-        List(("x = a", Some(8)), ("return x", Some(14)))
+        List(("return x", 14)),
+        List(("x = z", 12), ("return x", 14)),
+        List(("x = 0", 3), ("return x", 14)),
+        List(("x = a", 8), ("return x", 14))
       )
   }
 }
 
-class JSDataFlowTest8 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest7 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
       | function foo(y) {};
@@ -218,18 +235,17 @@ class JSDataFlowTest8 extends DataFlowCodeToCpgSuite {
 
   "Test 8: flow chain from function argument of foo to a" in {
     implicit val callResolver: NoResolve.type = NoResolve
-    def source                                = cpg.identifier.name("a").l
-    def sink                                  = cpg.call.code("foo.*").argument.l
+    def source                                = cpg.identifier.name("a")
+    def sink                                  = cpg.call.code("foo.*").argument
     def flows                                 = sink.reachableByFlows(source)
 
-    flows.map(flowToResultPairs).toSet shouldBe Set(
-      List(("a = x", Some(5)), ("b = a", Some(6)), ("foo(b)", Some(7))),
-      List(("b = a", Some(6)), ("foo(b)", Some(7))))
+    flows.map(flowToResultPairs).toSet shouldBe Set(List(("a = x", 5), ("b = a", 6), ("foo(b)", 7)),
+                                                    List(("b = a", 6), ("foo(b)", 7)))
 
   }
 }
 
-class JSDataFlowTest9 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest8 extends DataFlowCodeToCpgSuite {
   override val code: String = """
       | function param(x){
       |    var a = x;
@@ -239,24 +255,24 @@ class JSDataFlowTest9 extends DataFlowCodeToCpgSuite {
       """.stripMargin
 
   "Test 9: flow from function foo to a" in {
-    def source = cpg.identifier.name("a").l
-    def sink   = cpg.call.code("foo.*").argument(1).l
+    def source = cpg.identifier.name("a")
+    def sink   = cpg.call.code("foo.*").argument(1)
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe
-      Set(List[(String, Option[Integer])](
+      Set(List(
             ("a = x", 3),
             ("b = a", 4),
             ("foo(b)", 5)
           ),
-          List[(String, Option[Integer])](
+          List(
             ("b = a", 4),
             ("foo(b)", 5)
           ))
   }
 }
 
-class JSDataFlowTest10 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest9 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
       | var node = {
@@ -272,21 +288,19 @@ class JSDataFlowTest10 extends DataFlowCodeToCpgSuite {
       """.stripMargin
 
   "Test 10: flow with member access in expression to identifier x" in {
-    def source = cpg.identifier.name("x").l
-    def sink   = cpg.call.code("node.value2").l
+    def source = cpg.identifier.name("x")
+    def sink   = cpg.call.code("node.value2")
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe
       Set(
-        List(("node.value1 = x", Some(9)), ("node.value2 = node.value1", Some(10))),
-        List(("x = 10", Some(8)),
-             ("node.value1 = x", Some(9)),
-             ("node.value2 = node.value1", Some(10)))
+        List(("node.value1 = x", 9), ("node.value2 = node.value1", 10)),
+        List(("x = 10", 8), ("node.value1 = x", 9), ("node.value2 = node.value1", 10))
       )
   }
 }
 
-class JSDataFlowTest11 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest10 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
       | function flow() {
@@ -301,22 +315,17 @@ class JSDataFlowTest11 extends DataFlowCodeToCpgSuite {
       """.stripMargin
 
   "Test 11: flow chain from x to literal 37" in {
-    def source = cpg.literal.code("37").l
-    def sink   = cpg.identifier.name("x").l
+    def source = cpg.literal.code("37")
+    def sink   = cpg.identifier.name("x")
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe
       Set(
-        List(("a = 37", Some(3)),
-             ("b = a", Some(4)),
-             ("b + c", Some(6)),
-             ("z = b + c", Some(6)),
-             ("z++", Some(7)),
-             ("x = z", Some(9))))
+        List(("a = 37", 3), ("b = a", 4), ("b + c", 6), ("z = b + c", 6), ("z++", 7), ("x = z", 9)))
   }
 }
 
-class JSDataFlowTest12 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest11 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
       | function flow() {
@@ -328,13 +337,13 @@ class JSDataFlowTest12 extends DataFlowCodeToCpgSuite {
        """.stripMargin
 
   "Test 12: flow with short hand assignment operator" in {
-    def source = cpg.call.code("a = 37").argument(2).l
-    def sink   = cpg.call.code("z \\+= a").argument(1).l
+    def source = cpg.call.code("a = 37").argument(2)
+    def sink   = cpg.call.code("z \\+= a").argument(1)
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe
       Set(
-        List[(String, Option[Integer])](
+        List(
           ("a = 37", 3),
           ("b = a", 4),
           ("z = b", 5),
@@ -343,7 +352,7 @@ class JSDataFlowTest12 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest13 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest12 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
       | function flow() {
@@ -356,13 +365,13 @@ class JSDataFlowTest13 extends DataFlowCodeToCpgSuite {
       """.stripMargin
 
   "Test 13: flow after short hand assignment" in {
-    def source = cpg.call.code("a = 37").argument(1).l
-    def sink   = cpg.identifier.name("w").l
+    def source = cpg.call.code("a = 37").argument(1)
+    def sink   = cpg.identifier.name("w")
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe
       Set(
-        List[(String, Option[Integer])](
+        List(
           ("a = 37", 3),
           ("b = a", 4),
           ("z = b", 5),
@@ -373,7 +382,7 @@ class JSDataFlowTest13 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest14 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest13 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
       | function main(argc, argv){
@@ -391,13 +400,13 @@ class JSDataFlowTest14 extends DataFlowCodeToCpgSuite {
 
     flows.map(flowToResultPairs).toSet shouldBe
       Set(
-        List[(String, Option[Integer])](
+        List(
           ("main(this, argc, argv)", 2),
           ("x = argv[1]", 3),
           ("y = x", 4),
           ("z = y", 5)
         ),
-        List[(String, Option[Integer])](
+        List(
           ("main(this, argc, argv)", 2),
           ("x = argv[1]", 3),
           ("y = x", 4)
@@ -406,7 +415,7 @@ class JSDataFlowTest14 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest15 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest14 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
        |function foo(x, y) {
@@ -418,12 +427,12 @@ class JSDataFlowTest15 extends DataFlowCodeToCpgSuite {
   "Test 15: conditional expressions" in {
     def source = cpg.method.parameter.name("y")
     def sink   = cpg.identifier.name("z")
-    def flows  = sink.reachableByFlows(source).l
+    def flows  = sink.reachableByFlows(source)
     flows.size shouldBe 1
   }
 }
 
-class JSDataFlowTest16 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest15 extends DataFlowCodeToCpgSuite {
   override val code: String = """
     |function bar() {
     |  var x = source();
@@ -435,24 +444,26 @@ class JSDataFlowTest16 extends DataFlowCodeToCpgSuite {
     |};""".stripMargin
 
   "Test 16: find source in caller" in {
-    def source = cpg.call.code("source.*").l
-    def sink   = cpg.call.code("sink.*").argument(1).l
+    def source = cpg.call.code("source.*")
+    def sink   = cpg.call.code("sink.*").argument(1)
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe Set(
-      List(("source()", Some(3)),
-           ("x = source()", Some(3)),
-           ("foo(x)", Some(4)),
-           ("foo(this, y)", Some(7)),
-           ("sink(y)", Some(8))))
+      List(("source()", 3),
+           ("x = source()", 3),
+           ("foo(x)", 4),
+           ("foo(this, y)", 7),
+           ("sink(y)", 8)))
   }
 }
 
-class JSDataFlowTest17 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest16 extends DataFlowCodeToCpgSuite {
   override val code: String = """
     |function bar() {
     |  return source();
     |};
+    |
+    |function sink(param) {};
     |
     |function foo(y) {
     |  var y = bar();
@@ -460,39 +471,36 @@ class JSDataFlowTest17 extends DataFlowCodeToCpgSuite {
     |};""".stripMargin
 
   "Test 17.1: find source in callee" in {
-    def source = cpg.call.code("source.*").l
-    def sink   = cpg.call.code("sink.*").argument(1).l
+    def source = cpg.call.code("source.*")
+    def sink   = cpg.call.code("sink.*").argument(1)
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe Set(
-      List(("source()", Some(3)),
-           ("return source()", Some(3)),
-           ("RET", Some(2)),
-           ("bar()", Some(7)),
-           ("y = bar()", Some(7)),
-           ("sink(y)", Some(8))))
+      List(("source()", 3),
+           ("return source()", 3),
+           ("RET", 2),
+           ("bar()", 9),
+           ("y = bar()", 9),
+           ("sink(y)", 10)))
   }
 
   "Test 17.2 : allow using formal parameters as sink" in {
-    def source = cpg.call.code("source.*").l
-    def sink   = cpg.method(".*sink").parameter.index(1).l
+    def source = cpg.call.code("source.*")
+    def sink   = cpg.method(".*sink").parameter.index(1)
     def flows  = sink.reachableByFlows(source)
 
-    pendingUntilFixed {
-      flows.map(flowToResultPairs).toSet shouldBe Set(
-        List(("source()", Some(4)),
-             ("return source();", Some(4)),
-             ("int", Some(3)),
-             ("bar()", Some(8)),
-             ("y = bar()", Some(8)),
-             ("sink(y)", Some(9)),
-             ("sink(p1)", None))
-      )
-    }
+    flows.map(flowToResultPairs).toSet shouldBe Set(
+      List(("source()", 3),
+           ("return source()", 3),
+           ("RET", 2),
+           ("bar()", 9),
+           ("y = bar()", 9),
+           ("sink(y)", 10),
+           ("sink(this, param)", 6)))
   }
 }
 
-class JSDataFlowTest18 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest17 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
       | var point = {
@@ -517,20 +525,17 @@ class JSDataFlowTest18 extends DataFlowCodeToCpgSuite {
       |""".stripMargin
 
   "Test 18: struct data flow" in {
-    def source = cpg.call.code("source.*").l
-    def sink   = cpg.call.code("sink.*").argument.l
-    def flows  = sink.reachableByFlows(source).l
+    def source = cpg.call.code("source.*")
+    def sink   = cpg.call.code("sink.*").argument
+    def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe Set(
-      List(("source()", Some(16)),
-           ("k = source()", Some(16)),
-           ("point.x = k", Some(17)),
-           ("sink(point.x)", Some(19))))
+      List(("source()", 16), ("k = source()", 16), ("point.x = k", 17), ("sink(point.x)", 19)))
 
   }
 }
 
-class JSDataFlowTest22 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest18 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
       | var s { 'field' : 0 };
@@ -542,20 +547,17 @@ class JSDataFlowTest22 extends DataFlowCodeToCpgSuite {
       |""".stripMargin
 
   "Test 22: find flows (pointer-to-object)" in {
-    def source = cpg.call.code("source.*").l
-    def sink   = cpg.call.code("sink.*").argument.l
+    def source = cpg.call.code("source.*")
+    def sink   = cpg.call.code("sink.*").argument
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe
-      Set(
-        List(("source()", Some(5)),
-             ("arg.field = source()", Some(5)),
-             ("sink(arg.field)", Some(6))))
+      Set(List(("source()", 5), ("arg.field = source()", 5), ("sink(arg.field)", 6)))
   }
 
 }
 
-class JSDataFlowTest25 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest19 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
       |function bar() {
@@ -566,16 +568,15 @@ class JSDataFlowTest25 extends DataFlowCodeToCpgSuite {
       |""".stripMargin
 
   "Test 25: should report flow if access passed to source" in {
-    def source = cpg.call.code("source.*").argument.l
-    def sink   = cpg.call.code("sink.*").argument.l
+    def source = cpg.call.code("source.*").argument
+    def sink   = cpg.call.code("sink.*").argument
     def flows  = sink.reachableByFlows(source)
 
-    flows.map(flowToResultPairs).toSet shouldBe Set(
-      List(("source(a.b)", Some(3)), ("sink(a.b)", Some(4))))
+    flows.map(flowToResultPairs).toSet shouldBe Set(List(("source(a.b)", 3), ("sink(a.b)", 4)))
   }
 }
 
-class JSDataFlowTest27 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest20 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
       |function foo(y, x) {
@@ -585,17 +586,16 @@ class JSDataFlowTest27 extends DataFlowCodeToCpgSuite {
       |""".stripMargin
 
   "Test 27: find flows of last statements to METHOD_RETURN" in {
-    def source = cpg.call.code("free.*").argument(1).l
-    def sink   = cpg.method(".*foo").methodReturn.l
+    def source = cpg.call.code("free.*").argument(1)
+    def sink   = cpg.method(".*foo").methodReturn
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe
-      Set(List(("free(y)", Some(3)), ("RET", Some(2))),
-          List(("free(x)", Some(4)), ("RET", Some(2))))
+      Set(List(("free(y)", 3), ("RET", 2)), List(("free(x)", 4), ("RET", 2)))
   }
 }
 
-class JSDataFlowTest31 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest21 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
       | function foo() {
@@ -611,7 +611,7 @@ class JSDataFlowTest31 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest32 extends DataFlowCodeToCpgSuite {
+class JSDataFlowTest22 extends DataFlowCodeToCpgSuite {
   override val code: String =
     """
        | function f(x, y) {
@@ -619,14 +619,14 @@ class JSDataFlowTest32 extends DataFlowCodeToCpgSuite {
        | };""".stripMargin
 
   "Test 32: should find flow from outer params to inner params" in {
-    def source = cpg.method(".*f").parameter.l
-    def sink   = cpg.call.code("g.*").argument.l
+    def source = cpg.method(".*f").parameter
+    def sink   = cpg.call.code("g.*").argument
     sink.size shouldBe 3   // incl. this
     source.size shouldBe 3 // incl. this
 
     def flows = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSet shouldBe
-      Set(List(("f(this, x, y)", Some(2)), ("g(x, y)", Some(3))))
+      Set(List(("f(this, x, y)", 2), ("g(x, y)", 3)))
   }
 }

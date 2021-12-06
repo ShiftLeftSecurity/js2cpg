@@ -7,18 +7,7 @@ import io.joern.dataflowengineoss.semanticsloader.{Parser, Semantics}
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.codepropertygraph.generated.nodes._
 import io.shiftleft.semanticcpg.language._
-import io.shiftleft.semanticcpg.language.dotextension.ImageViewer
-import io.shiftleft.semanticcpg.layers.{
-  LayerCreatorContext,
-  Base,
-  ControlFlow,
-  TypeRelations,
-  CallGraph
-}
-import overflowdb.traversal.Traversal
-
-import scala.sys.process.Process
-import scala.util.Try
+import io.shiftleft.semanticcpg.layers._
 
 class DataFlowCodeToCpgSuite extends Js2CpgCodeToCpgSuite {
 
@@ -33,11 +22,6 @@ class DataFlowCodeToCpgSuite extends Js2CpgCodeToCpgSuite {
     context = EngineContext(semantics)
   }
 
-  implicit val viewer: ImageViewer = (pathStr: String) =>
-    Try {
-      Process(Seq("xdg-open", pathStr)).!!
-  }
-
   override def passes(cpg: Cpg): Unit = {
     val context = new LayerCreatorContext(cpg)
     new Base().run(context)
@@ -49,29 +33,15 @@ class DataFlowCodeToCpgSuite extends Js2CpgCodeToCpgSuite {
     new OssDataFlow(options).run(context)
   }
 
-  protected implicit def int2IntegerOption(x: Int): Option[Integer] =
-    Some(x)
-
-  protected def getMemberOfType(cpg: Cpg, typeName: String, memberName: String): Traversal[Member] =
-    cpg.typeDecl.nameExact(typeName).member.nameExact(memberName)
-
-  protected def getMethodOfType(cpg: Cpg, typeName: String, methodName: String): Traversal[Method] =
-    cpg.typeDecl.nameExact(typeName).method.nameExact(methodName)
-
-  protected def getLiteralOfType(cpg: Cpg,
-                                 typeName: String,
-                                 literalName: String): Traversal[Literal] =
-    cpg.typeDecl.nameExact(typeName).method.isLiteral.codeExact(literalName)
-
-  protected def flowToResultPairs(path: Path): List[(String, Option[Integer])] = {
+  protected def flowToResultPairs(path: Path): List[(String, Integer)] = {
     val pairs = path.elements.map {
       case point: MethodParameterIn =>
         val method      = point.method.head
         val method_name = method.name
         val code        = s"$method_name(${method.parameter.l.sortBy(_.order).map(_.code).mkString(", ")})"
-        (code, point.lineNumber)
+        (code, point.lineNumber.getOrElse(Int.box(-1)))
       case point =>
-        (point.statement.repr, point.lineNumber)
+        (point.statement.repr, point.lineNumber.getOrElse(Int.box(-1)))
     }
     pairs.headOption
       .map(x => x :: pairs.sliding(2).collect { case Seq(a, b) if a != b => b }.toList)
