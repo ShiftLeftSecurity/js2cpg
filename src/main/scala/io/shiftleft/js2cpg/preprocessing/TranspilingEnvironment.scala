@@ -5,23 +5,37 @@ import org.slf4j.LoggerFactory
 
 import scala.util.{Failure, Success}
 
-object NpmEnvironment {
-  // This is in a singleton object because we want to check the environment only once
-  // even if multiple transpilers require this specific environment.
-  private var isValid: Option[Boolean] = None
+object TranspilingEnvironment {
+  // These are singleton objects because we want to check the environment only once
+  // even if multiple transpilers require this specific environment:
+  private var isValid: Option[Boolean]         = None
+  private var isYarnAvailable: Option[Boolean] = None
+  private var isNpmAvailable: Option[Boolean]  = None
 
   val YARN_INSTALL = "yarn install --prefer-offline --ignore-scripts"
   val NPM_INSTALL  = "npm install --prefer-offline --no-audit --progress=false --ignore-scripts"
 }
 
-trait NpmEnvironment {
+trait TranspilingEnvironment {
   self: Transpiler =>
 
-  import NpmEnvironment._
+  import TranspilingEnvironment._
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  private def isNpmAvailable: Boolean = {
+  private def checkForYarn(): Boolean = {
+    logger.debug("\t+ Checking yarn ...")
+    ExternalCommand.run("yarn -v", projectPath.toString) match {
+      case Success(result) =>
+        logger.debug(s"\t+ yarn is available: $result")
+        true
+      case Failure(_) =>
+        logger.error("\t- yarn is not installed. Transpiling sources will not be available.")
+        false
+    }
+  }
+
+  private def checkForNpm(): Boolean = {
     logger.debug(s"\t+ Checking npm ...")
     ExternalCommand.run("npm -v", projectPath.toString) match {
       case Success(result) =>
@@ -61,8 +75,24 @@ trait NpmEnvironment {
     case Some(value) =>
       value
     case None =>
-      isValid = Some(isNpmAvailable && setNpmPython())
+      isValid = Some((yarnAvailable() || npmAvailable()) && setNpmPython())
       isValid.get
+  }
+
+  protected def yarnAvailable(): Boolean = isYarnAvailable match {
+    case Some(value) =>
+      value
+    case None =>
+      isYarnAvailable = Some(checkForYarn())
+      isYarnAvailable.get
+  }
+
+  protected def npmAvailable(): Boolean = isNpmAvailable match {
+    case Some(value) =>
+      value
+    case None =>
+      isNpmAvailable = Some(checkForNpm())
+      isNpmAvailable.get
   }
 
 }

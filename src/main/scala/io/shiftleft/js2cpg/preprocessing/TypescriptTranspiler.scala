@@ -31,8 +31,7 @@ object TypescriptTranspiler {
 class TypescriptTranspiler(override val config: Config,
                            override val projectPath: Path,
                            subDir: Option[Path] = None)
-    extends Transpiler
-    with NpmEnvironment {
+    extends Transpiler {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
@@ -44,7 +43,10 @@ class TypescriptTranspiler(override val config: Config,
     FileUtils.getFileTree(projectPath, config, List(TS_SUFFIX)).nonEmpty
 
   override def shouldRun(): Boolean =
-    config.tsTranspiling && (File(projectPath) / "tsconfig.json").exists && hasTsFiles && !isVueProject
+    config.tsTranspiling &&
+      (File(projectPath) / "tsconfig.json").exists &&
+      hasTsFiles &&
+      !VueTranspiler.isVueProject(config, projectPath)
 
   private def moveIgnoredDirs(from: File, to: File): Unit = {
     val ignores = if (config.ignoreTests) {

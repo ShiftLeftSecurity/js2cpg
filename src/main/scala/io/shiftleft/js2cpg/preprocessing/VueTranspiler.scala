@@ -3,20 +3,38 @@ package io.shiftleft.js2cpg.preprocessing
 import better.files.File
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.ExternalCommand
+import io.shiftleft.js2cpg.io.FileDefaults.VUE_SUFFIX
+import io.shiftleft.js2cpg.io.FileUtils
+import io.shiftleft.js2cpg.parser.PackageJsonParser
 import org.slf4j.LoggerFactory
 
 import java.nio.file.{Path, Paths}
 import scala.util.{Failure, Success}
 
+object VueTranspiler {
+
+  private def hasVueFiles(config: Config, projectPath: Path): Boolean =
+    FileUtils.getFileTree(projectPath, config, List(VUE_SUFFIX)).nonEmpty
+
+  def isVueProject(config: Config, projectPath: Path): Boolean = {
+    val hasVueDep =
+      PackageJsonParser
+        .dependencies((File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME).path)
+        .contains("vue")
+    hasVueDep || hasVueFiles(config, projectPath)
+  }
+}
+
 class VueTranspiler(override val config: Config, override val projectPath: Path)
-    extends Transpiler
-    with NpmEnvironment {
+    extends Transpiler {
+
+  import VueTranspiler.isVueProject
 
   private val logger = LoggerFactory.getLogger(getClass)
 
   private lazy val NODE_OPTIONS: Map[String, String] = nodeOptions()
 
-  override def shouldRun(): Boolean = config.vueTranspiling && isVueProject
+  override def shouldRun(): Boolean = config.vueTranspiling && isVueProject(config, projectPath)
 
   private def nodeOptions(): Map[String, String] = {
     // TODO: keep this until https://github.com/webpack/webpack/issues/14532 is fixed
@@ -28,10 +46,10 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
   }
 
   private def installVuePlugins(): Boolean = {
-    val command = if ((File(projectPath) / "yarn.lock").exists) {
-      s"yarn add @vue/cli-service-global --dev && ${NpmEnvironment.YARN_INSTALL}"
+    val command = if (yarnAvailable()) {
+      s"yarn add @vue/cli-service-global --dev && ${TranspilingEnvironment.YARN_INSTALL}"
     } else {
-      s"npm install --save-dev @vue/cli-service-global && ${NpmEnvironment.NPM_INSTALL}"
+      s"npm install --save-dev @vue/cli-service-global && ${TranspilingEnvironment.NPM_INSTALL}"
     }
     logger.debug(s"\t+ Installing Vue.js plugins ...")
     ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {

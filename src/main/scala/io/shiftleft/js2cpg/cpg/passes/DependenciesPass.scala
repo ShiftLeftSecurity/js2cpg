@@ -22,7 +22,7 @@ class DependenciesPass(cpg: Cpg, config: Config, keyPool: KeyPool)
         config.createPathForPackageJson()).toSet
 
     val dependencies: Map[String, String] =
-      packagesJsons.flatMap(p => new PackageJsonParser(p).dependencies()).toMap
+      packagesJsons.flatMap(p => PackageJsonParser.dependencies(p)).toMap
 
     dependencies.foreach {
       case (name, version) =>

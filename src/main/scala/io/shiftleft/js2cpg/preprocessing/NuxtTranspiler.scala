@@ -38,16 +38,15 @@ object NuxtTranspiler {
 }
 
 class NuxtTranspiler(override val config: Config, override val projectPath: Path)
-    extends Transpiler
-    with NpmEnvironment {
+    extends Transpiler {
 
   import NuxtTranspiler._
 
   private val logger = LoggerFactory.getLogger(getClass)
 
   private def isNuxtProject: Boolean =
-    new PackageJsonParser((File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME).path)
-      .dependencies()
+    PackageJsonParser
+      .dependencies((File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME).path)
       .contains("nuxt")
 
   override def shouldRun(): Boolean = config.nuxtTranspiling && isNuxtProject
