@@ -50,12 +50,19 @@ trait TranspilingEnvironment {
 
   private def setNpmPython(): Boolean = {
     logger.debug(s"\t+ Setting npm config ...")
-    ExternalCommand.run("npm config set python python2.7", projectPath.toString) match {
-      case Success(_) =>
+    val commands = Seq(
+      ExternalCommand.run("npm config set python python2.7", projectPath.toString),
+      // see: https://github.com/npm/npm/issues/11028
+      ExternalCommand.run("npm set progress=false", projectPath.toString),
+      ExternalCommand.run("npm config set registry http://registry.npmjs.org/",
+                          projectPath.toString)
+    )
+    commands.partition(_.isSuccess) match {
+      case (_, fails) if fails.isEmpty =>
         logger.debug(s"\t+ Set successfully")
         true
-      case Failure(exception) =>
-        logger.debug(s"\t- Failed setting npm config: ${exception.getMessage}")
+      case (_, fails) if fails.nonEmpty =>
+        logger.debug(s"\t- Failed setting npm config: ${fails.map(_.failed.get.getMessage)}")
         false
     }
   }
