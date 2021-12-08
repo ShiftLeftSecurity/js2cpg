@@ -84,7 +84,7 @@ trait TranspilingEnvironment {
     case Some(value) =>
       value
     case None =>
-      isYarnAvailable = Some(checkForYarn() && (File(projectPath) / "yarn.lock").exists)
+      isYarnAvailable = Some((File(projectPath) / "yarn.lock").exists && checkForYarn())
       isYarnAvailable.get
   }
 
