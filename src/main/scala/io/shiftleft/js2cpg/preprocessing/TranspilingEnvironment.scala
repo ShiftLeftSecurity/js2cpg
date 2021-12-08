@@ -1,5 +1,6 @@
 package io.shiftleft.js2cpg.preprocessing
 
+import better.files.File
 import io.shiftleft.js2cpg.io.ExternalCommand
 import org.slf4j.LoggerFactory
 
@@ -83,7 +84,7 @@ trait TranspilingEnvironment {
     case Some(value) =>
       value
     case None =>
-      isYarnAvailable = Some(checkForYarn())
+      isYarnAvailable = Some((File(projectPath) / "yarn.lock").exists && checkForYarn())
       isYarnAvailable.get
   }
 
