@@ -13,8 +13,8 @@ object TranspilingEnvironment {
   private var isYarnAvailable: Option[Boolean] = None
   private var isNpmAvailable: Option[Boolean]  = None
 
-  val YARN_INSTALL = "yarn install --prefer-offline --ignore-scripts"
-  val NPM_INSTALL  = "npm install --prefer-offline --no-audit --progress=false --ignore-scripts"
+  val YARN_INSTALL = "yarn install --prefer-offline --ignore-scripts --legacy-peer-deps"
+  val NPM_INSTALL  = "npm install --prefer-offline --no-audit --progress=false --ignore-scripts --legacy-peer-deps"
 }
 
 trait TranspilingEnvironment {

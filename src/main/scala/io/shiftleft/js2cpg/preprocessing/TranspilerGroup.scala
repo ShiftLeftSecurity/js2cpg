@@ -30,12 +30,12 @@ case class TranspilerGroup(override val config: Config,
 
   private def installPlugins(): Boolean = {
     val command = if (yarnAvailable()) {
-      s"yarn add $BABEL_PLUGINS --dev -W && ${TranspilingEnvironment.YARN_INSTALL}"
+      s"yarn add $BABEL_PLUGINS --dev -W --legacy-peer-deps && ${TranspilingEnvironment.YARN_INSTALL}"
     } else {
-      s"npm install --save-dev $BABEL_PLUGINS && ${TranspilingEnvironment.NPM_INSTALL}"
+      s"npm install --save-dev $BABEL_PLUGINS --legacy-peer-deps && ${TranspilingEnvironment.NPM_INSTALL}"
     }
     logger.info("Installing project dependencies and plugins. This might take a while.")
-    logger.debug("\t+ Installing plugins ...")
+    logger.debug(s"\t+ Installing plugins with command '$command' in path '$projectPath'")
     ExternalCommand.run(command, projectPath.toString) match {
       case Success(_) =>
         logger.debug("\t+ Plugins installed")
