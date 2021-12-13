@@ -24,3 +24,4 @@ function update {
 }
 
 update cpg git@github.com:ShiftLeftSecurity/codepropertygraph.git
+update joern git@github.com:joernio/joern.git

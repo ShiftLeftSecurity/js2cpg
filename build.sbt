@@ -1,4 +1,5 @@
-val cpgVersion = "1.3.440"
+val cpgVersion = "1.3.461"
+val joernVersion = "1.1.384"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
@@ -81,7 +82,7 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     "io.shiftleft"             %% "codepropertygraph" % cpgVersion,
     "io.shiftleft"             %% "semanticcpg"       % cpgVersion,
-    "io.joern"                 %% "dataflowengineoss" % "1.1.369",
+    "io.joern"                 %% "dataflowengineoss" % joernVersion,
     "com.github.scopt"         %% "scopt"             % "4.0.1",
     "org.graalvm.js"           % "js"                 % "21.3.0",
     "com.github.pathikrit"     %% "better-files"      % "3.9.1",
