@@ -34,14 +34,14 @@ case class TranspilerGroup(override val config: Config,
     } else {
       s"npm install --save-dev $BABEL_PLUGINS --legacy-peer-deps && ${TranspilingEnvironment.NPM_INSTALL}"
     }
-    logger.info("Installing project dependencies and plugins. This might take a while.")
+    logger.info("Installing project dependencies and plugins. That will take a while.")
     logger.debug(s"\t+ Installing plugins with command '$command' in path '$projectPath'")
     ExternalCommand.run(command, projectPath.toString) match {
       case Success(_) =>
-        logger.debug("\t+ Plugins installed")
+        logger.info("\t+ Plugins installed")
         true
       case Failure(exception) =>
-        logger.debug(s"\t- Failed to install plugins: ${exception.getMessage}")
+        logger.error(s"\t- Failed to install plugins: ${exception.getMessage}")
         false
     }
   }
