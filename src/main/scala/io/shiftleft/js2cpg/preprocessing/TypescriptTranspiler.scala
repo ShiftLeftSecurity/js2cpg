@@ -111,7 +111,7 @@ class TypescriptTranspiler(override val config: Config,
           // and that we sadly cannot override with tsc directly:
           createCustomTsConfigFile() match {
             case Failure(f) =>
-              logger.debug(s"\t- Creating a custom TS config failed: ${f.getMessage}")
+              logger.debug("\t- Creating a custom TS config failed", f)
               (None, "")
             case Success(customTsConfigFile) =>
               (Some(customTsConfigFile), s"--project $customTsConfigFile")
@@ -131,9 +131,9 @@ class TypescriptTranspiler(override val config: Config,
 
         ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
           case Success(result) =>
-            logger.debug(s"\t+ TypeScript compiling finished. $result")
+            logger.debug("\t+ TypeScript compiling finished")
           case Failure(exception) =>
-            logger.debug(s"\t- TypeScript compiling failed: ${exception.getMessage}")
+            logger.debug("\t- TypeScript compiling failed", exception)
         }
         customTsConfigFile.foreach(_.delete(swallowIOExceptions = true))
       }

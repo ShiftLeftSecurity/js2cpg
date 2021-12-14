@@ -57,12 +57,12 @@ class NuxtTranspiler(override val config: Config, override val projectPath: Path
     logger.debug(s"\t+ Nuxt.js transpiling $projectPath")
     ExternalCommand.run(command, projectPath.toString) match {
       case Success(result) =>
-        logger.debug(s"\t+ Nuxt.js transpiling finished. $result")
+        logger.debug("\t+ Nuxt.js transpiling finished")
         new BabelTranspiler(config, projectPath, inDir = Some(Paths.get(NUXT_FOLDER)))
           .run(projectPath.resolve(NUXT_FOLDER))
         wasExecuted = true
       case Failure(exception) =>
-        logger.debug(s"\t- Nuxt.js transpiling failed: ${exception.getMessage}")
+        logger.debug("\t- Nuxt.js transpiling failed", exception)
     }
     // we never want other transpilers down the chain to be executed
     false

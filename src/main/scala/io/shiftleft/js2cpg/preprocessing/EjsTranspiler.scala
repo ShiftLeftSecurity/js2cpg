@@ -117,7 +117,7 @@ class EjsTranspiler(override val config: Config, override val projectPath: Path)
       sourceMapFile.writeText(sourceMap.generate())
     } match {
       case Failure(exception) =>
-        logger.debug(s"\t- could not transpile EJS template '$ejsFileName'. $exception")
+        logger.debug(s"\t- could not transpile EJS template '$ejsFileName'", exception)
       case Success(_) =>
         logger.debug(s"\t+ transpiled EJS template '$ejsFileName' to '$transpiledFile'")
     }

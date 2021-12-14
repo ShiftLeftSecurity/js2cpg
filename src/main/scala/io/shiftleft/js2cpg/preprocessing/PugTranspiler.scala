@@ -21,17 +21,18 @@ class PugTranspiler(override val config: Config, override val projectPath: Path)
 
   private def installPugPlugins(): Boolean = {
     val command = if (yarnAvailable()) {
-      s"yarn add pug-cli --dev && ${TranspilingEnvironment.YARN_INSTALL}"
+      s"yarn add pug-cli --dev --legacy-peer-deps && ${TranspilingEnvironment.YARN_INSTALL}"
     } else {
-      s"npm install --save-dev pug-cli && ${TranspilingEnvironment.NPM_INSTALL}"
+      s"npm install --save-dev pug-cli --legacy-peer-deps && ${TranspilingEnvironment.NPM_INSTALL}"
     }
-    logger.debug(s"\t+ Installing Pug plugins ...")
+    logger.info("Installing Pug dependencies and plugins. That will take a while.")
+    logger.debug(s"\t+ Installing Pug plugins with command '$command' in path '$projectPath'")
     ExternalCommand.run(command, projectPath.toString) match {
       case Success(_) =>
-        logger.debug(s"\t+ Pug plugins installed")
+        logger.info("\t+ Pug plugins installed")
         true
       case Failure(exception) =>
-        logger.debug(s"\t- Failed to install Pug plugins: ${exception.getMessage}")
+        logger.error("\t- Failed to install Pug plugins", exception)
         false
     }
   }
@@ -42,10 +43,10 @@ class PugTranspiler(override val config: Config, override val projectPath: Path)
       val command = s"$pug --client --no-debug --out $tmpTranspileDir ."
       logger.debug(s"\t+ transpiling Pug templates in $projectPath to $tmpTranspileDir")
       ExternalCommand.run(command, projectPath.toString) match {
-        case Success(result) =>
-          logger.debug(s"\t+ transpiling Pug templates finished. $result")
+        case Success(_) =>
+          logger.debug("\t+ transpiling Pug templates finished")
         case Failure(exception) =>
-          logger.debug(s"\t- transpiling Pug templates failed: ${exception.getMessage}")
+          logger.debug("\t- transpiling Pug templates failed", exception)
       }
     }
     true

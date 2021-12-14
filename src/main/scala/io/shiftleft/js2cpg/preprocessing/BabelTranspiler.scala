@@ -51,10 +51,8 @@ class BabelTranspiler(override val config: Config,
       s"--out-dir $outDir $constructIgnoreDirArgs"
     logger.debug(s"\t+ Babel transpiling $projectPath to $outDir")
     ExternalCommand.run(command, in.toString) match {
-      case Success(result) =>
-        logger.debug(s"\t+ Babel transpiling finished. $result")
-      case Failure(exception) =>
-        logger.debug(s"\t- Babel transpiling failed: ${exception.getMessage}")
+      case Success(result)    => logger.debug("\t+ Babel transpiling finished")
+      case Failure(exception) => logger.debug("\t- Babel transpiling failed", exception)
     }
     true
   }

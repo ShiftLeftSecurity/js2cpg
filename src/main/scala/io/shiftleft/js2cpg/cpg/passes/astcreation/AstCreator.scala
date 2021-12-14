@@ -1727,7 +1727,7 @@ class AstCreator(diffGraph: DiffGraph.Builder, source: JsSource, usedIdentNodes:
 
     val callId = astNodeBuilder.createCallNode(
       s"__Runtime.TO_STRING(${args.mkString(",")})",
-      s"__Runtime.TO_STRING",
+      "__Runtime.TO_STRING",
       DispatchTypes.STATIC_DISPATCH,
       astNodeBuilder.lineAndColumn(templateLiteralNode)
     )

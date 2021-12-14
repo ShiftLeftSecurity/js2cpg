@@ -47,17 +47,18 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
 
   private def installVuePlugins(): Boolean = {
     val command = if (yarnAvailable()) {
-      s"yarn add @vue/cli-service-global --dev && ${TranspilingEnvironment.YARN_INSTALL}"
+      s"yarn add @vue/cli-service-global --dev --legacy-peer-deps && ${TranspilingEnvironment.YARN_INSTALL}"
     } else {
-      s"npm install --save-dev @vue/cli-service-global && ${TranspilingEnvironment.NPM_INSTALL}"
+      s"npm install --save-dev @vue/cli-service-global --legacy-peer-deps && ${TranspilingEnvironment.NPM_INSTALL}"
     }
-    logger.debug(s"\t+ Installing Vue.js plugins ...")
+    logger.info("Installing Vue.js dependencies and plugins. That will take a while.")
+    logger.debug(s"\t+ Installing Vue.js plugins with command '$command' in path '$projectPath'")
     ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
       case Success(_) =>
-        logger.debug(s"\t+ Vue.js plugins installed")
+        logger.info("\t+ Vue.js plugins installed")
         true
       case Failure(exception) =>
-        logger.debug(s"\t- Failed to install Vue.js plugins: ${exception.getMessage}")
+        logger.error("\t- Failed to install Vue.js plugins", exception)
         false
     }
   }
@@ -69,9 +70,9 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
       logger.debug(s"\t+ Vue.js transpiling $projectPath to $tmpTranspileDir")
       ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
         case Success(result) =>
-          logger.debug(s"\t+ Vue.js transpiling finished. $result")
+          logger.debug("\t+ Vue.js transpiling finished")
         case Failure(exception) =>
-          logger.debug(s"\t- Vue.js transpiling failed: ${exception.getMessage}")
+          logger.debug("\t- Vue.js transpiling failed", exception)
       }
     }
     true

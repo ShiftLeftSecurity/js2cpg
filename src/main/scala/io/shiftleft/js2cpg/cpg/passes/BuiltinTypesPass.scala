@@ -12,7 +12,7 @@ class BuiltinTypesPass(cpg: Cpg, keyPool: KeyPool) extends CpgPass(cpg, keyPool 
   private val logger = LoggerFactory.getLogger(getClass)
 
   override def run(): Iterator[DiffGraph] = {
-    logger.debug(s"Generating builtin types.")
+    logger.debug("Generating builtin types.")
 
     val diffGraph = DiffGraph.newBuilder
 

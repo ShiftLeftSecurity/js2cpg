@@ -14,7 +14,8 @@ object TranspilingEnvironment {
   private var isNpmAvailable: Option[Boolean]  = None
 
   val YARN_INSTALL = "yarn install --prefer-offline --ignore-scripts --legacy-peer-deps"
-  val NPM_INSTALL  = "npm install --prefer-offline --no-audit --progress=false --ignore-scripts --legacy-peer-deps"
+  val NPM_INSTALL =
+    "npm install --prefer-offline --no-audit --progress=false --ignore-scripts --legacy-peer-deps"
 }
 
 trait TranspilingEnvironment {
@@ -49,13 +50,13 @@ trait TranspilingEnvironment {
   }
 
   private def setNpmPython(): Boolean = {
-    logger.debug(s"\t+ Setting npm config ...")
+    logger.debug("\t+ Setting npm config ...")
     ExternalCommand.run("npm config set python python2.7", projectPath.toString) match {
       case Success(_) =>
-        logger.debug(s"\t+ Set successfully")
+        logger.debug("\t+ Set successfully")
         true
       case Failure(exception) =>
-        logger.debug(s"\t- Failed setting npm config: ${exception.getMessage}")
+        logger.debug("\t- Failed setting npm config", exception)
         false
     }
   }

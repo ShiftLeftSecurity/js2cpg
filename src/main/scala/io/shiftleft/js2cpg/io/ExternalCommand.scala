@@ -15,17 +15,10 @@ object ExternalCommand {
 
   def run(command: String,
           inDir: String = ".",
-          extraEnv: Map[String, String] = Map.empty,
-          debugLogging: Boolean = false): Try[String] = {
-    val result = mutable.ArrayBuffer.empty[String]
-    val lineHandler: String => Unit = line => {
-      if (debugLogging) {
-        logger.debug(s"\t\t$line")
-      }
-      result.addOne(line)
-    }
-
-    val systemString = System.getProperty(osNameProperty)
+          extraEnv: Map[String, String] = Map.empty): Try[String] = {
+    val result                      = mutable.ArrayBuffer.empty[String]
+    val lineHandler: String => Unit = line => result.addOne(line)
+    val systemString                = System.getProperty(osNameProperty)
     val shellPrefix =
       if (systemString != null && systemString.startsWith(windowsSystemPrefix)) {
         "cmd" :: "/c" :: Nil
@@ -37,10 +30,6 @@ object ExternalCommand {
       .!(ProcessLogger(lineHandler, lineHandler)) match {
       case 0 =>
         Success(result.mkString(System.lineSeparator()))
-      case code if debugLogging =>
-        logger.debug(
-          s"\t- '$command' failed with exit code '$code': ${result.mkString(System.lineSeparator())}")
-        Failure(new RuntimeException(result.mkString(System.lineSeparator())))
       case _ =>
         Failure(new RuntimeException(result.mkString(System.lineSeparator())))
     }

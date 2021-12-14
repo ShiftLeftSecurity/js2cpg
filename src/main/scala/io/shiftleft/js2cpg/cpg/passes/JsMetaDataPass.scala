@@ -12,7 +12,7 @@ class JsMetaDataPass(cpg: Cpg, keyPool: KeyPool, hash: String)
   private val logger = LoggerFactory.getLogger(getClass)
 
   override def run(): Iterator[DiffGraph] = {
-    logger.debug(s"Generating meta-data.")
+    logger.debug("Generating meta-data.")
 
     val diffGraph = DiffGraph.newBuilder
     val metaNode  = NewMetaData().language(Languages.JAVASCRIPT).hash(hash)
