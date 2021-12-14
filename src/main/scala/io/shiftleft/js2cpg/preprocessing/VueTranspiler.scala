@@ -69,10 +69,8 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
       val command = s"$vue build --dest $tmpTranspileDir --mode development --no-clean"
       logger.debug(s"\t+ Vue.js transpiling $projectPath to $tmpTranspileDir")
       ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
-        case Success(result) =>
-          logger.debug("\t+ Vue.js transpiling finished")
-        case Failure(exception) =>
-          logger.debug("\t- Vue.js transpiling failed", exception)
+        case Success(_)         => logger.debug("\t+ Vue.js transpiling finished")
+        case Failure(exception) => logger.debug("\t- Vue.js transpiling failed", exception)
       }
     }
     true

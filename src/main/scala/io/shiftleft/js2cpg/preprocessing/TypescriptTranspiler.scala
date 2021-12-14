@@ -130,10 +130,8 @@ class TypescriptTranspiler(override val config: Config,
           s"\t+ TypeScript compiling $projectPath $projCommand to $projOutDir (using $module style modules)")
 
         ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
-          case Success(result) =>
-            logger.debug("\t+ TypeScript compiling finished")
-          case Failure(exception) =>
-            logger.debug("\t- TypeScript compiling failed", exception)
+          case Success(_)         => logger.debug("\t+ TypeScript compiling finished")
+          case Failure(exception) => logger.debug("\t- TypeScript compiling failed", exception)
         }
         customTsConfigFile.foreach(_.delete(swallowIOExceptions = true))
       }
