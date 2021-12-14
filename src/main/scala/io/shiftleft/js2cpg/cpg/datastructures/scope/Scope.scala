@@ -100,7 +100,7 @@ object Scope {
         case methodScopeElement: MethodScopeElement =>
           methodScopeElement.scopeNode
       }
-      .getOrElse(throw new RuntimeException(s"Cannot find method scope."))
+      .getOrElse(throw new RuntimeException("Cannot find method scope."))
     // There are no references outside of methods. Meaning we always find a MethodScope here.
   }
 }

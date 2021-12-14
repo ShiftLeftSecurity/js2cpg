@@ -44,7 +44,7 @@ class Js2cpgArgumentsParser {
   import Js2cpgArgumentsParser._
 
   private lazy val banner: String =
-    s"""
+    """
        |     ██╗███████╗██████╗  ██████╗██████╗  ██████╗
        |     ██║██╔════╝╚════██╗██╔════╝██╔══██╗██╔════╝
        |     ██║███████╗ █████╔╝██║     ██████╔╝██║  ███╗
@@ -89,31 +89,31 @@ class Js2cpgArgumentsParser {
           failure("Directory of the output file does not exist")
         } else success)
     opt[Unit](NO_TS)
-      .text(s"disables transpiling Typescript files to Javascript")
+      .text("disables transpiling Typescript files to Javascript")
       .action((_, c) => c.copy(tsTranspiling = false))
     opt[Unit](NO_BABEL)
-      .text(s"disables transpiling Javascript files with Babel")
+      .text("disables transpiling Javascript files with Babel")
       .action((_, c) => c.copy(babelTranspiling = false))
     opt[Unit](NO_VUE)
-      .text(s"disables transpiling Vue.js files")
+      .text("disables transpiling Vue.js files")
       .action((_, c) => c.copy(vueTranspiling = false))
     opt[Unit](NO_NUXT)
-      .text(s"disables Nuxt.js transpiling")
+      .text("disables Nuxt.js transpiling")
       .action((_, c) => c.copy(nuxtTranspiling = false))
     opt[Unit](NO_TEMPLATES)
-      .text(s"disables transpiling EJS or Pug template files")
+      .text("disables transpiling EJS or Pug template files")
       .action((_, c) => c.copy(templateTranspiling = false))
     // for backwards compatibility - has no effect:
     opt[Unit](TRANSPILING)
-      .text(s"enables transpiling Typescript files to Javascript")
+      .text("enables transpiling Typescript files to Javascript")
       .hidden() // deprecated
     // for backwards compatibility - has no effect:
     opt[Unit](BABEL)
-      .text(s"enables transpiling Javascript files with Babel")
+      .text("enables transpiling Javascript files with Babel")
       .hidden()
     // for backwards compatibility - has no effect:
     opt[Unit](TS)
-      .text(s"enables transpiling Typescript files to Javascript")
+      .text("enables transpiling Typescript files to Javascript")
       .hidden()
     opt[Unit](WITH_TS_TYPES)
       .text(
@@ -130,24 +130,23 @@ class Js2cpgArgumentsParser {
     // for backwards compatibility - has no effect:
     opt[Unit](IGNORE_MINIFIED)
       .text(
-        s"ignore minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')")
+        "ignore minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')")
       .hidden() // deprecated
     opt[Unit](WITH_MINIFIED)
       .action((_, c) => c.copy(ignoreMinified = false))
       .hidden() // deprecated
-      .text(
-        s"include minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')")
+      .text("include minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')")
     opt[Unit](INCLUDE_MINIFIED)
       .action((_, c) => c.copy(ignoreMinified = false))
       .text(
-        s"include minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')")
+        "include minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')")
     opt[Unit](WITH_TESTS)
       .action((_, c) => c.copy(ignoreTests = false))
       .hidden() // deprecated
-      .text(s"include test files")
+      .text("include test files")
     opt[Unit](INCLUDE_TESTS)
       .action((_, c) => c.copy(ignoreTests = false))
-      .text(s"include test files")
+      .text("include test files")
     opt[Unit](IGNORE_PRIVATE_DEPS)
       .text(
         s"ignores private modules/dependencies in 'node_modules/' (defaults to `${Config.DEFAULT_IGNORE_PRIVATE_DEPS}`)")
@@ -163,13 +162,13 @@ class Js2cpgArgumentsParser {
       .text(
         s"additional private dependencies to be analyzed from '${FileDefaults.NODE_MODULES_DIR_NAME}'")
     opt[Unit](INCLUDE_CONFIGS)
-      .text(s"include configuration files (*.conf.js, *.config.js, *.json)")
+      .text("include configuration files (*.conf.js, *.config.js, *.json)")
       .action((_, c) => c.copy(includeConfigs = true))
     opt[Unit](INCLUDE_HTML)
-      .text(s"include HTML files (*.html)")
+      .text("include HTML files (*.html)")
       .action((_, c) => c.copy(includeHtml = true))
     opt[Int](JVM_MONITOR)
-      .text(s"enable JVM metrics logging (requires JMX port number)")
+      .text("enable JVM metrics logging (requires JMX port number)")
       .action((jmxPortNumber, c) => c.copy(jvmMetrics = Some(jmxPortNumber)))
       .hidden()
     opt[String](MODULE_MODE)
