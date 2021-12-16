@@ -107,6 +107,7 @@ lazy val js2cpg = (project in file(".")).settings(
     "-Dlog4j.configurationFile=file:src/test/resources/log4j2-test.xml"
   ),
   publishTo := sonatypePublishToBundle.value,
+  sonatypeTimeoutMillis := 7200000,
   scmInfo := Some(
     ScmInfo(url("https://github.com/ShiftLeftSecurity/js2cpg"),
             "scm:git@github.com:ShiftLeftSecurity/js2cpg.git")),
