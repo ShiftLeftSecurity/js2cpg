@@ -3,7 +3,7 @@ val joernVersion = "1.1.387"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
-enablePlugins(JavaAppPackaging, GitVersioning, BuildInfoPlugin)
+enablePlugins(JavaAppPackaging, BuildInfoPlugin)
 
 lazy val Fast = config("fast").extend(Test)
 configs(Fast)
