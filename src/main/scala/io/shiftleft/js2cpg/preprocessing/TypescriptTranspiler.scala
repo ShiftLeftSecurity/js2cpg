@@ -125,7 +125,7 @@ class TypescriptTranspiler(override val config: Config,
           else File(projectPath)
 
         val command =
-          s"$tsc -sourcemap --sourceRoot $sourceRootDir --outDir $projOutDir -t ES2015 -m $module --jsx react --noEmit false $projCommand"
+          s"$tsc -sourcemap --sourceRoot $sourceRootDir --outDir $projOutDir -t ES2018 -m $module --jsx react --noEmit false $projCommand"
         logger.debug(
           s"\t+ TypeScript compiling $projectPath $projCommand to $projOutDir (using $module style modules)")
 
