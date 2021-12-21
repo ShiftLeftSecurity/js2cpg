@@ -96,7 +96,12 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
         // special handling for Windows CI
         srcDir.root / "Users" / cleanedPath.replace(srcDir.toString(), "")
       } else {
-        srcDir / lookupPath
+        val lookupFile = File(lookupPath)
+        if (lookupFile.parent != lookupFile.root) {
+          srcDir / lookupPath
+        } else {
+          srcDir / lookupFile.name
+        }
       }
       srcFilePath
   }
@@ -238,20 +243,8 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
       case Some(SourceMapOrigin(sourceFilePath, _, _))
           if absoluteFilePath.contains(NuxtTranspiler.NUXT_FOLDER) =>
         srcDir.relativize(File(NuxtTranspiler.remapPath(sourceFilePath.toString))).toString
-      case Some(SourceMapOrigin(sourceFilePath, _, _))
-          if sourceFilePath.toString.endsWith(".vue") =>
+      case Some(SourceMapOrigin(sourceFilePath, _, _)) =>
         srcDir.relativize(File(sourceFilePath)).toString
-      case Some(sourceMapOrigin) =>
-        val sourceMapFile = File(sourceMapOrigin.sourceFilePath)
-        val sourceMapFileExt = if (sourceMapFile.pathAsString.endsWith(DTS_SUFFIX)) {
-          DTS_SUFFIX
-        } else {
-          sourceMapFile.extension.get
-        }
-        val originalFilePathAsString = originalFilePath
-        val originalFile             = File(originalFilePathAsString)
-        val originalFileExt          = originalFile.extension.get
-        originalFilePathAsString.replaceAll(originalFileExt + "$", sourceMapFileExt)
       case None if absoluteFilePath.contains(NuxtTranspiler.NUXT_FOLDER) =>
         NuxtTranspiler.remapPath(originalFilePath)
       case None =>

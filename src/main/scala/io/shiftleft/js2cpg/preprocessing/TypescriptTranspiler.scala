@@ -79,8 +79,16 @@ class TypescriptTranspiler(override val config: Config,
       bufferedSource =>
         val content = FileUtils.contentFromBufferedSource(bufferedSource)
         val json    = Json.parse(removeComments(content))
+        val compilerOptions =
+          json
+            .as[JsObject]
+            .value
+            .get("compilerOptions")
+            .map(_.as[JsObject] - "sourceRoot")
+            .getOrElse(JsObject.empty)
         // --include is not available as tsc CLI argument; we set it manually:
-        val jsonCleaned = json.as[JsObject] + ("include" -> JsArray(Array(JsString("**/*"))))
+        val jsonCleaned = json
+          .as[JsObject] + ("include" -> JsArray(Array(JsString("**/*")))) + ("compilerOptions" -> compilerOptions)
         val customTsConfigFile =
           File.newTemporaryFile("js2cpgTsConfig", ".json", parent = Some(projectPath))
         customTsConfigFile.writeText(Json.stringify(jsonCleaned))
@@ -120,12 +128,13 @@ class TypescriptTranspiler(override val config: Config,
 
         val projOutDir =
           if (proj.nonEmpty) outDir / proj.substring(0, proj.lastIndexOf("/")) else outDir
-        val sourceRootDir =
-          if (proj.nonEmpty) File(projectPath) / proj.substring(0, proj.lastIndexOf("/"))
-          else File(projectPath)
+        val sourceRoot =
+          if (proj.nonEmpty)
+            s"--sourceRoot ${File(projectPath) / proj.substring(0, proj.lastIndexOf("/"))}"
+          else ""
 
         val command =
-          s"$tsc -sourcemap --sourceRoot $sourceRootDir --outDir $projOutDir -t ES2015 -m $module --jsx react --noEmit false $projCommand"
+          s"$tsc -sourcemap $sourceRoot --outDir $projOutDir -t ES2015 -m $module --jsx react --noEmit false $projCommand"
         logger.debug(
           s"\t+ TypeScript compiling $projectPath $projCommand to $projOutDir (using $module style modules)")
 

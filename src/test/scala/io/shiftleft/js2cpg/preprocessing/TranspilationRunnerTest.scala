@@ -6,7 +6,7 @@ import io.shiftleft.codepropertygraph.cpgloading.{CpgLoader, CpgLoaderConfig}
 import io.shiftleft.codepropertygraph.generated.{NodeTypes, PropertyNames}
 import io.shiftleft.js2cpg.core
 import io.shiftleft.js2cpg.core.Js2CpgMain
-import io.shiftleft.js2cpg.io.FileDefaults.{JS_SUFFIX, TS_SUFFIX}
+import io.shiftleft.js2cpg.io.FileDefaults.JS_SUFFIX
 import io.shiftleft.js2cpg.io.FileUtils
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.tags.Slow
@@ -111,6 +111,33 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
                   .mkString
                   .stripLineEnd)) shouldBe "console.log(\"Hello World!\");"
         }
+      }
+    }
+
+    "generate js files correctly for a simple Typescript project with subfolders" in {
+      val projectPath = getClass.getResource("/typescriptsub").toURI
+      File.usingTemporaryDirectory() { tmpDir: File =>
+        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+
+        val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
+        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-babel"))
+
+        val cpg =
+          CpgLoader
+            .loadFromOverflowDb(
+              CpgLoaderConfig.withDefaults.withOverflowConfig(
+                Config.withDefaults.withStorageLocation(cpgPath)))
+        fileNames(cpg) should contain theSameElementsAs List(
+          "index.js",
+          "main.ts",
+          s"suba${java.io.File.separator}a.ts",
+          s"suba${java.io.File.separator}b.ts",
+          s"subb${java.io.File.separator}nested${java.io.File.separator}a.ts",
+          s"subb${java.io.File.separator}nested${java.io.File.separator}b.ts",
+          s"subb${java.io.File.separator}nested${java.io.File.separator}other.js",
+          s"subb${java.io.File.separator}a.ts",
+          s"subb${java.io.File.separator}b.ts"
+        )
       }
     }
 
