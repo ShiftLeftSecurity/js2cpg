@@ -120,7 +120,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath))
+        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-babel"))
 
         val cpg =
           CpgLoader

@@ -79,8 +79,16 @@ class TypescriptTranspiler(override val config: Config,
       bufferedSource =>
         val content = FileUtils.contentFromBufferedSource(bufferedSource)
         val json    = Json.parse(removeComments(content))
+        val compilerOptions =
+          json
+            .as[JsObject]
+            .value
+            .get("compilerOptions")
+            .map(_.as[JsObject] - "sourceRoot")
+            .getOrElse(JsObject.empty)
         // --include is not available as tsc CLI argument; we set it manually:
-        val jsonCleaned = json.as[JsObject] + ("include" -> JsArray(Array(JsString("**/*"))))
+        val jsonCleaned = json
+          .as[JsObject] + ("include" -> JsArray(Array(JsString("**/*")))) + ("compilerOptions" -> compilerOptions)
         val customTsConfigFile =
           File.newTemporaryFile("js2cpgTsConfig", ".json", parent = Some(projectPath))
         customTsConfigFile.writeText(Json.stringify(jsonCleaned))
