@@ -1,3 +1,8 @@
 {
-  "include": ["project/"]
+  "compilerOptions": {
+    "sourceMap": true,
+    "sourceRoot": "/",
+    "outDir": "out"
+  },
+  "include": ["**.*ts"]
 }
