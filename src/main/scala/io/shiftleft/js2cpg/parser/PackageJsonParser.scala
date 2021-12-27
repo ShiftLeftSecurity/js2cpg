@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
 
 import scala.collection.concurrent.TrieMap
+import scala.util.Try
 import scala.util.Using
 
 object PackageJsonParser {
@@ -29,11 +30,9 @@ object PackageJsonParser {
         val depsPath     = packageJsonPath
         val lockDepsPath = packageJsonPath.resolveSibling(Paths.get(PACKAGE_JSON_LOCK_FILENAME))
 
-        val lockDeps = Using(FileUtils.bufferedSourceFromFile(lockDepsPath)) { bufferedSource =>
-          val content     = FileUtils.contentFromBufferedSource(bufferedSource)
-          val packageJson = Json.parse(content)
-
-          (packageJson \ "dependencies")
+        val lockDeps = Try {
+          val content = FileUtils.readLinesInFile(lockDepsPath).mkString("\n")
+          (Json.parse(content) \ "dependencies")
             .asOpt[Map[String, Map[String, String]]]
             .map { versions =>
               versions.map {
@@ -44,10 +43,9 @@ object PackageJsonParser {
         }.toOption
 
         // lazy val because we only evaluate this in case no package lock file is available.
-        lazy val deps = Using(FileUtils.bufferedSourceFromFile(depsPath)) { bufferedSource =>
-          val content     = FileUtils.contentFromBufferedSource(bufferedSource)
+        lazy val deps = Try {
+          val content     = FileUtils.readLinesInFile(depsPath).mkString("\n")
           val packageJson = Json.parse(content)
-
           projectDependencies
             .flatMap { dependency =>
               (packageJson \ dependency).asOpt[Map[String, String]]

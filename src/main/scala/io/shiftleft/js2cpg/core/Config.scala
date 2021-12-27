@@ -8,7 +8,7 @@ import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler
 
-import scala.util.{Failure, Success, Using}
+import scala.util.{Try, Failure, Success}
 import scala.util.matching.Regex
 
 object Config {
@@ -72,16 +72,10 @@ case class Config(srcDir: String = "",
 
   def withLoadedIgnores(): Config = {
     val slIngoreFilePath = Paths.get(srcDir, Config.SL_IGNORE_FILE)
-    val result = Using(FileUtils.bufferedSourceFromFile(slIngoreFilePath)) { bufferedSource =>
-      val content = FileUtils.contentFromBufferedSource(bufferedSource)
-      content.split(System.lineSeparator()).toSeq.map(createPathForIgnore)
-    }
-
-    result match {
-      case Failure(_) =>
-        this
-      case Success(loadedIgnoredFiles) =>
-        this.copy(ignoredFiles = ignoredFiles ++ loadedIgnoredFiles)
+    Try(FileUtils.readLinesInFile(slIngoreFilePath)) match {
+      case Failure(_) => this
+      case Success(lines) =>
+        this.copy(ignoredFiles = ignoredFiles ++ lines.map(createPathForIgnore))
     }
   }
 
