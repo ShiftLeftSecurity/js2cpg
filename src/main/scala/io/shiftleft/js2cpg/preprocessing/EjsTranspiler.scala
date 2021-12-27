@@ -9,8 +9,8 @@ import io.shiftleft.js2cpg.io.FileUtils
 import org.slf4j.LoggerFactory
 
 import java.nio.file.Path
-import scala.collection.{SortedMap, mutable}
-import scala.util.{Failure, Success, Using}
+import scala.collection.{mutable, SortedMap}
+import scala.util.{Failure, Success, Try}
 
 class EjsTranspiler(override val config: Config, override val projectPath: Path)
     extends Transpiler {
@@ -103,8 +103,8 @@ class EjsTranspiler(override val config: Config, override val projectPath: Path)
     val transpiledFileName = ejsFileName.stripSuffix(EJS_SUFFIX) + JS_SUFFIX
     val transpiledFile     = File(tmpTranspileDir) / transpiledFileName
     val sourceMapFile      = File(tmpTranspileDir) / (transpiledFileName + ".map")
-    Using(FileUtils.bufferedSourceFromFile(ejsFile)) { ejsFileBuffer =>
-      val ejsFileContent = FileUtils.contentFromBufferedSource(ejsFileBuffer)
+    Try {
+      val ejsFileContent = FileUtils.readLinesInFile(ejsFile).mkString("\n")
       val (positionToLineNumberMapping, positionToFirstPositionInLineMapping) =
         FileUtils.positionLookupTables(ejsFileContent)
       val (jsCode, sourceMap) = extractJsCode(ejsFileContent,

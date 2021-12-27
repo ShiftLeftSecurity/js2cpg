@@ -1,5 +1,5 @@
-val cpgVersion = "1.3.461"
-val joernVersion = "1.1.387"
+val cpgVersion   = "1.3.474"
+val joernVersion = "1.1.407"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
@@ -87,9 +87,9 @@ lazy val commonSettings = Seq(
     "org.graalvm.js"           % "js"                 % "21.3.0",
     "com.github.pathikrit"     %% "better-files"      % "3.9.1",
     "org.slf4j"                % "slf4j-api"          % "1.7.32",
-    "org.apache.logging.log4j" % "log4j-slf4j-impl"   % "2.16.0" % Runtime,
+    "org.apache.logging.log4j" % "log4j-slf4j-impl"   % "2.17.0" % Runtime,
     "com.typesafe.play"        %% "play-json"         % "2.9.2",
-    "com.fasterxml.jackson"    % "jackson-base"       % "2.13.0",
+    "com.fasterxml.jackson"    % "jackson-base"       % "2.13.1",
     "com.atlassian.sourcemap"  % "sourcemap"          % "2.0.0",
     "commons-io"               % "commons-io"         % "2.11.0",
     "io.shiftleft"             %% "semanticcpg"       % cpgVersion % Test classifier "tests",
