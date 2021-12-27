@@ -8,6 +8,8 @@ import scala.util.{Failure, Success, Try}
 
 object ExternalCommand {
 
+  private val COMMAND_AND: String = " && "
+
   def toOSCommand(command: String): String =
     if (scala.util.Properties.isWin) {
       command + ".cmd"
@@ -18,8 +20,9 @@ object ExternalCommand {
           extraEnv: Map[String, String] = Map.empty): Try[String] = {
     val result                      = mutable.ArrayBuffer.empty[String]
     val lineHandler: String => Unit = line => result += line
-    Process(command, new io.File(inDir), extraEnv.toList: _*)
-      .!(ProcessLogger(lineHandler, lineHandler)) match {
+    val logger                      = ProcessLogger(lineHandler, lineHandler)
+    val commands                    = command.split(COMMAND_AND).toSeq
+    commands.map(Process(_, new io.File(inDir), extraEnv.toList: _*).!(logger)).sum match {
       case 0 =>
         Success(result.mkString(System.lineSeparator()))
       case _ =>
