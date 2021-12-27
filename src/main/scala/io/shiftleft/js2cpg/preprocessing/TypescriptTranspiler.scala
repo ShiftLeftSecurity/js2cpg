@@ -37,7 +37,7 @@ class TypescriptTranspiler(override val config: Config,
 
   private val NODE_OPTIONS: Map[String, String] = Map("NODE_OPTIONS" -> "--max_old_space_size=4096")
 
-  private val tsc = Paths.get(projectPath.toString, "node_modules", ".bin", "tsc")
+  private val tsc = Paths.get(projectPath.toString, "node_modules", ".bin", "tsc").toString
 
   private def hasTsFiles: Boolean =
     FileUtils.getFileTree(projectPath, config, List(TS_SUFFIX)).nonEmpty
@@ -100,14 +100,14 @@ class TypescriptTranspiler(override val config: Config,
       // Hence, we have to move ignored folders to a temporary folder ...
       moveIgnoredDirs(File(projectPath), tmpForIgnoredDirs)
 
-      val isSolutionTsConfig = TsConfigJsonParser.isSolutionTsConfig(projectPath, tsc.toString)
+      val isSolutionTsConfig = TsConfigJsonParser.isSolutionTsConfig(projectPath, tsc)
       val projects = if (isSolutionTsConfig) {
-        TsConfigJsonParser.subprojects(projectPath, tsc.toString)
+        TsConfigJsonParser.subprojects(projectPath, tsc)
       } else {
         "" :: Nil
       }
 
-      val module = config.moduleMode.getOrElse(TsConfigJsonParser.module(projectPath, tsc.toString))
+      val module = config.moduleMode.getOrElse(TsConfigJsonParser.module(projectPath, tsc))
       val outDir =
         subDir.map(s => File(tmpTranspileDir.toString, s.toString)).getOrElse(File(tmpTranspileDir))
 
@@ -134,7 +134,7 @@ class TypescriptTranspiler(override val config: Config,
           else ""
 
         val command =
-          s"$tsc -sourcemap $sourceRoot --outDir $projOutDir -t ES2015 -m $module --jsx react --noEmit false $projCommand"
+          s"${ExternalCommand.toOSCommand(tsc)} -sourcemap $sourceRoot --outDir $projOutDir -t ES2015 -m $module --jsx react --noEmit false $projCommand"
         logger.debug(
           s"\t+ TypeScript compiling $projectPath $projCommand to $projOutDir (using $module style modules)")
 

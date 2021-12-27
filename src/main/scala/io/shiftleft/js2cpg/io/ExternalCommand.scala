@@ -2,31 +2,23 @@ package io.shiftleft.js2cpg.io
 
 import java.io
 
-import org.slf4j.LoggerFactory
-
 import scala.collection.mutable
 import scala.sys.process.{Process, ProcessLogger}
 import scala.util.{Failure, Success, Try}
 
 object ExternalCommand {
-  private val logger              = LoggerFactory.getLogger(ExternalCommand.getClass)
-  private val windowsSystemPrefix = "Windows"
-  private val osNameProperty      = "os.name"
+
+  def toOSCommand(command: String): String =
+    if (scala.util.Properties.isWin) {
+      command + ".cmd"
+    } else { command }
 
   def run(command: String,
           inDir: String = ".",
           extraEnv: Map[String, String] = Map.empty): Try[String] = {
     val result                      = mutable.ArrayBuffer.empty[String]
-    val lineHandler: String => Unit = line => result.addOne(line)
-    val systemString                = System.getProperty(osNameProperty)
-    val shellPrefix =
-      if (systemString != null && systemString.startsWith(windowsSystemPrefix)) {
-        "cmd" :: "/c" :: Nil
-      } else {
-        "sh" :: "-c" :: Nil
-      }
-
-    Process(shellPrefix :+ command, new io.File(inDir), extraEnv.toList: _*)
+    val lineHandler: String => Unit = line => result += line
+    Process(command, new io.File(inDir), extraEnv.toList: _*)
       .!(ProcessLogger(lineHandler, lineHandler)) match {
       case 0 =>
         Success(result.mkString(System.lineSeparator()))

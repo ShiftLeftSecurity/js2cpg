@@ -13,9 +13,13 @@ object TranspilingEnvironment {
   private var isYarnAvailable: Option[Boolean] = None
   private var isNpmAvailable: Option[Boolean]  = None
 
-  val YARN_INSTALL = "yarn install --prefer-offline --ignore-scripts --legacy-peer-deps"
-  val NPM_INSTALL =
-    "npm install --prefer-offline --no-audit --progress=false --ignore-scripts --legacy-peer-deps"
+  val YARN: String = ExternalCommand.toOSCommand("yarn")
+  val NPM: String  = ExternalCommand.toOSCommand("npm")
+
+  val YARN_INSTALL: String =
+    s"$YARN} install --prefer-offline --ignore-scripts --legacy-peer-deps"
+  val NPM_INSTALL: String =
+    s"$NPM install --prefer-offline --no-audit --progress=false --ignore-scripts --legacy-peer-deps"
 }
 
 trait TranspilingEnvironment {
@@ -27,7 +31,7 @@ trait TranspilingEnvironment {
 
   private def checkForYarn(): Boolean = {
     logger.debug("\t+ Checking yarn ...")
-    ExternalCommand.run("yarn -v", projectPath.toString) match {
+    ExternalCommand.run(s"${TranspilingEnvironment.YARN} -v", projectPath.toString) match {
       case Success(result) =>
         logger.debug(s"\t+ yarn is available: $result")
         true
@@ -39,7 +43,7 @@ trait TranspilingEnvironment {
 
   private def checkForNpm(): Boolean = {
     logger.debug(s"\t+ Checking npm ...")
-    ExternalCommand.run("npm -v", projectPath.toString) match {
+    ExternalCommand.run(s"${TranspilingEnvironment.NPM} -v", projectPath.toString) match {
       case Success(result) =>
         logger.debug(s"\t+ npm is available: $result")
         true
@@ -51,7 +55,8 @@ trait TranspilingEnvironment {
 
   private def setNpmPython(): Boolean = {
     logger.debug("\t+ Setting npm config ...")
-    ExternalCommand.run("npm config set python python2.7", projectPath.toString) match {
+    ExternalCommand.run(s"${TranspilingEnvironment.NPM} config set python python2.7",
+                        projectPath.toString) match {
       case Success(_) =>
         logger.debug("\t+ Set successfully")
         true
