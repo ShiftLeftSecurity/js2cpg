@@ -9,11 +9,9 @@ import scala.util.{Failure, Success, Try}
 object ExternalCommand {
 
   private val COMMAND_AND: String = " && "
+  private val IS_WIN: Boolean     = scala.util.Properties.isWin
 
-  def toOSCommand(command: String): String =
-    if (scala.util.Properties.isWin) {
-      command + ".cmd"
-    } else { command }
+  def toOSCommand(command: String): String = if (IS_WIN) command + ".cmd" else command
 
   def run(command: String,
           inDir: String = ".",
