@@ -16,6 +16,8 @@ object TranspilingEnvironment {
   val YARN: String = ExternalCommand.toOSCommand("yarn")
   val NPM: String  = ExternalCommand.toOSCommand("npm")
 
+  val YARN_ADD: String =
+    s"$YARN} add --prefer-offline --ignore-scripts --legacy-peer-deps"
   val YARN_INSTALL: String =
     s"$YARN} install --prefer-offline --ignore-scripts --legacy-peer-deps"
   val NPM_INSTALL: String =

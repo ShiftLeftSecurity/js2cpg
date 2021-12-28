@@ -21,9 +21,9 @@ class PugTranspiler(override val config: Config, override val projectPath: Path)
 
   private def installPugPlugins(): Boolean = {
     val command = if (yarnAvailable()) {
-      s"${TranspilingEnvironment.YARN} add pug-cli --dev --legacy-peer-deps && ${TranspilingEnvironment.YARN_INSTALL}"
+      s"${TranspilingEnvironment.YARN_ADD} pug-cli --dev && ${TranspilingEnvironment.YARN_INSTALL}"
     } else {
-      s"${TranspilingEnvironment.NPM} install --save-dev pug-cli --legacy-peer-deps && ${TranspilingEnvironment.NPM_INSTALL}"
+      s"${TranspilingEnvironment.NPM_INSTALL} --save-dev pug-cli && ${TranspilingEnvironment.NPM_INSTALL}"
     }
     logger.info("Installing Pug dependencies and plugins. That will take a while.")
     logger.debug(s"\t+ Installing Pug plugins with command '$command' in path '$projectPath'")
