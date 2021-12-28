@@ -36,7 +36,7 @@ class TypescriptTranspiler(override val config: Config,
 
   private val NODE_OPTIONS: Map[String, String] = Map("NODE_OPTIONS" -> "--max_old_space_size=4096")
 
-  private val tsc = Paths.get(projectPath.toString, "node_modules", ".bin", "tsc")
+  private val tsc = Paths.get(projectPath.toString, "node_modules", ".bin", "tsc").toString
 
   private def hasTsFiles: Boolean =
     FileUtils.getFileTree(projectPath, config, List(TS_SUFFIX)).nonEmpty
@@ -96,57 +96,80 @@ class TypescriptTranspiler(override val config: Config,
     }
   }
 
+  private def installTsPlugins(): Boolean = {
+    val command = if (yarnAvailable()) {
+      s"${TranspilingEnvironment.YARN_ADD} typescript --dev"
+    } else {
+      s"${TranspilingEnvironment.NPM_INSTALL} --save-dev typescript"
+    }
+    logger.info("Installing TypeScript dependencies and plugins. That will take a while.")
+    logger.debug(
+      s"\t+ Installing Typescript plugins with command '$command' in path '$projectPath'")
+    ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
+      case Success(_) =>
+        logger.info("\t+ TypeScript plugins installed")
+        true
+      case Failure(exception) =>
+        logger.error("\t- Failed to install TypeScript plugins", exception)
+        false
+    }
+  }
+
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
-    File.usingTemporaryDirectory() { tmpForIgnoredDirs =>
-      // Sadly, tsc does not allow to exclude folders when being run from cli.
-      // Hence, we have to move ignored folders to a temporary folder ...
-      moveIgnoredDirs(File(projectPath), tmpForIgnoredDirs)
+    if (installTsPlugins()) {
+      File.usingTemporaryDirectory() { tmpForIgnoredDirs =>
+        // Sadly, tsc does not allow to exclude folders when being run from cli.
+        // Hence, we have to move ignored folders to a temporary folder ...
+        moveIgnoredDirs(File(projectPath), tmpForIgnoredDirs)
 
-      val isSolutionTsConfig = TsConfigJsonParser.isSolutionTsConfig(projectPath, tsc.toString)
-      val projects = if (isSolutionTsConfig) {
-        TsConfigJsonParser.subprojects(projectPath, tsc.toString)
-      } else {
-        "" :: Nil
-      }
-
-      val module = config.moduleMode.getOrElse(TsConfigJsonParser.module(projectPath, tsc.toString))
-      val outDir =
-        subDir.map(s => File(tmpTranspileDir.toString, s.toString)).getOrElse(File(tmpTranspileDir))
-
-      for (proj <- projects) {
-        val projCommand = if (proj.nonEmpty) {
-          s"--project $proj"
+        val isSolutionTsConfig = TsConfigJsonParser.isSolutionTsConfig(projectPath, tsc)
+        val projects = if (isSolutionTsConfig) {
+          TsConfigJsonParser.subprojects(projectPath, tsc)
         } else {
-          // for the root project we try to create a custom tsconfig file to ignore settings that may be there
-          // and that we sadly cannot override with tsc directly:
-          createCustomTsConfigFile() match {
-            case Failure(f) =>
-              logger.debug("\t- Creating a custom TS config failed", f)
-              ""
-            case Success(customTsConfigFile) => s"--project $customTsConfigFile"
+          "" :: Nil
+        }
+
+        val module = config.moduleMode.getOrElse(TsConfigJsonParser.module(projectPath, tsc))
+        val outDir =
+          subDir
+            .map(s => File(tmpTranspileDir.toString, s.toString))
+            .getOrElse(File(tmpTranspileDir))
+
+        for (proj <- projects) {
+          val projCommand = if (proj.nonEmpty) {
+            s"--project $proj"
+          } else {
+            // for the root project we try to create a custom tsconfig file to ignore settings that may be there
+            // and that we sadly cannot override with tsc directly:
+            createCustomTsConfigFile() match {
+              case Failure(f) =>
+                logger.debug("\t- Creating a custom TS config failed", f)
+                ""
+              case Success(customTsConfigFile) => s"--project $customTsConfigFile"
+            }
+          }
+
+          val projOutDir =
+            if (proj.nonEmpty) outDir / proj.substring(0, proj.lastIndexOf("/")) else outDir
+          val sourceRoot =
+            if (proj.nonEmpty)
+              s"--sourceRoot ${File(projectPath) / proj.substring(0, proj.lastIndexOf("/"))}"
+            else ""
+
+          val command =
+            s"${ExternalCommand.toOSCommand(tsc)} -sourcemap $sourceRoot --outDir $projOutDir -t ES2015 -m $module --jsx react --noEmit false $projCommand"
+          logger.debug(
+            s"\t+ TypeScript compiling $projectPath $projCommand to $projOutDir (using $module style modules)")
+
+          ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
+            case Success(_)         => logger.debug("\t+ TypeScript compiling finished")
+            case Failure(exception) => logger.debug("\t- TypeScript compiling failed", exception)
           }
         }
 
-        val projOutDir =
-          if (proj.nonEmpty) outDir / proj.substring(0, proj.lastIndexOf("/")) else outDir
-        val sourceRoot =
-          if (proj.nonEmpty)
-            s"--sourceRoot ${File(projectPath) / proj.substring(0, proj.lastIndexOf("/"))}"
-          else ""
-
-        val command =
-          s"$tsc -sourcemap $sourceRoot --outDir $projOutDir -t ES2015 -m $module --jsx react --noEmit false $projCommand"
-        logger.debug(
-          s"\t+ TypeScript compiling $projectPath $projCommand to $projOutDir (using $module style modules)")
-
-        ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
-          case Success(_)         => logger.debug("\t+ TypeScript compiling finished")
-          case Failure(exception) => logger.debug("\t- TypeScript compiling failed", exception)
-        }
+        // ... and copy them back afterward.
+        moveIgnoredDirs(tmpForIgnoredDirs, File(projectPath))
       }
-
-      // ... and copy them back afterward.
-      moveIgnoredDirs(tmpForIgnoredDirs, File(projectPath))
     }
     true
   }

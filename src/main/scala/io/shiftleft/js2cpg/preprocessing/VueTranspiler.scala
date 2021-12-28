@@ -47,9 +47,9 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
 
   private def installVuePlugins(): Boolean = {
     val command = if (yarnAvailable()) {
-      s"yarn add @vue/cli-service-global --dev --legacy-peer-deps && ${TranspilingEnvironment.YARN_INSTALL}"
+      s"${TranspilingEnvironment.YARN_ADD} @vue/cli-service-global --dev && ${TranspilingEnvironment.YARN_INSTALL}"
     } else {
-      s"npm install --save-dev @vue/cli-service-global --legacy-peer-deps && ${TranspilingEnvironment.NPM_INSTALL}"
+      s"${TranspilingEnvironment.NPM_INSTALL} --save-dev @vue/cli-service-global && ${TranspilingEnvironment.NPM_INSTALL}"
     }
     logger.info("Installing Vue.js dependencies and plugins. That will take a while.")
     logger.debug(s"\t+ Installing Vue.js plugins with command '$command' in path '$projectPath'")
@@ -65,8 +65,9 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
 
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
     if (installVuePlugins()) {
-      val vue     = Paths.get(projectPath.toString, "node_modules", ".bin", "vue-cli-service")
-      val command = s"$vue build --dest $tmpTranspileDir --mode development --no-clean"
+      val vue = Paths.get(projectPath.toString, "node_modules", ".bin", "vue-cli-service").toString
+      val command =
+        s"${ExternalCommand.toOSCommand(vue)} build --dest $tmpTranspileDir --mode development --no-clean"
       logger.debug(s"\t+ Vue.js transpiling $projectPath to $tmpTranspileDir")
       ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
         case Success(_)         => logger.debug("\t+ Vue.js transpiling finished")

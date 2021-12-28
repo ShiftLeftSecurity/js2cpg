@@ -13,7 +13,7 @@ object TsConfigJsonParser {
   private val logger = LoggerFactory.getLogger(TsConfigJsonParser.getClass)
 
   def module(projectPath: Path, tsc: String): String = {
-    ExternalCommand.run(s"$tsc --showConfig", projectPath.toString) match {
+    ExternalCommand.run(s"${ExternalCommand.toOSCommand(tsc)} --showConfig", projectPath.toString) match {
       case Success(tsConfig) =>
         val json = Json.parse(tsConfig)
         val moduleOption = (json \ "compilerOptions" \ "module")
@@ -31,7 +31,8 @@ object TsConfigJsonParser {
 
   def isSolutionTsConfig(projectPath: Path, tsc: String): Boolean = {
     // a solution tsconfig is one with 0 files and at least one reference, see https://angular.io/config/solution-tsconfig
-    ExternalCommand.run(s"$tsc --listFilesOnly", projectPath.toString) match {
+    ExternalCommand.run(s"${ExternalCommand.toOSCommand(tsc)} --listFilesOnly",
+                        projectPath.toString) match {
       case Success(files) =>
         files.isEmpty
       case Failure(exception) =>
@@ -42,7 +43,7 @@ object TsConfigJsonParser {
   }
 
   def subprojects(projectPath: Path, tsc: String): List[String] = {
-    ExternalCommand.run(s"$tsc --showConfig", projectPath.toString) match {
+    ExternalCommand.run(s"${ExternalCommand.toOSCommand(tsc)} --showConfig", projectPath.toString) match {
       case Success(config) =>
         val json = Json.parse(config)
 
