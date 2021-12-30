@@ -11,8 +11,7 @@ class EmScriptenCleanerTest extends AnyWordSpec with Matchers {
         """
         |console.log("Hello");
         |console.log("World!");""".stripMargin
-      val result =
-        EmScriptenCleaner.clean(code.linesIterator.toSeq).mkString(System.lineSeparator())
+      val result = EmScriptenCleaner.clean(code.linesIterator).mkString(System.lineSeparator())
       result shouldBe code
     }
 
@@ -22,8 +21,7 @@ class EmScriptenCleanerTest extends AnyWordSpec with Matchers {
           |// EMSCRIPTEN_START_FUNCS
           |console.log("Hello");
           |console.log("World!");""".stripMargin
-      val result =
-        EmScriptenCleaner.clean(code.linesIterator.toSeq).mkString(System.lineSeparator())
+      val result = EmScriptenCleaner.clean(code.linesIterator).mkString(System.lineSeparator())
       result shouldBe code
     }
 
@@ -33,8 +31,7 @@ class EmScriptenCleanerTest extends AnyWordSpec with Matchers {
            |console.log("Hello");
            |console.log("World!");
            |// EMSCRIPTEN_END_FUNCS""".stripMargin
-      val result =
-        EmScriptenCleaner.clean(code.linesIterator.toSeq).mkString(System.lineSeparator())
+      val result = EmScriptenCleaner.clean(code.linesIterator).mkString(System.lineSeparator())
       result shouldBe code
     }
 
@@ -45,8 +42,7 @@ class EmScriptenCleanerTest extends AnyWordSpec with Matchers {
            |console.log("Hello");
            |console.log("World!");
            |// EMSCRIPTEN_START_FUNCS""".stripMargin
-      val result =
-        EmScriptenCleaner.clean(code.linesIterator.toSeq).mkString(System.lineSeparator())
+      val result = EmScriptenCleaner.clean(code.linesIterator).mkString(System.lineSeparator())
       result shouldBe code
     }
 
@@ -70,8 +66,7 @@ class EmScriptenCleanerTest extends AnyWordSpec with Matchers {
           |
           |otherCode();
           |foobar();""".stripMargin
-      val result =
-        EmScriptenCleaner.clean(code.linesIterator.toSeq).mkString(System.lineSeparator())
+      val result = EmScriptenCleaner.clean(code.linesIterator).mkString(System.lineSeparator())
       result shouldBe expected
     }
   }

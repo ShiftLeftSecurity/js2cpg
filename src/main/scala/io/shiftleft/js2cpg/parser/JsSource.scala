@@ -11,6 +11,7 @@ import io.shiftleft.js2cpg.preprocessing.NuxtTranspiler
 import org.slf4j.LoggerFactory
 
 import scala.jdk.CollectionConverters._
+import scala.util.Using
 
 class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
 
@@ -110,32 +111,37 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
       logger.debug(s"No source map file available for '$originalFilePath'")
       None
     } else {
-      val sourceMapContent = FileUtils.readLinesInFile(Paths.get(mapFilePath)).mkString("\n")
-      val sourceMap        = ReadableSourceMapImpl.fromSource(sourceMapContent)
-      val sourceFileNames  = sourceMap.getSources.asScala
+      Using(FileUtils.bufferedSourceFromFile(Paths.get(mapFilePath))) { sourceMapBuffer =>
+        val sourceMap =
+          ReadableSourceMapImpl.fromSource(FileUtils.contentFromBufferedSource(sourceMapBuffer))
+        val sourceFileNames = sourceMap.getSources.asScala
 
-      // The source file might not exist, e.g., if it was the result of transpilation
-      // but is not delivered and still referenced in the source map
-      // (fix for: https://github.com/ShiftLeftSecurity/product/issues/4994)
-      val sourceFile = sourceFileNames
-        .find(_.toLowerCase.endsWith(File(absoluteFilePath).nameWithoutExtension + VUE_SUFFIX))
-        .orElse(sourceFileNames.headOption)
+        // The source file might not exist, e.g., if it was the result of transpilation
+        // but is not delivered and still referenced in the source map
+        // (fix for: https://github.com/ShiftLeftSecurity/product/issues/4994)
+        val sourceFile = sourceFileNames
+          .find(_.toLowerCase.endsWith(File(absoluteFilePath).nameWithoutExtension + VUE_SUFFIX))
+          .orElse(sourceFileNames.headOption)
 
-      sourceFile.flatMap { sourceFileName =>
-        val sourceFilePath = constructSourceFilePath(sourceFileName)
-        if (!sourceFilePath.exists) {
-          logger.debug(
-            s"Could not load source map file for '$originalFilePath'. The source map file refers to '$sourceFilePath' but this does not exist")
-          None
-        } else {
-          val sourceFileMapping = FileUtils.contentMapFromFile(Paths.get(mapFilePath))
-          logger.debug(
-            s"Successfully loaded source map file '$mapFilePath':" +
-              s"\n\t* Transpiled file: '$absoluteFilePath'" +
-              s"\n\t* Origin: '$sourceFilePath'")
-          Some(SourceMapOrigin(sourceFilePath.path, Some(sourceMap), sourceFileMapping))
+        sourceFile.flatMap { sourceFileName =>
+          val sourceFilePath = constructSourceFilePath(sourceFileName)
+          if (!sourceFilePath.exists) {
+            logger.debug(
+              s"Could not load source map file for '$originalFilePath'. The source map file refers to '$sourceFilePath' but this does not exist")
+            None
+          } else {
+            Using(FileUtils.bufferedSourceFromFile(sourceFilePath.path)) { sourceFileBuffer =>
+              val sourceFileMapping =
+                FileUtils.contentMapFromBufferedSource(sourceFileBuffer)
+              logger.debug(
+                s"Successfully loaded source map file '$mapFilePath':" +
+                  s"\n\t* Transpiled file: '$absoluteFilePath'" +
+                  s"\n\t* Origin: '$sourceFilePath'")
+              SourceMapOrigin(sourceFilePath.path, Some(sourceMap), sourceFileMapping)
+            }.toOption
+          }
         }
-      }
+      }.get // safe, as we checked the existence of the sourcemap file already above
     }
   }
 

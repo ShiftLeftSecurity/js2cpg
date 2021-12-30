@@ -14,7 +14,7 @@ import io.shiftleft.passes.{DiffGraph, IntervalKeyPool, ParallelCpgPass}
 import org.slf4j.LoggerFactory
 import io.shiftleft.js2cpg.util.SourceWrapper._
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success, Try, Using}
 
 /**
   * Given a list of filenames, this pass creates the abstract syntax tree and CPG AST for each file.
@@ -88,22 +88,24 @@ class AstCreationPass(srcDir: File,
   }
 
   private def parse(path: Path, rootDir: Path): Try[ParseResult] = {
-    val lines   = FileUtils.readLinesInFile(path)
-    val relPath = rootDir.relativize(path).toString
+    Using(FileUtils.bufferedSourceFromFile(path)) { bufferedSource =>
+      val relPath = rootDir.relativize(path).toString
 
-    val fileStatistics = JsFileChecks.check(relPath, lines)
+      val fileStatistics = JsFileChecks.check(relPath, bufferedSource.reset())
 
-    val source   = Source.sourceFor(relPath, lines.mkString("\n"))
-    val jsSource = source.toJsSource(srcDir, rootDir)
+      val source = Source
+        .sourceFor(relPath, FileUtils.contentFromBufferedSource(bufferedSource))
+      val jsSource = source.toJsSource(srcDir, rootDir)
 
-    logger.debug(s"Parsing file '$relPath'.")
-    Try(JavaScriptParser.parseFromSource(jsSource)) match {
-      case Failure(exception) =>
-        report.addReportInfo(jsSource.originalFilePath, fileStatistics.linesOfCode)
-        throw exception
-      case Success((ast, jsSource)) =>
-        report.addReportInfo(jsSource.originalFilePath, fileStatistics.linesOfCode, parsed = true)
-        Success(ParseResult(File(path), jsSource, ast))
+      logger.debug(s"Parsing file '$relPath'.")
+      Try(JavaScriptParser.parseFromSource(jsSource)) match {
+        case Failure(exception) =>
+          report.addReportInfo(jsSource.originalFilePath, fileStatistics.linesOfCode)
+          throw exception
+        case Success((ast, jsSource)) =>
+          report.addReportInfo(jsSource.originalFilePath, fileStatistics.linesOfCode, parsed = true)
+          ParseResult(File(path), jsSource, ast)
+      }
     }
   }
 

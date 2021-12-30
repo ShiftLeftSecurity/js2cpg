@@ -16,6 +16,7 @@ import play.api.libs.json.JsString
 
 import java.nio.file.{Path, Paths}
 import scala.util.{Failure, Success, Try}
+import scala.util.Using
 
 object TypescriptTranspiler {
 
@@ -73,28 +74,27 @@ class TypescriptTranspiler(override val config: Config,
     mapper.writeValueAsString(mapper.readTree(json))
   }
 
-  private def createCustomTsConfigFile(): Try[File] = {
-    val customTsConfigFilePath = (File(projectPath) / "tsconfig.json").path
-    Try {
-      val content = FileUtils.readLinesInFile(customTsConfigFilePath).mkString("\n")
-      val json    = Json.parse(removeComments(content))
-      val compilerOptions =
-        json
-          .as[JsObject]
-          .value
-          .get("compilerOptions")
-          .map(_.as[JsObject] - "sourceRoot")
-          .getOrElse(JsObject.empty)
-      // --include is not available as tsc CLI argument; we set it manually:
-      val jsonCleaned = json
-        .as[JsObject] + ("include" -> JsArray(Array(JsString("**/*")))) + ("compilerOptions" -> compilerOptions)
-      val customTsConfigFile =
-        File
-          .newTemporaryFile("js2cpgTsConfig", ".json", parent = Some(projectPath))
-          .deleteOnExit(swallowIOExceptions = true)
-      customTsConfigFile.writeText(Json.stringify(jsonCleaned))
+  private def createCustomTsConfigFile() =
+    Using(FileUtils.bufferedSourceFromFile((File(projectPath) / "tsconfig.json").path)) {
+      bufferedSource =>
+        val content = FileUtils.contentFromBufferedSource(bufferedSource)
+        val json    = Json.parse(removeComments(content))
+        val compilerOptions =
+          json
+            .as[JsObject]
+            .value
+            .get("compilerOptions")
+            .map(_.as[JsObject] - "sourceRoot")
+            .getOrElse(JsObject.empty)
+        // --include is not available as tsc CLI argument; we set it manually:
+        val jsonCleaned = json
+          .as[JsObject] + ("include" -> JsArray(Array(JsString("**/*")))) + ("compilerOptions" -> compilerOptions)
+        val customTsConfigFile =
+          File
+            .newTemporaryFile("js2cpgTsConfig", ".json", parent = Some(projectPath))
+            .deleteOnExit(swallowIOExceptions = true)
+        customTsConfigFile.writeText(Json.stringify(jsonCleaned))
     }
-  }
 
   private def installTsPlugins(): Boolean = {
     val command = if (yarnAvailable()) {

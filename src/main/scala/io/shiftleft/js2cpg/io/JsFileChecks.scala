@@ -6,6 +6,7 @@ import io.shiftleft.js2cpg.io.FileUtils.FileStatistics
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
+import scala.io.Source
 
 object JsFileChecks {
 
@@ -21,8 +22,8 @@ object JsFileChecks {
          | You might want to exclude this file when running js2cpg by adding it to '--${Js2cpgArgumentsParser.EXCLUDE}'.""".stripMargin)
   }
 
-  def check(relPath: String, lines: Seq[String]): FileStatistics = {
-    val fileStatistics = FileUtils.fileStatistics(lines)
+  def check(relPath: String, source: Source): FileStatistics = {
+    val fileStatistics = FileUtils.fileStatistics(source)
     val reasons        = mutable.ArrayBuffer.empty[String]
 
     // check for very large files (many lines):
