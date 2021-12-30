@@ -8,7 +8,6 @@ import java.nio.charset.{CharsetDecoder, CodingErrorAction}
 import java.nio.file.{Files, FileVisitResult, Path, SimpleFileVisitor}
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileDefaults._
-import io.shiftleft.x2cpg.IOUtils
 import org.slf4j.LoggerFactory
 
 import java.nio.file.attribute.BasicFileAttributes
@@ -176,16 +175,6 @@ object FileUtils {
       }
     }
     result
-  }
-
-  def readLinesInFile(path: Path): Seq[String] = {
-    try {
-      IOUtils.readLinesInFile(path)
-    } catch {
-      case e: Throwable =>
-        logger.error("READ FAIL!", e)
-        Seq.empty
-    }
   }
 
   def contentFromBufferedSource(bufferedSource: BufferedSource): String = {
