@@ -33,35 +33,6 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
   "TranspilationRunner" should {
 
-    "puppeteer test" in {
-      val cpgPath = File(
-        s"C:${java.io.File.separator}Users${java.io.File.separator}Max${java.io.File.separator}Desktop${java.io.File.separator}puppeteer${java.io.File.separator}cpg.bin.zip").toString
-      val projectPath = File(
-        s"C:${java.io.File.separator}Users${java.io.File.separator}Max${java.io.File.separator}Desktop${java.io.File.separator}puppeteer").toString
-      Js2CpgMain.main(Array(projectPath, "--output", cpgPath, "--no-ts", "--no-babel"))
-
-      val cpg =
-        CpgLoader
-          .loadFromOverflowDb(
-            CpgLoaderConfig.withDefaults.withOverflowConfig(
-              Config.withDefaults.withStorageLocation(cpgPath)))
-
-      val filenames = fileNames(cpg)
-      filenames.count(_.endsWith("DOMWorld.js")) shouldBe 2
-      filenames.count(_.endsWith("Browser.js")) shouldBe 2
-      filenames.count(_.endsWith("Page.js")) shouldBe 2
-
-      /**
-      fileNames(cpg) should contain allElementsOf List(
-        s"experimental${java.io.File.separator}puppeteer-firefox${java.io.File.separator}lib${java.io.File.separator}Browser.js",
-        s"experimental${java.io.File.separator}puppeteer-firefox${java.io.File.separator}lib${java.io.File.separator}DOMWorld.js",
-        s"experimental${java.io.File.separator}puppeteer-firefox${java.io.File.separator}lib${java.io.File.separator}Page.js",
-        s"lib${java.io.File.separator}Browser.js",
-        s"lib${java.io.File.separator}DOMWorld.js",
-        s"lib${java.io.File.separator}Page.js"
-      )**/
-    }
-
     "generate js files correctly for a simple Babel project" in {
       val projectPath = getClass.getResource("/babel").toURI
       File.usingTemporaryDirectory() { tmpDir: File =>
