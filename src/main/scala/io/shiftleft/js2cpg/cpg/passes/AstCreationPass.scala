@@ -33,9 +33,7 @@ class AstCreationPass(srcDir: File,
   override def generateParts(): Array[(Path, Path)] = filenames.toArray
 
   override def runOnPart(diffGraph: DiffGraph.Builder, filename: (Path, Path)): Unit = {
-    val localDiff = DiffGraph.newBuilder
-    val file      = filename._1
-    val fileRoot  = filename._2
+    val (file, fileRoot) = filename
 
     val parseResult = parse(file, fileRoot) match {
       case Failure(parseException) =>
@@ -48,13 +46,13 @@ class AstCreationPass(srcDir: File,
     parseResult.map {
       case (parseResult, usedIdentNodes) =>
         val (result, duration) = {
-          TimeUtils.time(generateCpg(parseResult, localDiff, usedIdentNodes))
+          TimeUtils.time(generateCpg(parseResult, DiffGraph.newBuilder, usedIdentNodes))
         }
         val path = parseResult.jsSource.originalFilePath
         result match {
           case Failure(exception) =>
             logger.warn(s"Failed to generate CPG for '$path'!", exception)
-          case _ =>
+          case Success(localDiff) =>
             logger.info(s"Processed file '$path'")
             report.updateReportDuration(path, duration)
             diffGraph.moveFrom(localDiff)
@@ -64,13 +62,14 @@ class AstCreationPass(srcDir: File,
 
   private def generateCpg(parseResult: ParseResult,
                           diffGraph: DiffGraph.Builder,
-                          usedIdentNodes: Set[String]): Try[Unit] = {
+                          usedIdentNodes: Set[String]): Try[DiffGraph.Builder] = {
     Try {
       val source = parseResult.jsSource
       val ast    = parseResult.ast
       logger.debug(s"Generating CPG for file '${source.originalFilePath}'.")
       val astBuilderPass = new AstCreator(diffGraph, source, usedIdentNodes)
       astBuilderPass.convert(ast)
+      diffGraph
     }
   }
 
