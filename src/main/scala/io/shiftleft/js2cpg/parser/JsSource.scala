@@ -112,7 +112,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
     } else {
       val sourceMapContent = FileUtils.readLinesInFile(Paths.get(mapFilePath)).mkString("\n")
       val sourceMap        = ReadableSourceMapImpl.fromSource(sourceMapContent)
-      val sourceFileNames  = sourceMap.getSources.asScala
+      val sourceFileNames  = sourceMap.getSources.asScala.filter(_ != null)
 
       // The source file might not exist, e.g., if it was the result of transpilation
       // but is not delivered and still referenced in the source map

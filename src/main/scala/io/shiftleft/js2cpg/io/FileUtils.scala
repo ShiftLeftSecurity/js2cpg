@@ -124,7 +124,7 @@ object FileUtils {
   }
 
   def readLinesInFile(path: Path): Seq[String] =
-    EmScriptenCleaner.clean(IOUtils.readLinesInFile(path)).toSeq
+    EmScriptenCleaner.clean(IOUtils.readLinesInFile(path))
 
   def contentMapFromFile(path: Path): Map[Int, String] =
     readLinesInFile(path).zipWithIndex.map {
