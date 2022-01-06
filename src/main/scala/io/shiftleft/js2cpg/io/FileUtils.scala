@@ -52,7 +52,12 @@ object FileUtils {
     * occur during transpilation on the Windows platform and/or CI environments.
     */
   def cleanPath(sourceFileName: String): String = {
-    val replacedDots = sourceFileName.replace("../", "")
+    val replacedDots = sourceFileName.
+    // replace leading relative path elements
+    replace("../", "").
+    // replace Nul characters (happens in some internationalized source maps)
+    replace("\u0000", "")
+
     val replacedFile = if ("""file:///.:.*""".r.matches(replacedDots)) {
       replacedDots.replace("file:///", "")
     } else {
