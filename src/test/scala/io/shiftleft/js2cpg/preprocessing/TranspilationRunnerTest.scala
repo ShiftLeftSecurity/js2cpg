@@ -31,6 +31,13 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     result
   }
 
+  private def codeFields(cpg: Cpg, label: String = NodeTypes.CALL): List[Integer] = {
+    val result =
+      TraversalSource(cpg.graph).label(label).property(PropertyNames.CODE).toList
+    result.size should not be 0
+    result
+  }
+
   "TranspilationRunner" should {
 
     "generate js files correctly for a simple Babel project" in {
@@ -54,6 +61,33 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
             .map(f => File(f._1).contentAsString.stripLineEnd)
             .mkString should endWith("//# sourceMappingURL=foo.js.map")
         }
+      }
+    }
+
+    "contain correctly re-mapped code fields in simple Babel project" in {
+      val projectPath = getClass.getResource("/babel").toURI
+      File.usingTemporaryDirectory() { tmpDir: File =>
+        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+
+        val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
+        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-ts"))
+
+        val cpg =
+          CpgLoader
+            .loadFromOverflowDb(
+              CpgLoaderConfig.withDefaults.withOverflowConfig(
+                Config.withDefaults.withStorageLocation(cpgPath)))
+        fileNames(cpg) should contain theSameElementsAs List("foo.js")
+        codeFields(cpg) should contain allElementsOf List(
+          "_tmp_1 = __ecma.Array.factory()",
+          "_tmp_1.push(1)",
+          "_tmp_1.push(2)",
+          "_tmp_1.push(3)",
+          "(_tmp_0 = [1, 2, 3 [...])",
+          "(_tmp_0 = [1, 2, 3 [...]).map",
+          "n + 1",
+          "[1, 2, 3 [...].map(anonymous)"
+        )
       }
     }
 

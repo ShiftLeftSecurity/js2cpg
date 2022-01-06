@@ -133,7 +133,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
                 s"Could not load source map file for '$originalFilePath'. The source map file refers to '$sourceFilePath' but this does not exist")
               None
             } else {
-              val sourceFileMapping = FileUtils.contentMapFromFile(Paths.get(mapFilePath))
+              val sourceFileMapping = FileUtils.contentMapFromFile(sourceFilePath.path)
               logger.debug(
                 s"Successfully loaded source map file '$mapFilePath':" +
                   s"\n\t* Transpiled file: '$absoluteFilePath'" +
