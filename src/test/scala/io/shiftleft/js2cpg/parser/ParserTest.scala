@@ -60,8 +60,9 @@ class ParserTest extends AnyWordSpec with Matchers {
           |}
         """.stripMargin
 
-      val collector = new NodeCollectionVisitor
-      JavaScriptParser.parse(jsfunction)._1.accept(collector)
+      val collector    = new NodeCollectionVisitor
+      val functionNode = JavaScriptParser.parse(jsfunction)._1
+      functionNode.accept(collector)
       // note that root is a function node too
       collector.nodes.count(node => node.isInstanceOf[FunctionNode]) shouldBe 1
     }
@@ -75,8 +76,9 @@ class ParserTest extends AnyWordSpec with Matchers {
           |myFunction();
         """.stripMargin
 
-      val collector = new NodeCollectionVisitor
-      JavaScriptParser.parse(jsfunction)._1.accept(collector)
+      val collector    = new NodeCollectionVisitor
+      val functionNode = JavaScriptParser.parse(jsfunction)._1
+      functionNode.accept(collector)
       // note that root is a function node too
       collector.nodes.count(node => node.isInstanceOf[FunctionNode]) shouldBe 2
     }
@@ -95,8 +97,9 @@ class ParserTest extends AnyWordSpec with Matchers {
           |  console.log('Example app listening on port 3000!');
           |});
         """.stripMargin
-      val collector = new NodeCollectionVisitor
-      JavaScriptParser.parse(jsfunction)._1.accept(collector)
+      val collector    = new NodeCollectionVisitor
+      val functionNode = JavaScriptParser.parse(jsfunction)._1
+      functionNode.accept(collector)
       collector.nodes.count(node => node.isInstanceOf[FunctionNode]) shouldBe 3
     }
 

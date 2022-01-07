@@ -6,6 +6,7 @@ import better.files.File
 import io.shiftleft.js2cpg.core.{Config, Report}
 import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.passes.IntervalKeyPool
+import overflowdb.traversal._
 
 class DependenciesPassTest extends AbstractPassTest {
 

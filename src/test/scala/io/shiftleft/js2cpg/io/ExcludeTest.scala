@@ -9,7 +9,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.wordspec.AnyWordSpec
 import overflowdb._
-import overflowdb.traversal.TraversalSource
+import overflowdb.traversal._
 
 import java.util.regex.Pattern
 
@@ -32,7 +32,7 @@ class ExcludeTest extends AnyWordSpec with Matchers with TableDrivenPropertyChec
   private def testWithArguments(args: Seq[String],
                                 expectedFiles: Set[String],
                                 defaultArgs: Set[String] = Set(NO_TS, NO_BABEL)): Unit = {
-    File.usingTemporaryDirectory() { tmpDir: File =>
+    File.usingTemporaryDirectory() { tmpDir =>
       val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
 
       Js2CpgMain.main(
