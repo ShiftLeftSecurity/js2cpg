@@ -47,7 +47,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
       File.usingTemporaryDirectory() { tmpDir =>
         File.usingTemporaryDirectory() { transpileOutDir =>
           val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-          (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / ".bin" / "babel").toJava
+          (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "babel").toJava
             .setExecutable(true, false)
 
           new TranspilationRunner(
@@ -75,7 +75,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / ".bin" / "babel").toJava
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "babel").toJava
           .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -111,7 +111,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / ".bin" / "tsc").toJava
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
           .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -139,7 +139,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
       File.usingTemporaryDirectory() { tmpDir =>
         File.usingTemporaryDirectory() { transpileOutDir =>
           val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-          (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / ".bin" / "tsc").toJava
+          (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
             .setExecutable(true, false)
 
           val jsFiles = FileUtils
@@ -183,7 +183,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / ".bin" / "tsc").toJava
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
           .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -219,7 +219,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / ".bin" / "tsc").toJava
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
           .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -252,11 +252,11 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / ".bin" / "tsc").toJava
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
           .setExecutable(true, false)
-        (File(nodeModulesZipA).unzipTo(destination = tmpProjectPath / "a") / ".bin" / "tsc").toJava
+        (File(nodeModulesZipA).unzipTo(destination = tmpProjectPath / "a") / "node_modules" / ".bin" / "tsc").toJava
           .setExecutable(true, false)
-        (File(nodeModulesZipB).unzipTo(destination = tmpProjectPath / "b") / ".bin" / "tsc").toJava
+        (File(nodeModulesZipB).unzipTo(destination = tmpProjectPath / "b") / "node_modules" / ".bin" / "tsc").toJava
           .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -283,11 +283,11 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / ".bin" / "tsc").toJava
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
           .setExecutable(true, false)
-        (File(nodeModulesZipA).unzipTo(destination = tmpProjectPath / "a") / ".bin" / "tsc").toJava
+        (File(nodeModulesZipA).unzipTo(destination = tmpProjectPath / "a") / "node_modules" / ".bin" / "tsc").toJava
           .setExecutable(true, false)
-        (File(nodeModulesZipB).unzipTo(destination = tmpProjectPath / "b") / ".bin" / "tsc").toJava
+        (File(nodeModulesZipB).unzipTo(destination = tmpProjectPath / "b") / "node_modules" / ".bin" / "tsc").toJava
           .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -311,7 +311,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / ".bin" / "vue-cli-service").toJava
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "vue-cli-service").toJava
           .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -334,7 +334,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / ".bin" / "vue-cli-service").toJava
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "vue-cli-service").toJava
           .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -382,7 +382,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / ".bin" / "pug").toJava
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "pug").toJava
           .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
