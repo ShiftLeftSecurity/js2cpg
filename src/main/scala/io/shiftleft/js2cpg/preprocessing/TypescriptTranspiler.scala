@@ -3,16 +3,13 @@ package io.shiftleft.js2cpg.preprocessing
 import better.files.File
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileDefaults.TS_SUFFIX
 import io.shiftleft.js2cpg.io.{ExternalCommand, FileUtils}
 import io.shiftleft.js2cpg.parser.TsConfigJsonParser
 import org.slf4j.LoggerFactory
 import org.apache.commons.io.{FileUtils => CommonsFileUtils}
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsObject
-import play.api.libs.json.Json
-import play.api.libs.json.JsString
 
 import java.nio.file.{Path, Paths}
 import scala.util.{Failure, Success, Try}
@@ -77,22 +74,16 @@ class TypescriptTranspiler(override val config: Config,
     val customTsConfigFilePath = (File(projectPath) / "tsconfig.json").path
     Try {
       val content = FileUtils.readLinesInFile(customTsConfigFilePath).mkString("\n")
-      val json    = Json.parse(removeComments(content))
-      val compilerOptions =
-        json
-          .as[JsObject]
-          .value
-          .get("compilerOptions")
-          .map(_.as[JsObject] - "sourceRoot")
-          .getOrElse(JsObject.empty)
+      val mapper  = new ObjectMapper()
+      val json    = mapper.readTree(removeComments(content))
       // --include is not available as tsc CLI argument; we set it manually:
-      val jsonCleaned = json
-        .as[JsObject] + ("include" -> JsArray(Array(JsString("**/*")))) + ("compilerOptions" -> compilerOptions)
+      Option(json.get("compilerOptions")).foreach(_.asInstanceOf[ObjectNode].remove("sourceRoot"))
+      json.asInstanceOf[ObjectNode].putArray("include").add("**/*")
       val customTsConfigFile =
         File
           .newTemporaryFile("js2cpgTsConfig", ".json", parent = Some(projectPath))
           .deleteOnExit(swallowIOExceptions = true)
-      customTsConfigFile.writeText(Json.stringify(jsonCleaned))
+      customTsConfigFile.writeText(mapper.writeValueAsString(json))
     }
   }
 
