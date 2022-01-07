@@ -41,10 +41,13 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
   "TranspilationRunner" should {
 
     "generate js files correctly for a simple Babel project" in {
-      val projectPath = getClass.getResource("/babel").toURI
+      val projectPath    = getClass.getResource("/babel").toURI
+      val nodeModulesZip = getClass.getResource("/babel/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         File.usingTemporaryDirectory() { transpileOutDir =>
           val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+          File(nodeModulesZip).unzipTo(destination = tmpDir)
 
           new TranspilationRunner(
             tmpProjectPath.path,
@@ -66,9 +69,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "contain correctly re-mapped code fields in simple Babel project" in {
-      val projectPath = getClass.getResource("/babel").toURI
+      val projectPath    = getClass.getResource("/babel").toURI
+      val nodeModulesZip = getClass.getResource("/babel/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        File(nodeModulesZip).unzipTo(destination = tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
@@ -98,9 +104,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate and use sourcemap files correctly" in {
-      val projectPath = getClass.getResource("/typescript").toURI
+      val projectPath    = getClass.getResource("/typescript").toURI
+      val nodeModulesZip = getClass.getResource("/typescript/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        File(nodeModulesZip).unzipTo(destination = tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
@@ -121,10 +130,14 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple Typescript project" in {
-      val projectPath = getClass.getResource("/typescript").toURI
+      val projectPath    = getClass.getResource("/typescript").toURI
+      val nodeModulesZip = getClass.getResource("/typescript/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         File.usingTemporaryDirectory() { transpileOutDir =>
           val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+          File(nodeModulesZip).unzipTo(destination = tmpDir)
+
           val jsFiles = FileUtils
             .getFileTree(tmpProjectPath.path, core.Config(), List(JS_SUFFIX))
             .map(f => (f, tmpProjectPath.path))
@@ -161,9 +174,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple Typescript project with subfolders" in {
-      val projectPath = getClass.getResource("/typescriptsub").toURI
+      val projectPath    = getClass.getResource("/typescriptsub").toURI
+      val nodeModulesZip = getClass.getResource("/typescriptsub/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        File(nodeModulesZip).unzipTo(destination = tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
@@ -193,9 +209,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple Typescript project including test files" in {
-      val projectPath = getClass.getResource("/typescript").toURI
+      val projectPath    = getClass.getResource("/typescript").toURI
+      val nodeModulesZip = getClass.getResource("/typescript/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        File(nodeModulesZip).unzipTo(destination = tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
@@ -220,9 +239,16 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple multi-project Typescript project" in {
-      val projectPath = getClass.getResource("/multisimple").toURI
+      val projectPath     = getClass.getResource("/multisimple").toURI
+      val nodeModulesZip  = getClass.getResource("/multisimple/node_modules.zip").toURI
+      val nodeModulesZipA = getClass.getResource("/multisimple/a/node_modules.zip").toURI
+      val nodeModulesZipB = getClass.getResource("/multisimple/b/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        File(nodeModulesZip).unzipTo(destination = tmpDir)
+        File(nodeModulesZipA).unzipTo(destination = tmpDir / "a")
+        File(nodeModulesZipB).unzipTo(destination = tmpDir / "b")
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
@@ -241,9 +267,16 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a multi-project Typescript project (using solution config)" in {
-      val projectPath = getClass.getResource("/multisolutionconfig").toURI
+      val projectPath     = getClass.getResource("/multisolutionconfig").toURI
+      val nodeModulesZip  = getClass.getResource("/multisolutionconfig/node_modules.zip").toURI
+      val nodeModulesZipA = getClass.getResource("/multisolutionconfig/a/node_modules.zip").toURI
+      val nodeModulesZipB = getClass.getResource("/multisolutionconfig/b/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        File(nodeModulesZip).unzipTo(destination = tmpDir)
+        File(nodeModulesZipA).unzipTo(destination = tmpDir / "a")
+        File(nodeModulesZipB).unzipTo(destination = tmpDir / "b")
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
@@ -261,9 +294,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple Vue.js 2 project" in {
-      val projectPath = getClass.getResource("/vue2").toURI
+      val projectPath    = getClass.getResource("/vue2").toURI
+      val nodeModulesZip = getClass.getResource("/vue2/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        File(nodeModulesZip).unzipTo(destination = tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
@@ -280,9 +316,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple Vue.js 3 project" in {
-      val projectPath = getClass.getResource("/vue3").toURI
+      val projectPath    = getClass.getResource("/vue3").toURI
+      val nodeModulesZip = getClass.getResource("/vue3/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        File(nodeModulesZip).unzipTo(destination = tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
@@ -324,9 +363,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js file correctly for a pug template file" in {
-      val projectPath = getClass.getResource("/pug").toURI
+      val projectPath    = getClass.getResource("/pug").toURI
+      val nodeModulesZip = getClass.getResource("/pug/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        File(nodeModulesZip).unzipTo(destination = tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
