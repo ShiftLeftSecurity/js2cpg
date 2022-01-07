@@ -46,9 +46,10 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         File.usingTemporaryDirectory() { transpileOutDir =>
           val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
-          new TranspilationRunner(tmpProjectPath.path,
-                                  transpileOutDir.path,
-                                  core.Config(tsTranspiling = false)).execute()
+          new TranspilationRunner(
+            tmpProjectPath.path,
+            transpileOutDir.path,
+            core.Config(tsTranspiling = false, withNodeModuleFolder = true)).execute()
 
           val transpiledJsFiles = FileUtils
             .getFileTree(transpileOutDir.path, core.Config(), List(JS_SUFFIX))
@@ -70,7 +71,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-ts"))
+        Js2CpgMain.main(
+          Array(tmpProjectPath.pathAsString,
+                "--output",
+                cpgPath,
+                "--no-ts",
+                "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -97,7 +103,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-babel"))
+        Js2CpgMain.main(
+          Array(tmpProjectPath.pathAsString,
+                "--output",
+                cpgPath,
+                "--no-babel",
+                "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -126,7 +137,8 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
           new TranspilationRunner(tmpProjectPath.path,
                                   transpileOutDir.path,
-                                  core.Config(babelTranspiling = false)).execute()
+                                  core.Config(babelTranspiling = false,
+                                              withNodeModuleFolder = true)).execute()
 
           val transpiledJsFiles = FileUtils
             .getFileTree(transpileOutDir.path, core.Config(), List(JS_SUFFIX))
@@ -154,7 +166,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-babel"))
+        Js2CpgMain.main(
+          Array(tmpProjectPath.pathAsString,
+                "--output",
+                cpgPath,
+                "--no-babel",
+                "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -182,7 +199,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-babel", "--with-tests"))
+          Array(tmpProjectPath.pathAsString,
+                "--output",
+                cpgPath,
+                "--no-babel",
+                "--with-tests",
+                "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -203,7 +225,8 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath))
+        Js2CpgMain.main(
+          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -223,7 +246,8 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath))
+        Js2CpgMain.main(
+          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -242,7 +266,8 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath))
+        Js2CpgMain.main(
+          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -260,7 +285,8 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath))
+        Js2CpgMain.main(
+          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -280,7 +306,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-ts", "--no-babel"))
+          Array(tmpProjectPath.pathAsString,
+                "--output",
+                cpgPath,
+                "--no-ts",
+                "--no-babel",
+                "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -299,7 +330,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-ts", "--no-babel"))
+          Array(tmpProjectPath.pathAsString,
+                "--output",
+                cpgPath,
+                "--no-ts",
+                "--no-babel",
+                "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader

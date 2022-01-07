@@ -11,7 +11,8 @@ import scala.util.{Failure, Try}
 case class PathFilter(rootPath: Path,
                       config: Config,
                       filterIgnoredFiles: Boolean,
-                      extensions: List[String])
+                      extensions: List[String],
+                      withNodeModuleFolder: Boolean = false)
     extends (Path => FilterResult) {
 
   private val logger = LoggerFactory.getLogger(PathFilter.getClass)
@@ -21,10 +22,15 @@ case class PathFilter(rootPath: Path,
   private def shouldBeIgnoredByUserConfig(filePath: Path, config: Config): Boolean =
     config.ignoredFiles.contains(filePath) || config.ignoredFilesRegex.matches(filePath.toString)
 
+  private def acceptFromNodeModulesFolder(path: Path): Boolean =
+    withNodeModuleFolder && (".*" + NODE_MODULES_DIR_NAME + ".*").r.matches(path.toString)
+
   private def filterDir(dir: Path): FilterResult = {
     val relDir = rootPath.relativize(dir)
     Paths.get(dir.toString.replace(rootPath.toString, projectDir)) match {
-      case dirPath if IGNORED_FOLDERS_REGEX.exists(_.matches(File(dirPath).name)) =>
+      case dirPath
+          if IGNORED_FOLDERS_REGEX.exists(_.matches(File(dirPath).name)) &&
+            !acceptFromNodeModulesFolder(dirPath) =>
         Rejected(relDir, "folder ignored by default")
       case dirPath if config.ignoredFiles.exists(i => dirPath.toString.startsWith(i.toString)) =>
         Rejected(relDir, "folder ignored by user configuration")
@@ -57,11 +63,14 @@ case class PathFilter(rootPath: Path,
     }.toOption
     val filterResult: FilterResult = path match {
       // default file ignores:
-      case Some(filePath) if filterIgnoredFiles && ignores.exists(_.matches(filePath.toString)) =>
+      case Some(filePath)
+          if filterIgnoredFiles && ignores.exists(_.matches(filePath.toString)) &&
+            !acceptFromNodeModulesFolder(filePath) =>
         Rejected(relFile, "file ignored by default")
       // minified ignores:
       case Some(filePath)
-          if config.ignoreMinified && MINIFIED_PATH_REGEX.matches(filePath.toString) =>
+          if config.ignoreMinified && MINIFIED_PATH_REGEX.matches(filePath.toString) &&
+            !acceptFromNodeModulesFolder(filePath) =>
         Rejected(relFile, "minified file")
       // user ignores:
       case Some(filePath) if shouldBeIgnoredByUserConfig(filePath, config) =>

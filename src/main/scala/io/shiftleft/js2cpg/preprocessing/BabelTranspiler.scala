@@ -26,7 +26,7 @@ class BabelTranspiler(override val config: Config,
     } else {
       NODE_MODULES_DIR_NAME +: DEFAULT_IGNORED_DIRS
     }
-    ignores.map(dir => s"--ignore $dir").mkString(" ")
+    s"--ignore '${ignores.map(dir => s"**/$dir").mkString(",")}'"
   }
 
   override protected def transpile(tmpTranspileDir: Path): Boolean = {

@@ -13,24 +13,25 @@ import scala.util.matching.Regex
 
 object Config {
 
-  val SL_IGNORE_FILE: String                = ".slignore"
-  val DEFAULT_TS_TYPES: Boolean             = false
-  val DEFAULT_TS_TRANSPILING: Boolean       = true
-  val DEFAULT_BABEL_TRANSPILING: Boolean    = true
-  val DEFAULT_VUE_TRANSPILING: Boolean      = true
-  val DEFAULT_NUXT_TRANSPILING: Boolean     = true
-  val DEFAULT_TEMPLATE_TRANSPILING: Boolean = true
-  val DEFAULT_CPG_OUT_FILE: String          = "cpg.bin.zip"
-  val DEFAULT_IGNORED_FILES_REGEX: Regex    = "".r
-  val DEFAULT_IGNORED_FILES: Seq[Path]      = Seq.empty
-  val DEFAULT_IGNORE_MINIFIED: Boolean      = true
-  val DEFAULT_IGNORE_TESTS: Boolean         = true
-  val DEFAULT_IGNORE_PRIVATE_DEPS: Boolean  = false
-  val DEFAULT_PRIVATE_DEPS: Seq[String]     = Seq.empty
-  val DEFAULT_INCLUDE_CONFIGS: Boolean      = false
-  val DEFAULT_INCLUDE_HTML: Boolean         = false
-  val DEFAULT_JVM_METRICS: Option[Int]      = None
-  val DEFAULT_MODULE_MODE: Option[String]   = None
+  val SL_IGNORE_FILE: String                    = ".slignore"
+  val DEFAULT_TS_TYPES: Boolean                 = false
+  val DEFAULT_TS_TRANSPILING: Boolean           = true
+  val DEFAULT_BABEL_TRANSPILING: Boolean        = true
+  val DEFAULT_VUE_TRANSPILING: Boolean          = true
+  val DEFAULT_NUXT_TRANSPILING: Boolean         = true
+  val DEFAULT_TEMPLATE_TRANSPILING: Boolean     = true
+  val DEFAULT_CPG_OUT_FILE: String              = "cpg.bin.zip"
+  val DEFAULT_IGNORED_FILES_REGEX: Regex        = "".r
+  val DEFAULT_IGNORED_FILES: Seq[Path]          = Seq.empty
+  val DEFAULT_IGNORE_MINIFIED: Boolean          = true
+  val DEFAULT_IGNORE_TESTS: Boolean             = true
+  val DEFAULT_IGNORE_PRIVATE_DEPS: Boolean      = false
+  val DEFAULT_PRIVATE_DEPS: Seq[String]         = Seq.empty
+  val DEFAULT_INCLUDE_CONFIGS: Boolean          = false
+  val DEFAULT_INCLUDE_HTML: Boolean             = false
+  val DEFAULT_JVM_METRICS: Option[Int]          = None
+  val DEFAULT_MODULE_MODE: Option[String]       = None
+  val DEFAULT_WITH_NODE_MODULES_FOLDER: Boolean = false
 
 }
 
@@ -52,7 +53,8 @@ case class Config(srcDir: String = "",
                   includeConfigs: Boolean = Config.DEFAULT_INCLUDE_CONFIGS,
                   includeHtml: Boolean = Config.DEFAULT_INCLUDE_HTML,
                   jvmMetrics: Option[Int] = Config.DEFAULT_JVM_METRICS,
-                  moduleMode: Option[String] = Config.DEFAULT_MODULE_MODE) {
+                  moduleMode: Option[String] = Config.DEFAULT_MODULE_MODE,
+                  withNodeModuleFolder: Boolean = Config.DEFAULT_WITH_NODE_MODULES_FOLDER) {
 
   def createPathForPackageJson(): Path = Paths.get(packageJsonLocation) match {
     case path if path.isAbsolute => path

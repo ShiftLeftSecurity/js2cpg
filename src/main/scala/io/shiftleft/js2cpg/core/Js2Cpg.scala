@@ -116,7 +116,9 @@ class Js2Cpg {
     FileUtils.logAndClearExcludedPaths()
 
     val jsFilesBeforeTranspiling = FileUtils
-      .getFileTree(newTmpProjectDir.path, config, List(JS_SUFFIX, MJS_SUFFIX))
+      .getFileTree(newTmpProjectDir.path,
+                   config.copy(withNodeModuleFolder = false),
+                   List(JS_SUFFIX, MJS_SUFFIX))
       .map(f => (f, newTmpProjectDir.path))
 
     File.usingTemporaryDirectory("js2cpgTranspileOut") { tmpTranspileDir =>

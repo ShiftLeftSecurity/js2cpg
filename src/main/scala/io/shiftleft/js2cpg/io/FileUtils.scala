@@ -87,7 +87,11 @@ object FileUtils {
   )(implicit
     copyOptions: File.CopyOptions = File.CopyOptions(false)): File = {
     val fileCollector = FileCollector(
-      PathFilter(from.path, config, filterIgnoredFiles = false, extensions = List.empty))
+      PathFilter(from.path,
+                 config,
+                 filterIgnoredFiles = false,
+                 extensions = List.empty,
+                 withNodeModuleFolder = config.withNodeModuleFolder))
     if (from.isDirectory) {
       Files.walkFileTree(
         from.path,
