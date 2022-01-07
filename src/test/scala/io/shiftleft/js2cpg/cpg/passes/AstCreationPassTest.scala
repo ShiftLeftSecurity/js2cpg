@@ -1729,21 +1729,21 @@ class AstCreationPassTest extends AbstractPassTest {
 
   "AST method full names" should {
     "anonymous arrow function full name 1" in AstFixture("var func = (x) => x") { cpg =>
-      cpg.method.fullName.toSet should contain("test.js::program:anonymous")
+      cpg.method.fullName.toSetMutable should contain("test.js::program:anonymous")
     }
     "anonymous arrow function full name 2" in AstFixture("this.func = (x) => x") { cpg =>
-      cpg.method.fullName.toSet should contain("test.js::program:anonymous")
+      cpg.method.fullName.toSetMutable should contain("test.js::program:anonymous")
     }
     "anonymous function expression full name 1" in AstFixture("var func = function (x) {x}") {
       cpg =>
-        cpg.method.fullName.toSet should contain("test.js::program:anonymous")
+        cpg.method.fullName.toSetMutable should contain("test.js::program:anonymous")
     }
     "anonymous function expression full name 2" in AstFixture("this.func = function (x) {x}") {
       cpg =>
-        cpg.method.fullName.toSet should contain("test.js::program:anonymous")
+        cpg.method.fullName.toSetMutable should contain("test.js::program:anonymous")
     }
     "anonymous constructor full name 1" in AstFixture("class X { constructor(){} }") { cpg =>
-      cpg.method.fullName.toSet should contain("test.js::program:X<constructor>")
+      cpg.method.fullName.toSetMutable should contain("test.js::program:X<constructor>")
     }
     "anonymous constructor of anonymous class full name" in AstFixture("""
                                                                           |var x = class {
@@ -1751,7 +1751,7 @@ class AstCreationPassTest extends AbstractPassTest {
                                                                           |  }
                                                                           |}""".stripMargin) {
       cpg =>
-        cpg.method.fullName.toSet should contain("test.js::program:anonClass<constructor>")
+        cpg.method.fullName.toSetMutable should contain("test.js::program:anonClass<constructor>")
     }
   }
 

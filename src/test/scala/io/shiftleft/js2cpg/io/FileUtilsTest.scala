@@ -18,14 +18,14 @@ class FileUtilsTest extends AnyWordSpec with Matchers {
     }
 
     "skip ignored files when copying" in {
-      File.usingTemporaryDirectory() { sourceDir: File =>
+      File.usingTemporaryDirectory() { sourceDir =>
         (sourceDir / "a.min.js").createFile()
         (sourceDir / "b-min.js").createFile()
         (sourceDir / "c.spec.js").createFile()
         (sourceDir / "d.chunk.js").createFile()
         (sourceDir / ".folder" / "e.js").createIfNotExists(createParents = true)
 
-        File.usingTemporaryDirectory() { targetDir: File =>
+        File.usingTemporaryDirectory() { targetDir =>
           val copiedDir  = FileUtils.copyToDirectory(sourceDir, targetDir, Config())
           val dirContent = FileUtils.getFileTree(copiedDir.path, Config(), List(JS_SUFFIX))
           dirContent shouldBe empty

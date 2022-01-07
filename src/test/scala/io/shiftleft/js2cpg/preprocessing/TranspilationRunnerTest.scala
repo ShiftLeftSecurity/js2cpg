@@ -12,7 +12,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.tags.Slow
 import org.scalatest.wordspec.AnyWordSpec
 import overflowdb._
-import overflowdb.traversal.TraversalSource
+import overflowdb.traversal._
 
 @Slow
 class TranspilationRunnerTest extends AnyWordSpec with Matchers {
@@ -42,8 +42,8 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
     "generate js files correctly for a simple Babel project" in {
       val projectPath = getClass.getResource("/babel").toURI
-      File.usingTemporaryDirectory() { tmpDir: File =>
-        File.usingTemporaryDirectory() { transpileOutDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
+        File.usingTemporaryDirectory() { transpileOutDir =>
           val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
           new TranspilationRunner(tmpProjectPath.path,
@@ -66,7 +66,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
     "contain correctly re-mapped code fields in simple Babel project" in {
       val projectPath = getClass.getResource("/babel").toURI
-      File.usingTemporaryDirectory() { tmpDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -93,7 +93,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
     "generate and use sourcemap files correctly" in {
       val projectPath = getClass.getResource("/typescript").toURI
-      File.usingTemporaryDirectory() { tmpDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -111,8 +111,8 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
     "generate js files correctly for a simple Typescript project" in {
       val projectPath = getClass.getResource("/typescript").toURI
-      File.usingTemporaryDirectory() { tmpDir: File =>
-        File.usingTemporaryDirectory() { transpileOutDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
+        File.usingTemporaryDirectory() { transpileOutDir =>
           val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
           val jsFiles = FileUtils
             .getFileTree(tmpProjectPath.path, core.Config(), List(JS_SUFFIX))
@@ -150,7 +150,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
     "generate js files correctly for a simple Typescript project with subfolders" in {
       val projectPath = getClass.getResource("/typescriptsub").toURI
-      File.usingTemporaryDirectory() { tmpDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -177,7 +177,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
     "generate js files correctly for a simple Typescript project including test files" in {
       val projectPath = getClass.getResource("/typescript").toURI
-      File.usingTemporaryDirectory() { tmpDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -199,7 +199,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
     "generate js files correctly for a simple multi-project Typescript project" in {
       val projectPath = getClass.getResource("/multisimple").toURI
-      File.usingTemporaryDirectory() { tmpDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -219,7 +219,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
     "generate js files correctly for a multi-project Typescript project (using solution config)" in {
       val projectPath = getClass.getResource("/multisolutionconfig").toURI
-      File.usingTemporaryDirectory() { tmpDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -238,7 +238,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
     "generate js files correctly for a simple Vue.js 2 project" in {
       val projectPath = getClass.getResource("/vue2").toURI
-      File.usingTemporaryDirectory() { tmpDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -256,7 +256,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
     "generate js files correctly for a simple Vue.js 3 project" in {
       val projectPath = getClass.getResource("/vue3").toURI
-      File.usingTemporaryDirectory() { tmpDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -275,7 +275,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
     "generate js file correctly for a EJS template file" in {
       val projectPath = getClass.getResource("/ejs").toURI
-      File.usingTemporaryDirectory() { tmpDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -294,7 +294,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
     "generate js file correctly for a pug template file" in {
       val projectPath = getClass.getResource("/pug").toURI
-      File.usingTemporaryDirectory() { tmpDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString

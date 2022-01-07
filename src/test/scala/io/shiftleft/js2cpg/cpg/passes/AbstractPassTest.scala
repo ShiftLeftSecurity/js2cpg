@@ -5,7 +5,7 @@ import io.shiftleft.codepropertygraph.generated.{EdgeTypes, NodeTypes}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import overflowdb.Node
-import overflowdb.traversal.{Traversal, TraversalSource}
+import overflowdb.traversal._
 
 import scala.jdk.CollectionConverters._
 
