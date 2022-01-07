@@ -1,0 +1,12 @@
+babel/node_modules/** filter=lfs diff=lfs merge=lfs -text
+multisimple/node_modules/** filter=lfs diff=lfs merge=lfs -text
+multisimple/a/node_modules/** filter=lfs diff=lfs merge=lfs -text
+multisimple/b/node_modules/** filter=lfs diff=lfs merge=lfs -text
+multisolutionconfig/node_modules/** filter=lfs diff=lfs merge=lfs -text
+multisolutionconfig/a/node_modules/** filter=lfs diff=lfs merge=lfs -text
+multisolutionconfig/b/node_modules/** filter=lfs diff=lfs merge=lfs -text
+pug/node_modules/** filter=lfs diff=lfs merge=lfs -text
+typescript/node_modules/** filter=lfs diff=lfs merge=lfs -text
+typescriptsub/node_modules/** filter=lfs diff=lfs merge=lfs -text
+vue2/node_modules/** filter=lfs diff=lfs merge=lfs -text
+vue3/node_modules/** filter=lfs diff=lfs merge=lfs -text
