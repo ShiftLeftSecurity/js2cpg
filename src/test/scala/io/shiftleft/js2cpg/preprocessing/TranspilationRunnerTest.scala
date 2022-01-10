@@ -41,14 +41,19 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
   "TranspilationRunner" should {
 
     "generate js files correctly for a simple Babel project" in {
-      val projectPath = getClass.getResource("/babel").toURI
+      val projectPath    = getClass.getResource("/babel").toURI
+      val nodeModulesZip = getClass.getResource("/babel/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         File.usingTemporaryDirectory() { transpileOutDir =>
           val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+          (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "babel").toJava
+            .setExecutable(true, false)
 
-          new TranspilationRunner(tmpProjectPath.path,
-                                  transpileOutDir.path,
-                                  core.Config(tsTranspiling = false)).execute()
+          new TranspilationRunner(
+            tmpProjectPath.path,
+            transpileOutDir.path,
+            core.Config(tsTranspiling = false, withNodeModuleFolder = true)).execute()
 
           val transpiledJsFiles = FileUtils
             .getFileTree(transpileOutDir.path, core.Config(), List(JS_SUFFIX))
@@ -65,12 +70,21 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "contain correctly re-mapped code fields in simple Babel project" in {
-      val projectPath = getClass.getResource("/babel").toURI
+      val projectPath    = getClass.getResource("/babel").toURI
+      val nodeModulesZip = getClass.getResource("/babel/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "babel").toJava
+          .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-ts"))
+        Js2CpgMain.main(
+          Array(tmpProjectPath.pathAsString,
+                "--output",
+                cpgPath,
+                "--no-ts",
+                "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -92,12 +106,21 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate and use sourcemap files correctly" in {
-      val projectPath = getClass.getResource("/typescript").toURI
+      val projectPath    = getClass.getResource("/typescript").toURI
+      val nodeModulesZip = getClass.getResource("/typescript/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
+          .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-babel"))
+        Js2CpgMain.main(
+          Array(tmpProjectPath.pathAsString,
+                "--output",
+                cpgPath,
+                "--no-babel",
+                "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -110,10 +133,15 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple Typescript project" in {
-      val projectPath = getClass.getResource("/typescript").toURI
+      val projectPath    = getClass.getResource("/typescript").toURI
+      val nodeModulesZip = getClass.getResource("/typescript/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         File.usingTemporaryDirectory() { transpileOutDir =>
           val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+          (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
+            .setExecutable(true, false)
+
           val jsFiles = FileUtils
             .getFileTree(tmpProjectPath.path, core.Config(), List(JS_SUFFIX))
             .map(f => (f, tmpProjectPath.path))
@@ -126,7 +154,8 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
           new TranspilationRunner(tmpProjectPath.path,
                                   transpileOutDir.path,
-                                  core.Config(babelTranspiling = false)).execute()
+                                  core.Config(babelTranspiling = false,
+                                              withNodeModuleFolder = true)).execute()
 
           val transpiledJsFiles = FileUtils
             .getFileTree(transpileOutDir.path, core.Config(), List(JS_SUFFIX))
@@ -149,12 +178,21 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple Typescript project with subfolders" in {
-      val projectPath = getClass.getResource("/typescriptsub").toURI
+      val projectPath    = getClass.getResource("/typescriptsub").toURI
+      val nodeModulesZip = getClass.getResource("/typescriptsub/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
+          .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-babel"))
+        Js2CpgMain.main(
+          Array(tmpProjectPath.pathAsString,
+                "--output",
+                cpgPath,
+                "--no-babel",
+                "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -176,13 +214,22 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple Typescript project including test files" in {
-      val projectPath = getClass.getResource("/typescript").toURI
+      val projectPath    = getClass.getResource("/typescript").toURI
+      val nodeModulesZip = getClass.getResource("/typescript/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
+          .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-babel", "--with-tests"))
+          Array(tmpProjectPath.pathAsString,
+                "--output",
+                cpgPath,
+                "--no-babel",
+                "--with-tests",
+                "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -198,12 +245,23 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple multi-project Typescript project" in {
-      val projectPath = getClass.getResource("/multisimple").toURI
+      val projectPath     = getClass.getResource("/multisimple").toURI
+      val nodeModulesZip  = getClass.getResource("/multisimple/node_modules.zip").toURI
+      val nodeModulesZipA = getClass.getResource("/multisimple/a/node_modules.zip").toURI
+      val nodeModulesZipB = getClass.getResource("/multisimple/b/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
+          .setExecutable(true, false)
+        (File(nodeModulesZipA).unzipTo(destination = tmpProjectPath / "a") / "node_modules" / ".bin" / "tsc").toJava
+          .setExecutable(true, false)
+        (File(nodeModulesZipB).unzipTo(destination = tmpProjectPath / "b") / "node_modules" / ".bin" / "tsc").toJava
+          .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath))
+        Js2CpgMain.main(
+          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -218,12 +276,23 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a multi-project Typescript project (using solution config)" in {
-      val projectPath = getClass.getResource("/multisolutionconfig").toURI
+      val projectPath     = getClass.getResource("/multisolutionconfig").toURI
+      val nodeModulesZip  = getClass.getResource("/multisolutionconfig/node_modules.zip").toURI
+      val nodeModulesZipA = getClass.getResource("/multisolutionconfig/a/node_modules.zip").toURI
+      val nodeModulesZipB = getClass.getResource("/multisolutionconfig/b/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
+          .setExecutable(true, false)
+        (File(nodeModulesZipA).unzipTo(destination = tmpProjectPath / "a") / "node_modules" / ".bin" / "tsc").toJava
+          .setExecutable(true, false)
+        (File(nodeModulesZipB).unzipTo(destination = tmpProjectPath / "b") / "node_modules" / ".bin" / "tsc").toJava
+          .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath))
+        Js2CpgMain.main(
+          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -237,12 +306,17 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple Vue.js 2 project" in {
-      val projectPath = getClass.getResource("/vue2").toURI
+      val projectPath    = getClass.getResource("/vue2").toURI
+      val nodeModulesZip = getClass.getResource("/vue2/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "vue-cli-service").toJava
+          .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath))
+        Js2CpgMain.main(
+          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -255,12 +329,17 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js files correctly for a simple Vue.js 3 project" in {
-      val projectPath = getClass.getResource("/vue3").toURI
+      val projectPath    = getClass.getResource("/vue3").toURI
+      val nodeModulesZip = getClass.getResource("/vue3/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "vue-cli-service").toJava
+          .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath))
+        Js2CpgMain.main(
+          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -280,7 +359,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-ts", "--no-babel"))
+          Array(tmpProjectPath.pathAsString,
+                "--output",
+                cpgPath,
+                "--no-ts",
+                "--no-babel",
+                "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -293,13 +377,22 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     }
 
     "generate js file correctly for a pug template file" in {
-      val projectPath = getClass.getResource("/pug").toURI
+      val projectPath    = getClass.getResource("/pug").toURI
+      val nodeModulesZip = getClass.getResource("/pug/node_modules.zip").toURI
+
       File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "pug").toJava
+          .setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-ts", "--no-babel"))
+          Array(tmpProjectPath.pathAsString,
+                "--output",
+                cpgPath,
+                "--no-ts",
+                "--no-babel",
+                "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader

@@ -9,34 +9,35 @@ import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler
 import scopt.OptionParser
 
 object Js2cpgArgumentsParser {
-  val HELP: String                 = "help"
-  val VERSION: String              = "version"
-  val SRCDIR: String               = "<src>"
-  val OUTPUT: String               = "output"
-  val WITH_TS_TYPES: String        = "with-typescript-types"
-  val EXCLUDE: String              = "exclude"
-  val EXCLUDE_REGEX: String        = "exclude-regex"
-  val PACKAGE_JSON: String         = "package-json"
-  val NO_TS: String                = "no-ts"
-  val TS: String                   = "ts"
-  val NO_BABEL: String             = "no-babel"
-  val NO_VUE: String               = "no-vue-js"
-  val NO_NUXT: String              = "no-nuxt-js"
-  val NO_TEMPLATES: String         = "no-templates"
-  val BABEL: String                = "babel"
-  val TRANSPILING: String          = "transpiling"
-  val IGNORE_MINIFIED: String      = "ignore-minified"
-  val WITH_MINIFIED: String        = "with-minified"
-  val INCLUDE_MINIFIED: String     = "include-minified"
-  val WITH_TESTS: String           = "with-tests"
-  val INCLUDE_TESTS: String        = "include-tests"
-  val IGNORE_PRIVATE_DEPS: String  = "ignore-private-deps"
-  val EXCLUDE_PRIVATE_DEPS: String = "exclude-private-deps"
-  val PRIVATE_DEPS: String         = "private-deps-ns"
-  val INCLUDE_CONFIGS: String      = "include-configs"
-  val INCLUDE_HTML: String         = "include-html"
-  val JVM_MONITOR: String          = "enable-jvm-monitor"
-  val MODULE_MODE: String          = "module-mode"
+  val HELP: String                     = "help"
+  val VERSION: String                  = "version"
+  val SRCDIR: String                   = "<src>"
+  val OUTPUT: String                   = "output"
+  val WITH_TS_TYPES: String            = "with-typescript-types"
+  val EXCLUDE: String                  = "exclude"
+  val EXCLUDE_REGEX: String            = "exclude-regex"
+  val PACKAGE_JSON: String             = "package-json"
+  val NO_TS: String                    = "no-ts"
+  val TS: String                       = "ts"
+  val NO_BABEL: String                 = "no-babel"
+  val NO_VUE: String                   = "no-vue-js"
+  val NO_NUXT: String                  = "no-nuxt-js"
+  val NO_TEMPLATES: String             = "no-templates"
+  val BABEL: String                    = "babel"
+  val TRANSPILING: String              = "transpiling"
+  val IGNORE_MINIFIED: String          = "ignore-minified"
+  val WITH_MINIFIED: String            = "with-minified"
+  val INCLUDE_MINIFIED: String         = "include-minified"
+  val WITH_TESTS: String               = "with-tests"
+  val INCLUDE_TESTS: String            = "include-tests"
+  val IGNORE_PRIVATE_DEPS: String      = "ignore-private-deps"
+  val EXCLUDE_PRIVATE_DEPS: String     = "exclude-private-deps"
+  val PRIVATE_DEPS: String             = "private-deps-ns"
+  val INCLUDE_CONFIGS: String          = "include-configs"
+  val INCLUDE_HTML: String             = "include-html"
+  val JVM_MONITOR: String              = "enable-jvm-monitor"
+  val MODULE_MODE: String              = "module-mode"
+  val WITH_NODE_MODULES_FOLDER: String = "with-node-modules-folder"
 }
 
 class Js2cpgArgumentsParser {
@@ -114,6 +115,11 @@ class Js2cpgArgumentsParser {
     // for backwards compatibility - has no effect:
     opt[Unit](TS)
       .text("enables transpiling Typescript files to Javascript")
+      .hidden()
+    opt[Unit](WITH_NODE_MODULES_FOLDER)
+      .text(
+        s"include the node_module folder (defaults to `${Config.DEFAULT_WITH_NODE_MODULES_FOLDER}`)")
+      .action((_, c) => c.copy(withNodeModuleFolder = true))
       .hidden()
     opt[Unit](WITH_TS_TYPES)
       .text(

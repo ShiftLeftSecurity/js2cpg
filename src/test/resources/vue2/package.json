@@ -3,5 +3,8 @@
   "version": "0.1.0",
   "dependencies": {
     "vue": "^2.6.14"
+  },
+  "devDependencies": {
+    "@vue/cli-service-global": "^4.5.15"
   }
 }

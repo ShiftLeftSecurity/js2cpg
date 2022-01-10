@@ -8,9 +8,13 @@ jobs:
     concurrency: release
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout github repo (+ download lfs dependencies)
+        uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          lfs: true
+          fetch-depth: 1
+      - name: Checkout LFS objects
+        run: git lfs checkout
       - name: apt-get update
         run: sudo apt-get update
       - name: Install gnupg
