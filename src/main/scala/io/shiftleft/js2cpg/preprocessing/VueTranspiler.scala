@@ -34,7 +34,9 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
 
   private lazy val NODE_OPTIONS: Map[String, String] = nodeOptions()
 
-  override def shouldRun(): Boolean = config.vueTranspiling && isVueProject(config, projectPath)
+  override def shouldRun(): Boolean =
+    config.vueTranspiling && isVueProject(config, projectPath) &&
+      !TypescriptTranspiler.isTsProject(config, projectPath)
 
   private def nodeOptions(): Map[String, String] = {
     // TODO: keep this until https://github.com/webpack/webpack/issues/14532 is fixed

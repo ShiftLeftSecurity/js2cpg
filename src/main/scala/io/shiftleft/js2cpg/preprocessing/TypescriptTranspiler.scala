@@ -8,6 +8,7 @@ import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileDefaults.TS_SUFFIX
 import io.shiftleft.js2cpg.io.{ExternalCommand, FileUtils}
 import io.shiftleft.js2cpg.parser.TsConfigJsonParser
+import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.isTsProject
 import org.slf4j.LoggerFactory
 import org.apache.commons.io.{FileUtils => CommonsFileUtils}
 
@@ -22,6 +23,11 @@ object TypescriptTranspiler {
 
   val DEFAULT_MODULE: String = COMMONJS
 
+  private def hasTsFiles(config: Config, projectPath: Path): Boolean =
+    FileUtils.getFileTree(projectPath, config, List(TS_SUFFIX)).nonEmpty
+
+  def isTsProject(config: Config, projectPath: Path): Boolean =
+    (File(projectPath) / "tsconfig.json").exists && hasTsFiles(config, projectPath)
 }
 
 class TypescriptTranspiler(override val config: Config,
@@ -35,13 +41,8 @@ class TypescriptTranspiler(override val config: Config,
 
   private val tsc = Paths.get(projectPath.toString, "node_modules", ".bin", "tsc").toString
 
-  private def hasTsFiles: Boolean =
-    FileUtils.getFileTree(projectPath, config, List(TS_SUFFIX)).nonEmpty
-
   override def shouldRun(): Boolean =
-    config.tsTranspiling &&
-      (File(projectPath) / "tsconfig.json").exists &&
-      hasTsFiles
+    config.tsTranspiling && isTsProject(config, projectPath)
 
   private def moveIgnoredDirs(from: File, to: File): Unit = {
     val ignores = if (config.ignoreTests) {
