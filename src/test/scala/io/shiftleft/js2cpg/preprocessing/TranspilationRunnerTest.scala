@@ -259,6 +259,10 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         (File(nodeModulesZipB).unzipTo(destination = tmpProjectPath / "b") / "node_modules" / ".bin" / "tsc").toJava
           .setExecutable(true, false)
 
+        (tmpProjectPath / "node_modules" / ".bin" / "babel").toJava.setExecutable(true, false)
+        (tmpProjectPath / "a" / "node_modules" / ".bin" / "babel").toJava.setExecutable(true, false)
+        (tmpProjectPath / "b" / "node_modules" / ".bin" / "babel").toJava.setExecutable(true, false)
+
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
           Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
@@ -290,6 +294,10 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         (File(nodeModulesZipB).unzipTo(destination = tmpProjectPath / "b") / "node_modules" / ".bin" / "tsc").toJava
           .setExecutable(true, false)
 
+        (tmpProjectPath / "node_modules" / ".bin" / "babel").toJava.setExecutable(true, false)
+        (tmpProjectPath / "a" / "node_modules" / ".bin" / "babel").toJava.setExecutable(true, false)
+        (tmpProjectPath / "b" / "node_modules" / ".bin" / "babel").toJava.setExecutable(true, false)
+
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
           Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
@@ -313,6 +321,8 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
         (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "vue-cli-service").toJava
           .setExecutable(true, false)
+        (tmpProjectPath / "node_modules" / ".bin" / "tsc").toJava.setExecutable(true, false)
+        (tmpProjectPath / "node_modules" / ".bin" / "babel").toJava.setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
@@ -336,6 +346,8 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
         (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "vue-cli-service").toJava
           .setExecutable(true, false)
+        (tmpProjectPath / "node_modules" / ".bin" / "tsc").toJava.setExecutable(true, false)
+        (tmpProjectPath / "node_modules" / ".bin" / "babel").toJava.setExecutable(true, false)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
@@ -346,9 +358,14 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
             .loadFromOverflowDb(
               CpgLoaderConfig.withDefaults.withOverflowConfig(
                 Config.withDefaults.withStorageLocation(cpgPath)))
+        List("src/views/AboutPage.vue", "src/App.vue", "src/main.ts", "src/router/index.ts")
+
         fileNames(cpg) should contain theSameElementsAs List(
           s"src${java.io.File.separator}views${java.io.File.separator}AboutPage.vue",
-          s"src${java.io.File.separator}App.vue")
+          s"src${java.io.File.separator}App.vue",
+          s"src${java.io.File.separator}main.ts",
+          s"src${java.io.File.separator}router${java.io.File.separator}index.ts"
+        )
       }
     }
 
