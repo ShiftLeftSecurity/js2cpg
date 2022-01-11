@@ -41,8 +41,7 @@ class TypescriptTranspiler(override val config: Config,
   override def shouldRun(): Boolean =
     config.tsTranspiling &&
       (File(projectPath) / "tsconfig.json").exists &&
-      hasTsFiles &&
-      !VueTranspiler.isVueProject(config, projectPath)
+      hasTsFiles
 
   private def moveIgnoredDirs(from: File, to: File): Unit = {
     val ignores = if (config.ignoreTests) {
