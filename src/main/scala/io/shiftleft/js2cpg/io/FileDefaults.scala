@@ -8,7 +8,7 @@ object FileDefaults {
 
   val PRIVATE_MODULES_DIR_NAME: String = "sl_private"
 
-  val WEBPACK_PREFIX: String = "webpack:///"
+  val WEBPACK_PREFIX: String = if (scala.util.Properties.isWin) "webpack://" else "webpack:/"
 
   val JS_SUFFIX: String = ".js"
 
