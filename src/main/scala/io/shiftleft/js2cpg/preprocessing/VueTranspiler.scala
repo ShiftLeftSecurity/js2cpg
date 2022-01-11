@@ -63,8 +63,20 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
     }
   }
 
+  private def createCustomBrowserslistFile(): Unit = {
+    val browserslistFile = File(projectPath) / ".browserslistrc"
+    if (browserslistFile.exists) {
+      browserslistFile.delete(swallowIOExceptions = true)
+    }
+    val customBrowserslistFile = File
+      .newTemporaryFile(".browserslistrc", parent = Some(projectPath))
+      .deleteOnExit(swallowIOExceptions = true)
+    customBrowserslistFile.writeText("last 2 years")
+  }
+
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
     if (installVuePlugins()) {
+      createCustomBrowserslistFile()
       val vue = Paths.get(projectPath.toString, "node_modules", ".bin", "vue-cli-service").toString
       val command =
         s"${ExternalCommand.toOSCommand(vue)} build --dest $tmpTranspileDir --mode development --no-clean"

@@ -82,7 +82,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
     case _ if sourceFileName.startsWith(WEBPACK_PREFIX) =>
       // Additionally, source map files coming from webpack (e.g., from Vue transpilation) are somewhat hidden
       val replacedName = sourceFileName.replace(WEBPACK_PREFIX, "")
-      srcDir / replacedName
+      srcDir / replacedName.substring(replacedName.indexOf("/") + 1)
     case _ =>
       val cleanedPath = FileUtils.cleanPath(sourceFileName)
       // having "/" here is fine as JS source maps always have platform independent path separators
