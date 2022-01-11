@@ -358,7 +358,6 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
             .loadFromOverflowDb(
               CpgLoaderConfig.withDefaults.withOverflowConfig(
                 Config.withDefaults.withStorageLocation(cpgPath)))
-        List("src/views/AboutPage.vue", "src/App.vue", "src/main.ts", "src/router/index.ts")
 
         fileNames(cpg) should contain theSameElementsAs List(
           s"src${java.io.File.separator}views${java.io.File.separator}AboutPage.vue",
