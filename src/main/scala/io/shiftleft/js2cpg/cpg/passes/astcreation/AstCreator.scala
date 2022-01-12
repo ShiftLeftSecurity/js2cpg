@@ -1619,7 +1619,7 @@ class AstCreator(diffGraph: DiffGraph.Builder, source: JsSource, usedIdentNodes:
     val rhsId = commaop.getRhs.accept(this)
 
     // generate the exact same code value that we used to when this was handled through `convertSimpleBinaryOp`
-    val code = astNodeBuilder.codeOf(lhsId) + " , " + astNodeBuilder.codeOf(rhsId)
+    val code    = astNodeBuilder.codeOf(lhsId) + " , " + astNodeBuilder.codeOf(rhsId)
     val blockId = astNodeBuilder.createBlockNode(commaop, customCode = Some(code))
 
     astEdgeBuilder.addAstEdge(lhsId, blockId, 0)
