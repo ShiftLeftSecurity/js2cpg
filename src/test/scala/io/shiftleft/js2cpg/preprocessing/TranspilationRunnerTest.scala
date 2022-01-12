@@ -38,20 +38,42 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     result
   }
 
+  private object TranspilationArchiveFixture {
+    def apply(project: String, subProjects: Seq[String], executables: Seq[String])(
+        f: File => Unit): Unit = {
+      val projectPath = getClass.getResource(s"/$project").toURI
+      File.usingTemporaryDirectory() { tmpDir =>
+        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+
+        val allZips = subProjects.map(p =>
+          (getClass.getResource(s"/$project/$p/node_modules.zip").toURI, tmpProjectPath / p)) :+
+          (getClass.getResource(s"/$project/node_modules.zip").toURI, tmpProjectPath)
+        allZips.foreach { case (from, to) => File(from).unzipTo(destination = to) }
+
+        val allExecutables = subProjects.flatMap(p =>
+          executables.map(e => (tmpProjectPath / p / "node_modules" / ".bin" / e).toJava)) ++
+          executables.map(e => (tmpProjectPath / "node_modules" / ".bin" / e).toJava)
+        allExecutables.foreach(_.setExecutable(true, false))
+
+        f(tmpProjectPath)
+      }
+    }
+  }
+
+  private object TranspilationFixture {
+    def apply(project: String)(f: File => Unit): Unit = {
+      val projectPath = getClass.getResource(s"/$project").toURI
+      File.usingTemporaryDirectory()(tmpDir => f(File(projectPath).copyToDirectory(tmpDir)))
+    }
+  }
+
   "TranspilationRunner" should {
 
-    "generate js files correctly for a simple Babel project" in {
-      val projectPath    = getClass.getResource("/babel").toURI
-      val nodeModulesZip = getClass.getResource("/babel/node_modules.zip").toURI
-
-      File.usingTemporaryDirectory() { tmpDir =>
+    "generate js files correctly for a simple Babel project" in
+      TranspilationArchiveFixture("babel", Seq.empty, Seq("babel")) { tmpDir =>
         File.usingTemporaryDirectory() { transpileOutDir =>
-          val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-          (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "babel").toJava
-            .setExecutable(true, false)
-
           new TranspilationRunner(
-            tmpProjectPath.path,
+            tmpDir.path,
             transpileOutDir.path,
             core.Config(tsTranspiling = false, withNodeModuleFolder = true)).execute()
 
@@ -67,24 +89,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
             .mkString should endWith("//# sourceMappingURL=foo.js.map")
         }
       }
-    }
 
-    "contain correctly re-mapped code fields in simple Babel project" in {
-      val projectPath    = getClass.getResource("/babel").toURI
-      val nodeModulesZip = getClass.getResource("/babel/node_modules.zip").toURI
-
-      File.usingTemporaryDirectory() { tmpDir =>
-        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "babel").toJava
-          .setExecutable(true, false)
-
+    "contain correctly re-mapped code fields in simple Babel project" in
+      TranspilationArchiveFixture("babel", Seq.empty, Seq("babel")) { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString,
-                "--output",
-                cpgPath,
-                "--no-ts",
-                "--with-node-modules-folder"))
+          Array(tmpDir.pathAsString, "--output", cpgPath, "--no-ts", "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -103,20 +113,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
           "[1, 2, 3 [...].map(anonymous)"
         )
       }
-    }
 
-    "generate and use sourcemap files correctly" in {
-      val projectPath    = getClass.getResource("/typescript").toURI
-      val nodeModulesZip = getClass.getResource("/typescript/node_modules.zip").toURI
-
-      File.usingTemporaryDirectory() { tmpDir =>
-        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
-          .setExecutable(true, false)
-
+    "generate and use sourcemap files correctly" in
+      TranspilationArchiveFixture("typescript", Seq.empty, Seq("tsc")) { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString,
+          Array(tmpDir.pathAsString,
                 "--output",
                 cpgPath,
                 "--no-babel",
@@ -130,21 +132,13 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         fileNames(cpg) should contain theSameElementsAs List("a.ts", "b.ts")
         lineNumbers(cpg) should contain allElementsOf List(1, 1)
       }
-    }
 
-    "generate js files correctly for a simple Typescript project" in {
-      val projectPath    = getClass.getResource("/typescript").toURI
-      val nodeModulesZip = getClass.getResource("/typescript/node_modules.zip").toURI
-
-      File.usingTemporaryDirectory() { tmpDir =>
+    "generate js files correctly for a simple Typescript project" in
+      TranspilationArchiveFixture("typescript", Seq.empty, Seq("tsc")) { tmpDir =>
         File.usingTemporaryDirectory() { transpileOutDir =>
-          val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-          (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
-            .setExecutable(true, false)
-
           val jsFiles = FileUtils
-            .getFileTree(tmpProjectPath.path, core.Config(), List(JS_SUFFIX))
-            .map(f => (f, tmpProjectPath.path))
+            .getFileTree(tmpDir.path, core.Config(), List(JS_SUFFIX))
+            .map(f => (f, tmpDir.path))
 
           val expectedJsFiles =
             List(((transpileOutDir / "a.js").path, transpileOutDir.path),
@@ -152,7 +146,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
           jsFiles.size shouldBe 0
 
-          new TranspilationRunner(tmpProjectPath.path,
+          new TranspilationRunner(tmpDir.path,
                                   transpileOutDir.path,
                                   core.Config(babelTranspiling = false,
                                               withNodeModuleFolder = true)).execute()
@@ -175,20 +169,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
                   .stripLineEnd)) shouldBe "console.log(\"Hello World!\");"
         }
       }
-    }
 
-    "generate js files correctly for a simple Typescript project with subfolders" in {
-      val projectPath    = getClass.getResource("/typescriptsub").toURI
-      val nodeModulesZip = getClass.getResource("/typescriptsub/node_modules.zip").toURI
-
-      File.usingTemporaryDirectory() { tmpDir =>
-        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
-          .setExecutable(true, false)
-
+    "generate js files correctly for a simple Typescript project with subfolders" in
+      TranspilationArchiveFixture("typescriptsub", Seq.empty, Seq("tsc")) { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString,
+          Array(tmpDir.pathAsString,
                 "--output",
                 cpgPath,
                 "--no-babel",
@@ -211,20 +197,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
           s"subb${java.io.File.separator}b.ts"
         )
       }
-    }
 
-    "generate js files correctly for a simple Typescript project including test files" in {
-      val projectPath    = getClass.getResource("/typescript").toURI
-      val nodeModulesZip = getClass.getResource("/typescript/node_modules.zip").toURI
-
-      File.usingTemporaryDirectory() { tmpDir =>
-        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
-          .setExecutable(true, false)
-
+    "generate js files correctly for a simple Typescript project including test files" in
+      TranspilationArchiveFixture("typescript", Seq.empty, Seq("tsc")) { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString,
+          Array(tmpDir.pathAsString,
                 "--output",
                 cpgPath,
                 "--no-babel",
@@ -242,30 +220,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
           s"tests${java.io.File.separator}a.test.ts",
           s"tests${java.io.File.separator}b.spec.ts")
       }
-    }
 
-    "generate js files correctly for a simple multi-project Typescript project" in {
-      val projectPath     = getClass.getResource("/multisimple").toURI
-      val nodeModulesZip  = getClass.getResource("/multisimple/node_modules.zip").toURI
-      val nodeModulesZipA = getClass.getResource("/multisimple/a/node_modules.zip").toURI
-      val nodeModulesZipB = getClass.getResource("/multisimple/b/node_modules.zip").toURI
-
-      File.usingTemporaryDirectory() { tmpDir =>
-        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
-          .setExecutable(true, false)
-        (File(nodeModulesZipA).unzipTo(destination = tmpProjectPath / "a") / "node_modules" / ".bin" / "tsc").toJava
-          .setExecutable(true, false)
-        (File(nodeModulesZipB).unzipTo(destination = tmpProjectPath / "b") / "node_modules" / ".bin" / "tsc").toJava
-          .setExecutable(true, false)
-
-        (tmpProjectPath / "node_modules" / ".bin" / "babel").toJava.setExecutable(true, false)
-        (tmpProjectPath / "a" / "node_modules" / ".bin" / "babel").toJava.setExecutable(true, false)
-        (tmpProjectPath / "b" / "node_modules" / ".bin" / "babel").toJava.setExecutable(true, false)
-
+    "generate js files correctly for a simple multi-project Typescript project" in
+      TranspilationArchiveFixture("multisimple", Seq("a", "b"), Seq("tsc", "babel")) { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
+          Array(tmpDir.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
 
         val cpg =
           CpgLoader
@@ -277,105 +237,67 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
                                                              s"a${java.io.File.separator}a.ts",
                                                              s"b${java.io.File.separator}b.js")
       }
-    }
 
-    "generate js files correctly for a multi-project Typescript project (using solution config)" in {
-      val projectPath     = getClass.getResource("/multisolutionconfig").toURI
-      val nodeModulesZip  = getClass.getResource("/multisolutionconfig/node_modules.zip").toURI
-      val nodeModulesZipA = getClass.getResource("/multisolutionconfig/a/node_modules.zip").toURI
-      val nodeModulesZipB = getClass.getResource("/multisolutionconfig/b/node_modules.zip").toURI
+    "generate js files correctly for a multi-project Typescript project (using solution config)" in
+      TranspilationArchiveFixture("multisolutionconfig", Seq("a", "b"), Seq("tsc", "babel")) {
+        tmpDir =>
+          val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
+          Js2CpgMain.main(
+            Array(tmpDir.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
 
-      File.usingTemporaryDirectory() { tmpDir =>
-        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "tsc").toJava
-          .setExecutable(true, false)
-        (File(nodeModulesZipA).unzipTo(destination = tmpProjectPath / "a") / "node_modules" / ".bin" / "tsc").toJava
-          .setExecutable(true, false)
-        (File(nodeModulesZipB).unzipTo(destination = tmpProjectPath / "b") / "node_modules" / ".bin" / "tsc").toJava
-          .setExecutable(true, false)
-
-        (tmpProjectPath / "node_modules" / ".bin" / "babel").toJava.setExecutable(true, false)
-        (tmpProjectPath / "a" / "node_modules" / ".bin" / "babel").toJava.setExecutable(true, false)
-        (tmpProjectPath / "b" / "node_modules" / ".bin" / "babel").toJava.setExecutable(true, false)
-
-        val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
-
-        val cpg =
-          CpgLoader
-            .loadFromOverflowDb(
-              CpgLoaderConfig.withDefaults.withOverflowConfig(
-                Config.withDefaults.withStorageLocation(cpgPath)))
-        fileNames(cpg) should contain theSameElementsAs List("a.js",
-                                                             s"a${java.io.File.separator}a.ts",
-                                                             s"b${java.io.File.separator}b.js")
+          val cpg =
+            CpgLoader
+              .loadFromOverflowDb(
+                CpgLoaderConfig.withDefaults.withOverflowConfig(
+                  Config.withDefaults.withStorageLocation(cpgPath)))
+          fileNames(cpg) should contain theSameElementsAs List("a.js",
+                                                               s"a${java.io.File.separator}a.ts",
+                                                               s"b${java.io.File.separator}b.js")
       }
-    }
 
-    "generate js files correctly for a simple Vue.js 2 project" in {
-      val projectPath    = getClass.getResource("/vue2").toURI
-      val nodeModulesZip = getClass.getResource("/vue2/node_modules.zip").toURI
+    "generate js files correctly for a simple Vue.js 2 project" in
+      TranspilationArchiveFixture("vue2", Seq.empty, Seq("vue-cli-service", "tsc", "babel")) {
+        tmpDir =>
+          val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
+          Js2CpgMain.main(
+            Array(tmpDir.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
 
-      File.usingTemporaryDirectory() { tmpDir =>
-        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "vue-cli-service").toJava
-          .setExecutable(true, false)
-        (tmpProjectPath / "node_modules" / ".bin" / "tsc").toJava.setExecutable(true, false)
-        (tmpProjectPath / "node_modules" / ".bin" / "babel").toJava.setExecutable(true, false)
-
-        val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
-
-        val cpg =
-          CpgLoader
-            .loadFromOverflowDb(
-              CpgLoaderConfig.withDefaults.withOverflowConfig(
-                Config.withDefaults.withStorageLocation(cpgPath)))
-        fileNames(cpg) should contain theSameElementsAs List(s"src${java.io.File.separator}main.js",
-                                                             s"src${java.io.File.separator}App.vue")
+          val cpg =
+            CpgLoader
+              .loadFromOverflowDb(
+                CpgLoaderConfig.withDefaults.withOverflowConfig(
+                  Config.withDefaults.withStorageLocation(cpgPath)))
+          fileNames(cpg) should contain theSameElementsAs List(
+            s"src${java.io.File.separator}main.js",
+            s"src${java.io.File.separator}App.vue")
       }
-    }
 
-    "generate js files correctly for a simple Vue.js 3 project" in {
-      val projectPath    = getClass.getResource("/vue3").toURI
-      val nodeModulesZip = getClass.getResource("/vue3/node_modules.zip").toURI
+    "generate js files correctly for a simple Vue.js 3 project" in
+      TranspilationArchiveFixture("vue3", Seq.empty, Seq("vue-cli-service", "tsc", "babel")) {
+        tmpDir =>
+          val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
+          Js2CpgMain.main(
+            Array(tmpDir.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
 
-      File.usingTemporaryDirectory() { tmpDir =>
-        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "vue-cli-service").toJava
-          .setExecutable(true, false)
-        (tmpProjectPath / "node_modules" / ".bin" / "tsc").toJava.setExecutable(true, false)
-        (tmpProjectPath / "node_modules" / ".bin" / "babel").toJava.setExecutable(true, false)
+          val cpg =
+            CpgLoader
+              .loadFromOverflowDb(
+                CpgLoaderConfig.withDefaults.withOverflowConfig(
+                  Config.withDefaults.withStorageLocation(cpgPath)))
 
-        val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
-
-        val cpg =
-          CpgLoader
-            .loadFromOverflowDb(
-              CpgLoaderConfig.withDefaults.withOverflowConfig(
-                Config.withDefaults.withStorageLocation(cpgPath)))
-
-        fileNames(cpg) should contain theSameElementsAs List(
-          s"src${java.io.File.separator}views${java.io.File.separator}AboutPage.vue",
-          s"src${java.io.File.separator}App.vue",
-          s"src${java.io.File.separator}main.ts",
-          s"src${java.io.File.separator}router${java.io.File.separator}index.ts"
-        )
+          fileNames(cpg) should contain theSameElementsAs List(
+            s"src${java.io.File.separator}views${java.io.File.separator}AboutPage.vue",
+            s"src${java.io.File.separator}App.vue",
+            s"src${java.io.File.separator}main.ts",
+            s"src${java.io.File.separator}router${java.io.File.separator}index.ts"
+          )
       }
-    }
 
-    "generate js file correctly for a EJS template file" in {
-      val projectPath = getClass.getResource("/ejs").toURI
-      File.usingTemporaryDirectory() { tmpDir =>
-        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-
+    "generate js file correctly for a EJS template file" in
+      TranspilationFixture("ejs") { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString,
+          Array(tmpDir.pathAsString,
                 "--output",
                 cpgPath,
                 "--no-ts",
@@ -390,20 +312,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         fileNames(cpg) should contain only "test.ejs"
         lineNumbers(cpg) should contain allElementsOf List(5, 7, 15, 16, 21)
       }
-    }
 
-    "generate js file correctly for a pug template file" in {
-      val projectPath    = getClass.getResource("/pug").toURI
-      val nodeModulesZip = getClass.getResource("/pug/node_modules.zip").toURI
-
-      File.usingTemporaryDirectory() { tmpDir =>
-        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
-        (File(nodeModulesZip).unzipTo(destination = tmpProjectPath) / "node_modules" / ".bin" / "pug").toJava
-          .setExecutable(true, false)
-
+    "generate js file correctly for a pug template file" in
+      TranspilationArchiveFixture("pug", Seq.empty, Seq("pug")) { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString,
+          Array(tmpDir.pathAsString,
                 "--output",
                 cpgPath,
                 "--no-ts",
@@ -419,7 +333,6 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         fileNames(cpg) should contain only "test.js"
         lineNumbers(cpg) should contain allElementsOf List(1, 2, 4, 7, 9)
       }
-    }
 
   }
 
