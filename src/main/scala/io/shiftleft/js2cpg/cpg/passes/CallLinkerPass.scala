@@ -5,7 +5,7 @@ import io.shiftleft.codepropertygraph.generated.{DispatchTypes, EdgeTypes, Opera
 import io.shiftleft.passes.{CpgPass, DiffGraph}
 import io.shiftleft.semanticcpg.language._
 import org.slf4j.{Logger, LoggerFactory}
-import overflowdb.traversal.{NodeOps, jIteratortoTraversal}
+import overflowdb.traversal._
 
 import scala.collection.mutable
 
@@ -14,7 +14,6 @@ import scala.collection.mutable
   * call sites to methods in the same file (by name).
   */
 class CallLinkerPass(cpg: Cpg) extends CpgPass(cpg) {
-  import CallLinkerPass.logger
 
   private type MethodsByNameAndFileType = mutable.HashMap[(String, String), nodes.Method]
   private type MethodsByFullNameType    = mutable.HashMap[String, nodes.Method]
@@ -24,8 +23,7 @@ class CallLinkerPass(cpg: Cpg) extends CpgPass(cpg) {
       .collectAll[nodes.Local]
       .referencingIdentifiers
       .argumentIndex(1)
-      .inCall
-      .assignments
+      .inAssignment
       .size == 1
 
   private val JS_EXPORT_NAMES = IndexedSeq("module.exports", "exports")
@@ -121,14 +119,22 @@ class CallLinkerPass(cpg: Cpg) extends CpgPass(cpg) {
             Some(identifier.name)
           case block: nodes.Block =>
             block.astChildren.lastOption
-              .collect { case c: nodes.Call => c }
-              .flatMap(fromFieldAccess)
+              .flatMap {
+                case c: nodes.Call => fromFieldAccess(c)
+                case _             => None
+              }
           case call: nodes.Call =>
             // TODO: remove this if, once we no longer care about compat with CPGs from January 2022 (comma operator is now a block)
-            if (call.methodFullName == "<operator>.commaright")
-              call.argumentOption(2).isCall.headOption.flatMap(fromFieldAccess)
-            else
+            if (call.methodFullName == "<operator>.commaright") {
+              call
+                .argumentOption(2)
+                .flatMap {
+                  case c: nodes.Call => fromFieldAccess(c)
+                  case _             => None
+                }
+            } else {
               fromFieldAccess(call)
+            }
           case _ =>
             None
         }
