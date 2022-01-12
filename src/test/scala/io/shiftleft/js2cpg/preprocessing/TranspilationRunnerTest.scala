@@ -62,7 +62,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
   private object TranspilationFixture {
     def apply(project: String)(f: File => Unit): Unit = {
-      val projectPath = getClass.getResource(project).toURI
+      val projectPath = getClass.getResource(s"/$project").toURI
       File.usingTemporaryDirectory()(tmpDir => f(File(projectPath).copyToDirectory(tmpDir)))
     }
   }
