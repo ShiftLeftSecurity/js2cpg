@@ -91,14 +91,9 @@ class CallLinkerPass(cpg: Cpg) extends CpgPass(cpg) {
       } else {
         getReceiverIdentifierName(call) match {
           case Some(name) =>
-            try {
-              for (method <- methodsByNameAndFile.get((call.method.filename, name))) {
-                diffGraph.addEdgeInOriginal(call, method, EdgeTypes.CALL)
-              }
-            } catch {
-              case nse: NoSuchElementException =>
-                // Temporary workaround for crash in #7484
-                logger.error(s"failed to link call site for $name", nse)
+            for (file   <- call.file.headOption;
+                 method <- methodsByNameAndFile.get((file.name, name))) {
+              diffGraph.addEdgeInOriginal(call, method, EdgeTypes.CALL)
             }
           case None =>
         }
