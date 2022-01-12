@@ -50,7 +50,6 @@ object AstHelpers {
     case TokenType.ASSIGN_SAR     => Operators.assignmentArithmeticShiftRight
     case TokenType.ASSIGN_SHR     => Operators.assignmentLogicalShiftRight
     // others
-    case TokenType.COMMARIGHT     => "<operator>.commaright"
     case TokenType.COMMALEFT      => "<operator>.commaleft"
     case TokenType.IN             => "<operator>.in"
     case TokenType.NULLISHCOALESC => "<operator>.nullishcoalesc"

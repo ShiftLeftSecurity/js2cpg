@@ -68,9 +68,9 @@ class AstCreationPassTest extends AbstractPassTest {
         assignment.checkNodeCount(1)
         assignment.checkProperty(PropertyNames.NAME, Operators.assignment)
 
-        def commaRight = assignment.expandAst(NodeTypes.CALL)
+        def commaRight = assignment.expandAst(NodeTypes.BLOCK)
         commaRight.checkNodeCount(1)
-        commaRight.checkProperty(PropertyNames.NAME, "<operator>.commaright") // we do not have a define for this
+        commaRight.expandAst().checkNodeCount(2)
 
         def refForConstructor = commaRight.expandAst(NodeTypes.TYPE_REF)
         refForConstructor.checkNodeCount(1)
