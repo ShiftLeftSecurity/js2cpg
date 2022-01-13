@@ -1,5 +1,5 @@
-val cpgVersion = "1.3.461"
-val joernVersion = "1.1.387"
+val cpgVersion   = "1.3.487"
+val joernVersion = "1.1.436"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
@@ -17,79 +17,88 @@ Global / excludeLintKeys += gitCommitString
 
 lazy val commonSettings = Seq(
   scalaVersion := "2.13.7",
+  crossScalaVersions := Seq("2.13.7", "3.1.0"),
   organization := "io.shiftleft",
   scalacOptions ++= Seq(
-    // Emit warning and location for usages of deprecated APIs.
-    "-deprecation",
-    "-encoding",
-    // Specify character encoding used by source files:
-    "utf-8",
-    // Explain type errors in more detail:
-    "-explaintypes",
-    // Emit warning and location for usages of features that should be imported explicitly:
-    "-feature",
-    // Allow higher-kinded types:
-    "-language:higherKinds",
-    // Allow definition of implicit functions called views:
-    "-language:implicitConversions",
-    // Enable additional warnings where generated code depends on assumptions:
-    "-unchecked",
-    // Wrap field accessors to throw an exception on uninitialized access:
-    "-Xcheckinit",
-    // Fail the compilation if there are any warnings:
-    "-Xfatal-warnings",
-    // Warn if an argument list is modified to match the receiver:
-    "-Xlint:adapted-args",
-    // Evaluation of a constant arithmetic expression results in an error:
-    "-Xlint:constant",
-    // Selecting member of DelayedInit:
-    "-Xlint:delayedinit-select",
-    // A Scaladoc comment appears to be detached from its element:
-    "-Xlint:doc-detached",
-    // Warn about inaccessible types in method signatures:
-    "-Xlint:inaccessible",
-    // Warn when a type argument is inferred to be `Any`:
-    "-Xlint:infer-any",
-    // A string literal appears to be missing an interpolator id:
-    "-Xlint:missing-interpolator",
-    // Option.apply used implicit view:
-    "-Xlint:option-implicit",
-    // Class or object defined in package object:
-    "-Xlint:package-object-classes",
-    // Parameterized overloaded implicit methods are not visible as view bounds:
-    "-Xlint:poly-implicit-overload",
-    // A private field (or class parameter) shadows a superclass field:
-    "-Xlint:private-shadow",
-    // Pattern sequence wildcard must align with sequence component:
-    "-Xlint:stars-align",
-    // A local type parameter shadows a type already in scope:
-    "-Xlint:type-parameter-shadow",
-    // Warn when dead code is identified:
-    "-Ywarn-dead-code",
-    // Warn when more than one implicit parameter section is defined:
-    "-Ywarn-extra-implicit",
-    // Warn when nullary methods return Unit:
-    "-Xlint:nullary-unit",
-    // Warn when numerics are widened:
-    "-Ywarn-numeric-widen",
-    // Warn if an implicit parameter is unused:
-    "-Ywarn-unused:implicits"
-  ),
+  ) ++ (
+    CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((3, _)) => Seq(
+        "-Xtarget:8",
+        )
+    case _ => Seq(
+        // Emit warning and location for usages of deprecated APIs.
+        "-deprecation",
+        "-encoding",
+        // Specify character encoding used by source files:
+        "utf-8",
+        // Explain type errors in more detail:
+        "-explaintypes",
+        // Emit warning and location for usages of features that should be imported explicitly:
+        "-feature",
+        // Allow higher-kinded types:
+        "-language:higherKinds",
+        // Allow definition of implicit functions called views:
+        "-language:implicitConversions",
+        // Enable additional warnings where generated code depends on assumptions:
+        "-unchecked",
+        // Wrap field accessors to throw an exception on uninitialized access:
+        "-Xcheckinit",
+        // Fail the compilation if there are any warnings:
+        "-Xfatal-warnings",
+        // Warn if an argument list is modified to match the receiver:
+        "-Xlint:adapted-args",
+        // Evaluation of a constant arithmetic expression results in an error:
+        "-Xlint:constant",
+        // Selecting member of DelayedInit:
+        "-Xlint:delayedinit-select",
+        // A Scaladoc comment appears to be detached from its element:
+        "-Xlint:doc-detached",
+        // Warn about inaccessible types in method signatures:
+        "-Xlint:inaccessible",
+        // Warn when a type argument is inferred to be `Any`:
+        "-Xlint:infer-any",
+        // A string literal appears to be missing an interpolator id:
+        "-Xlint:missing-interpolator",
+        // Option.apply used implicit view:
+        "-Xlint:option-implicit",
+        // Class or object defined in package object:
+        "-Xlint:package-object-classes",
+        // Parameterized overloaded implicit methods are not visible as view bounds:
+        "-Xlint:poly-implicit-overload",
+        // A private field (or class parameter) shadows a superclass field:
+        "-Xlint:private-shadow",
+        // Pattern sequence wildcard must align with sequence component:
+        "-Xlint:stars-align",
+        // A local type parameter shadows a type already in scope:
+        "-Xlint:type-parameter-shadow",
+        // Warn when dead code is identified:
+        "-Ywarn-dead-code",
+        // Warn when more than one implicit parameter section is defined:
+        "-Ywarn-extra-implicit",
+        // Warn when nullary methods return Unit:
+        "-Xlint:nullary-unit",
+        // Warn when numerics are widened:
+        "-Ywarn-numeric-widen",
+        // Warn if an implicit parameter is unused:
+        "-Ywarn-unused:implicits"
+          )
+    }   
+    )   
+,
   resolvers ++= Seq(
     Resolver.mavenLocal,
-    "Atlassian Maven Repository" at "https://maven.atlassian.com/repository/public"
+    "Atlassian Maven Repository" at "https://maven.atlassian.com/repository/public",
   ),
   libraryDependencies ++= Seq(
     "io.shiftleft"             %% "codepropertygraph" % cpgVersion,
     "io.shiftleft"             %% "semanticcpg"       % cpgVersion,
-    "io.joern"                 %% "dataflowengineoss" % joernVersion,
+    "io.joern"                 %% "dataflowengineoss" % joernVersion % Test,
     "com.github.scopt"         %% "scopt"             % "4.0.1",
     "org.graalvm.js"           % "js"                 % "21.3.0",
-    "com.github.pathikrit"     %% "better-files"      % "3.9.1",
+    ("com.github.pathikrit"    %% "better-files"      % "3.9.1").cross(CrossVersion.for3Use2_13),
     "org.slf4j"                % "slf4j-api"          % "1.7.32",
-    "org.apache.logging.log4j" % "log4j-slf4j-impl"   % "2.16.0" % Runtime,
-    "com.typesafe.play"        %% "play-json"         % "2.9.2",
-    "com.fasterxml.jackson"    % "jackson-base"       % "2.13.0",
+    "org.apache.logging.log4j" % "log4j-slf4j-impl"   % "2.17.0" % Runtime,
+    "com.fasterxml.jackson.core"    % "jackson-databind"       % "2.13.1",
     "com.atlassian.sourcemap"  % "sourcemap"          % "2.0.0",
     "commons-io"               % "commons-io"         % "2.11.0",
     "io.shiftleft"             %% "semanticcpg"       % cpgVersion % Test classifier "tests",

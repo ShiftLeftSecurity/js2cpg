@@ -1,7 +1,6 @@
 package io.shiftleft.js2cpg.cpg.passes
 
 import java.nio.file.Path
-
 import better.files.File
 import com.oracle.js.parser.Source
 import com.oracle.js.parser.ir.FunctionNode
@@ -10,11 +9,11 @@ import io.shiftleft.js2cpg.core.Report
 import io.shiftleft.js2cpg.cpg.passes.astcreation.AstCreator
 import io.shiftleft.js2cpg.io.{FileUtils, JsFileChecks, TimeUtils}
 import io.shiftleft.js2cpg.parser.{JavaScriptParser, JsSource}
-import io.shiftleft.passes.{DiffGraph, IntervalKeyPool, ParallelCpgPass}
+import io.shiftleft.passes.{DiffGraph, IntervalKeyPool, ConcurrentWriterCpgPass}
 import org.slf4j.LoggerFactory
 import io.shiftleft.js2cpg.util.SourceWrapper._
 
-import scala.util.{Failure, Success, Try, Using}
+import scala.util.{Failure, Success, Try}
 
 /**
   * Given a list of filenames, this pass creates the abstract syntax tree and CPG AST for each file.
@@ -25,19 +24,16 @@ class AstCreationPass(srcDir: File,
                       cpg: Cpg,
                       keyPool: IntervalKeyPool,
                       report: Report)
-    extends ParallelCpgPass[(Path, Path)](cpg, keyPools = Some(keyPool.split(filenames.size))) {
+    extends ConcurrentWriterCpgPass[(Path, Path)](cpg, keyPool = Some(keyPool)) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
   private case class ParseResult(file: File, jsSource: JsSource, ast: FunctionNode)
 
-  override def partIterator: Iterator[(Path, Path)] = filenames.iterator
+  override def generateParts(): Array[(Path, Path)] = filenames.toArray
 
-  override def runOnPart(filename: (Path, Path)): Iterator[DiffGraph] = {
-    val diffGraph = DiffGraph.newBuilder
-
-    val file     = filename._1
-    val fileRoot = filename._2
+  override def runOnPart(diffGraph: DiffGraph.Builder, filename: (Path, Path)): Unit = {
+    val (file, fileRoot) = filename
 
     val parseResult = parse(file, fileRoot) match {
       case Failure(parseException) =>
@@ -47,36 +43,33 @@ class AstCreationPass(srcDir: File,
         Some((parseResult, preAnalyze(parseResult)))
     }
 
-    parseResult match {
-      case Some((parseResult, usedIdentNodes)) =>
+    parseResult.map {
+      case (parseResult, usedIdentNodes) =>
         val (result, duration) = {
-          TimeUtils.time(generateCpg(parseResult, diffGraph, usedIdentNodes))
+          TimeUtils.time(generateCpg(parseResult, DiffGraph.newBuilder, usedIdentNodes))
         }
         val path = parseResult.jsSource.originalFilePath
         result match {
           case Failure(exception) =>
             logger.warn(s"Failed to generate CPG for '$path'!", exception)
-            Iterator.empty
-          case Success(cpg) =>
+          case Success(localDiff) =>
             logger.info(s"Processed file '$path'")
             report.updateReportDuration(path, duration)
-            Iterator(cpg)
+            diffGraph.moveFrom(localDiff)
         }
-      case None =>
-        Iterator.empty
     }
   }
 
   private def generateCpg(parseResult: ParseResult,
                           diffGraph: DiffGraph.Builder,
-                          usedIdentNodes: Set[String]): Try[DiffGraph] = {
+                          usedIdentNodes: Set[String]): Try[DiffGraph.Builder] = {
     Try {
       val source = parseResult.jsSource
       val ast    = parseResult.ast
       logger.debug(s"Generating CPG for file '${source.originalFilePath}'.")
       val astBuilderPass = new AstCreator(diffGraph, source, usedIdentNodes)
       astBuilderPass.convert(ast)
-      diffGraph.build()
+      diffGraph
     }
   }
 
@@ -88,24 +81,22 @@ class AstCreationPass(srcDir: File,
   }
 
   private def parse(path: Path, rootDir: Path): Try[ParseResult] = {
-    Using(FileUtils.bufferedSourceFromFile(path)) { bufferedSource =>
-      val relPath = rootDir.relativize(path).toString
+    val lines   = FileUtils.readLinesInFile(path)
+    val relPath = rootDir.relativize(path).toString
 
-      val fileStatistics = JsFileChecks.check(relPath, bufferedSource.reset())
+    val fileStatistics = JsFileChecks.check(relPath, lines)
 
-      val source = Source
-        .sourceFor(relPath, FileUtils.contentFromBufferedSource(bufferedSource))
-      val jsSource = source.toJsSource(srcDir, rootDir)
+    val source   = Source.sourceFor(relPath, lines.mkString("\n"))
+    val jsSource = source.toJsSource(srcDir, rootDir)
 
-      logger.debug(s"Parsing file '$relPath'.")
-      Try(JavaScriptParser.parseFromSource(jsSource)) match {
-        case Failure(exception) =>
-          report.addReportInfo(jsSource.originalFilePath, fileStatistics.linesOfCode)
-          throw exception
-        case Success((ast, jsSource)) =>
-          report.addReportInfo(jsSource.originalFilePath, fileStatistics.linesOfCode, parsed = true)
-          ParseResult(File(path), jsSource, ast)
-      }
+    logger.debug(s"Parsing file '$relPath'.")
+    Try(JavaScriptParser.parseFromSource(jsSource)) match {
+      case Failure(exception) =>
+        report.addReportInfo(jsSource.originalFilePath, fileStatistics.linesOfCode)
+        Failure(exception)
+      case Success((ast, jsSource)) =>
+        report.addReportInfo(jsSource.originalFilePath, fileStatistics.linesOfCode, parsed = true)
+        Success(ParseResult(File(path), jsSource, ast))
     }
   }
 

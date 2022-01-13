@@ -8,7 +8,7 @@ import io.shiftleft.js2cpg.core.Js2CpgMain
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import overflowdb._
-import overflowdb.traversal.TraversalSource
+import overflowdb.traversal._
 
 import java.util.regex.Pattern
 
@@ -25,7 +25,7 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
 
     "copy and generate js files correctly for a simple project" in {
       val projectPath = getClass.getResource("/privatemodules").toURI
-      File.usingTemporaryDirectory() { tmpDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -44,7 +44,7 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
 
     "copy and generate js files correctly for a simple project with additional private modules" in {
       val projectPath = getClass.getResource("/privatemodules").toURI
-      File.usingTemporaryDirectory() { tmpDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -73,7 +73,7 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
 
     "copy and generate js files correctly for a simple project with filter" in {
       val projectPath = getClass.getResource("/privatemodules").toURI
-      File.usingTemporaryDirectory() { tmpDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
@@ -97,7 +97,7 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
 
     "copy and generate js files correctly for a simple project with no private module being references" in {
       val projectPath = getClass.getResource("/ignoreprivatemodules").toURI
-      File.usingTemporaryDirectory() { tmpDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString

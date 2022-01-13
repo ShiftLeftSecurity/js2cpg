@@ -4,8 +4,7 @@ import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.codepropertygraph.generated.{nodes, DispatchTypes, EdgeTypes, Operators}
 import io.shiftleft.passes.{CpgPass, DiffGraph}
 import io.shiftleft.semanticcpg.language._
-import overflowdb.traversal.NodeOps
-import overflowdb.traversal.jIteratortoTraversal
+import overflowdb.traversal._
 
 import scala.collection.mutable
 

@@ -15,10 +15,11 @@ object PassHelpers {
     var counter = usedVariableNames.getOrElse(variableName, 0)
 
     var currentVariableName = ""
-    do {
+    while ({
       currentVariableName = s"${variableName}_$counter"
       counter += 1
-    } while (usedIdentNodes.contains(currentVariableName))
+      usedIdentNodes.contains(currentVariableName)
+    }) {}
 
     usedVariableNames.put(variableName, counter)
 

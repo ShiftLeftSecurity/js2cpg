@@ -11,7 +11,7 @@ import io.shiftleft.js2cpg.preprocessing.NuxtTranspiler
 import org.slf4j.LoggerFactory
 
 import scala.jdk.CollectionConverters._
-import scala.util.Using
+import scala.util.{Failure, Success, Try}
 
 class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
 
@@ -82,7 +82,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
     case _ if sourceFileName.startsWith(WEBPACK_PREFIX) =>
       // Additionally, source map files coming from webpack (e.g., from Vue transpilation) are somewhat hidden
       val replacedName = sourceFileName.replace(WEBPACK_PREFIX, "")
-      srcDir / replacedName
+      srcDir / replacedName.substring(replacedName.indexOf("/") + 1)
     case _ =>
       val cleanedPath = FileUtils.cleanPath(sourceFileName)
       // having "/" here is fine as JS source maps always have platform independent path separators
@@ -96,47 +96,52 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
         // special handling for Windows CI
         srcDir.root / "Users" / cleanedPath.replace(srcDir.toString(), "")
       } else {
-        srcDir / lookupPath
+        val lookupFile = File(lookupPath)
+        if (lookupFile.parent != lookupFile.root) {
+          srcDir / lookupPath
+        } else {
+          srcDir / lookupFile.name
+        }
       }
       srcFilePath
   }
 
   private def sourceMapOrigin(): Option[SourceMapOrigin] = {
-    if (File(mapFilePath).notExists) {
+    if (File(mapFilePath).isEmpty) {
       logger.debug(s"No source map file available for '$originalFilePath'")
       None
     } else {
-      Using(FileUtils.bufferedSourceFromFile(Paths.get(mapFilePath))) { sourceMapBuffer =>
-        val sourceMap =
-          ReadableSourceMapImpl.fromSource(FileUtils.contentFromBufferedSource(sourceMapBuffer))
-        val sourceFileNames = sourceMap.getSources.asScala
+      val sourceMapContent = FileUtils.readLinesInFile(Paths.get(mapFilePath)).mkString("\n")
+      // We apply a Try here as some source maps are indeed un-parsable by ReadableSourceMap:
+      Try(ReadableSourceMapImpl.fromSource(sourceMapContent)) match {
+        case Failure(exception) =>
+          logger.debug(s"Invalid source map file for '$originalFilePath'", exception)
+          None
+        case Success(sourceMap) =>
+          val sourceFileNames = sourceMap.getSources.asScala.filter(_ != null)
+          // The source file might not exist, e.g., if it was the result of transpilation
+          // but is not delivered and still referenced in the source map
+          // (fix for: https://github.com/ShiftLeftSecurity/product/issues/4994)
+          val sourceFile = sourceFileNames
+            .find(_.toLowerCase.endsWith(File(absoluteFilePath).nameWithoutExtension + VUE_SUFFIX))
+            .orElse(sourceFileNames.headOption)
 
-        // The source file might not exist, e.g., if it was the result of transpilation
-        // but is not delivered and still referenced in the source map
-        // (fix for: https://github.com/ShiftLeftSecurity/product/issues/4994)
-        val sourceFile = sourceFileNames
-          .find(_.toLowerCase.endsWith(File(absoluteFilePath).nameWithoutExtension + VUE_SUFFIX))
-          .orElse(sourceFileNames.headOption)
-
-        sourceFile.flatMap { sourceFileName =>
-          val sourceFilePath = constructSourceFilePath(sourceFileName)
-          if (!sourceFilePath.exists) {
-            logger.debug(
-              s"Could not load source map file for '$originalFilePath'. The source map file refers to '$sourceFilePath' but this does not exist")
-            None
-          } else {
-            Using(FileUtils.bufferedSourceFromFile(sourceFilePath.path)) { sourceFileBuffer =>
-              val sourceFileMapping =
-                FileUtils.contentMapFromBufferedSource(sourceFileBuffer)
+          sourceFile.flatMap { sourceFileName =>
+            val sourceFilePath = constructSourceFilePath(sourceFileName)
+            if (!sourceFilePath.exists) {
+              logger.debug(
+                s"Could not load source map file for '$originalFilePath'. The source map file refers to '$sourceFilePath' but this does not exist")
+              None
+            } else {
+              val sourceFileMapping = FileUtils.contentMapFromFile(sourceFilePath.path)
               logger.debug(
                 s"Successfully loaded source map file '$mapFilePath':" +
                   s"\n\t* Transpiled file: '$absoluteFilePath'" +
                   s"\n\t* Origin: '$sourceFilePath'")
-              SourceMapOrigin(sourceFilePath.path, Some(sourceMap), sourceFileMapping)
-            }.toOption
+              Some(SourceMapOrigin(sourceFilePath.path, Some(sourceMap), sourceFileMapping))
+            }
           }
-        }
-      }.get // safe, as we checked the existence of the sourcemap file already above
+      }
     }
   }
 
@@ -238,20 +243,8 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
       case Some(SourceMapOrigin(sourceFilePath, _, _))
           if absoluteFilePath.contains(NuxtTranspiler.NUXT_FOLDER) =>
         srcDir.relativize(File(NuxtTranspiler.remapPath(sourceFilePath.toString))).toString
-      case Some(SourceMapOrigin(sourceFilePath, _, _))
-          if sourceFilePath.toString.endsWith(".vue") =>
+      case Some(SourceMapOrigin(sourceFilePath, _, _)) =>
         srcDir.relativize(File(sourceFilePath)).toString
-      case Some(sourceMapOrigin) =>
-        val sourceMapFile = File(sourceMapOrigin.sourceFilePath)
-        val sourceMapFileExt = if (sourceMapFile.pathAsString.endsWith(DTS_SUFFIX)) {
-          DTS_SUFFIX
-        } else {
-          sourceMapFile.extension.get
-        }
-        val originalFilePathAsString = originalFilePath
-        val originalFile             = File(originalFilePathAsString)
-        val originalFileExt          = originalFile.extension.get
-        originalFilePathAsString.replaceAll(originalFileExt + "$", sourceMapFileExt)
       case None if absoluteFilePath.contains(NuxtTranspiler.NUXT_FOLDER) =>
         NuxtTranspiler.remapPath(originalFilePath)
       case None =>

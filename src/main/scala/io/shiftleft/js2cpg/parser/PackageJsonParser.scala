@@ -3,10 +3,14 @@ package io.shiftleft.js2cpg.parser
 import java.nio.file.{Path, Paths}
 import io.shiftleft.js2cpg.io.FileUtils
 import org.slf4j.LoggerFactory
-import play.api.libs.json.Json
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.JsonNode
 
 import scala.collection.concurrent.TrieMap
+import scala.util.Try
 import scala.util.Using
+import scala.jdk.CollectionConverters._
 
 object PackageJsonParser {
   private val logger = LoggerFactory.getLogger(PackageJsonParser.getClass)
@@ -29,31 +33,44 @@ object PackageJsonParser {
         val depsPath     = packageJsonPath
         val lockDepsPath = packageJsonPath.resolveSibling(Paths.get(PACKAGE_JSON_LOCK_FILENAME))
 
-        val lockDeps = Using(FileUtils.bufferedSourceFromFile(lockDepsPath)) { bufferedSource =>
-          val content     = FileUtils.contentFromBufferedSource(bufferedSource)
-          val packageJson = Json.parse(content)
+        val lockDeps = Try {
+          val content      = FileUtils.readLinesInFile(lockDepsPath).mkString("\n")
+          val objectMapper = new ObjectMapper
+          val packageJson  = objectMapper.readTree(content)
 
-          (packageJson \ "dependencies")
-            .asOpt[Map[String, Map[String, String]]]
-            .map { versions =>
-              versions.map {
-                case (depName, entry) => depName -> entry("version")
+          var depToVersion = Map.empty[String, String]
+          val dependencyIt = Option(packageJson.get("dependencies"))
+            .map(_.fields().asScala)
+            .getOrElse(Iterator.empty)
+          dependencyIt.foreach {
+            case entry: java.util.Map.Entry[String, JsonNode] =>
+              val depName     = entry.getKey
+              val versionNode = entry.getValue.get("version")
+              if (versionNode != null) {
+                depToVersion = depToVersion.updated(depName, versionNode.asText())
               }
-            }
-            .getOrElse(Map.empty)
+          }
+          depToVersion
         }.toOption
 
         // lazy val because we only evaluate this in case no package lock file is available.
-        lazy val deps = Using(FileUtils.bufferedSourceFromFile(depsPath)) { bufferedSource =>
-          val content     = FileUtils.contentFromBufferedSource(bufferedSource)
-          val packageJson = Json.parse(content)
+        lazy val deps = Try {
+          val content      = FileUtils.readLinesInFile(depsPath).mkString("\n")
+          val objectMapper = new ObjectMapper
+          val packageJson  = objectMapper.readTree(content)
 
+          var depToVersion = Map.empty[String, String]
           projectDependencies
-            .flatMap { dependency =>
-              (packageJson \ dependency).asOpt[Map[String, String]]
+            .foreach { dependency =>
+              val dependencyIt = Option(packageJson.get(dependency))
+                .map(_.fields().asScala)
+                .getOrElse(Iterator.empty)
+              dependencyIt.foreach {
+                case entry: java.util.Map.Entry[String, JsonNode] =>
+                  depToVersion = depToVersion.updated(entry.getKey, entry.getValue.asText())
+              }
             }
-            .flatten
-            .toMap
+          depToVersion
         }.toOption
 
         if (lockDeps.isDefined && lockDeps.get.nonEmpty) {

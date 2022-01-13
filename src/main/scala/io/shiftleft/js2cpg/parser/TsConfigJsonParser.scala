@@ -1,23 +1,26 @@
 package io.shiftleft.js2cpg.parser
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.shiftleft.js2cpg.io.ExternalCommand
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler._
 import org.slf4j.LoggerFactory
-import play.api.libs.json.Json
 
 import java.nio.file.Path
 import scala.util.{Failure, Success}
+import scala.jdk.CollectionConverters._
 
 object TsConfigJsonParser {
 
   private val logger = LoggerFactory.getLogger(TsConfigJsonParser.getClass)
 
   def module(projectPath: Path, tsc: String): String = {
-    ExternalCommand.run(s"$tsc --showConfig", projectPath.toString) match {
+    ExternalCommand.run(s"${ExternalCommand.toOSCommand(tsc)} --showConfig", projectPath.toString) match {
       case Success(tsConfig) =>
-        val json = Json.parse(tsConfig)
-        val moduleOption = (json \ "compilerOptions" \ "module")
-          .asOpt[String]
+        val json = new ObjectMapper().readTree(tsConfig)
+        val moduleOption =
+          Option(json.get("compilerOptions"))
+            .flatMap(compOption => Option(compOption.get("module")))
+            .map(_.asText())
         moduleOption match {
           case Some(module) if module == ESNEXT || module == ES2020 => ESNEXT
           case _                                                    => DEFAULT_MODULE
@@ -31,7 +34,8 @@ object TsConfigJsonParser {
 
   def isSolutionTsConfig(projectPath: Path, tsc: String): Boolean = {
     // a solution tsconfig is one with 0 files and at least one reference, see https://angular.io/config/solution-tsconfig
-    ExternalCommand.run(s"$tsc --listFilesOnly", projectPath.toString) match {
+    ExternalCommand.run(s"${ExternalCommand.toOSCommand(tsc)} --listFilesOnly",
+                        projectPath.toString) match {
       case Success(files) =>
         files.isEmpty
       case Failure(exception) =>
@@ -42,14 +46,14 @@ object TsConfigJsonParser {
   }
 
   def subprojects(projectPath: Path, tsc: String): List[String] = {
-    ExternalCommand.run(s"$tsc --showConfig", projectPath.toString) match {
+    ExternalCommand.run(s"${ExternalCommand.toOSCommand(tsc)} --showConfig", projectPath.toString) match {
       case Success(config) =>
-        val json = Json.parse(config)
-
-        (json \ "references")
-          .asOpt[List[Map[String, String]]]
-          .getOrElse(Nil)
-          .flatMap(_.get("path"))
+        val json = new ObjectMapper().readTree(config)
+        val referenceIt =
+          Option(json.get("references")).map(_.elements().asScala).getOrElse(Iterator.empty)
+        referenceIt.flatMap { reference =>
+          Option(reference.get("path")).map(_.asText)
+        }.toList
 
       case Failure(exception) =>
         logger.debug(

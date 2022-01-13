@@ -26,7 +26,7 @@ class BabelTranspiler(override val config: Config,
     } else {
       NODE_MODULES_DIR_NAME +: DEFAULT_IGNORED_DIRS
     }
-    ignores.map(dir => s"--ignore $dir").mkString(" ")
+    s"--ignore '${ignores.map(dir => s"**/$dir").mkString(",")}'"
   }
 
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
@@ -34,8 +34,8 @@ class BabelTranspiler(override val config: Config,
     val outDir =
       subDir.map(s => File(tmpTranspileDir.toString, s.toString)).getOrElse(File(tmpTranspileDir))
 
-    val babel = Paths.get(projectPath.toString, "node_modules", ".bin", "babel")
-    val command = s"$babel . " +
+    val babel = Paths.get(projectPath.toString, "node_modules", ".bin", "babel").toString
+    val command = s"${ExternalCommand.toOSCommand(babel)} . " +
       "--no-babelrc " +
       s"--source-root '${in.toString}' " +
       "--source-maps true " +

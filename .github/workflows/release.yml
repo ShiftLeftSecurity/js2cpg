@@ -8,9 +8,13 @@ jobs:
     concurrency: release
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout github repo (+ download lfs dependencies)
+        uses: actions/checkout@v2
         with:
+          lfs: true
           fetch-depth: 0
+      - name: Checkout LFS objects
+        run: git lfs checkout
       - name: apt-get update
         run: sudo apt-get update
       - name: Install gnupg
@@ -31,7 +35,7 @@ jobs:
             ~/.coursier
           key: ${{ runner.os }}-sbt-${{ hashfiles('**/build.sbt') }}
       - name: Run tests
-        run: sbt clean test
+        run: sbt clean +test
       - name: Release to sonatype
         run: sbt clean ciReleaseTagNextVersion ciReleaseSonatype
         env:

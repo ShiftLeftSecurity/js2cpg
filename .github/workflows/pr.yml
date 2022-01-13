@@ -1,16 +1,20 @@
 name: PR
 on: pull_request
 jobs:
-  pr:
+  test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-20.04, windows-2019, macos-10.15, macos-11]
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout github repo (+ download lfs dependencies)
+        uses: actions/checkout@v2
         with:
+          lfs: true
           fetch-depth: 1
-      - name: Set up JDK 8 and SBT
+      - name: Checkout LFS objects
+        run: git lfs checkout
+      - name: Set up JDK 8
         uses: olafurpg/setup-scala@v11
         with:
           java-version: adopt@1.8
@@ -23,3 +27,17 @@ jobs:
       - name: Compile and run tests
         run: sbt -v -Dfile.encoding=UTF-8 "clean; +test;"
         shell: bash
+  formatting:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Set up JDK 8
+        uses: olafurpg/setup-scala@v11
+        with:
+          java-version: adopt@1.8
+      - name: Check formatting
+        run: sbt scalafmtCheck test:scalafmtCheck
+      - run: echo "Previous step failed because code is not formatted. Run 'sbt scalafmt'"
+        if: ${{ failure() }}

@@ -19,7 +19,7 @@ class CallLinkerPassTest extends AnyWordSpec with Matchers with Inside {
   "CallLinkerPass" should {
 
     "create call edges correctly" in {
-      File.usingTemporaryDirectory() { tmpDir: File =>
+      File.usingTemporaryDirectory() { tmpDir =>
         val testFile = (tmpDir / "test.js").createFile()
         testFile.writeText("""
             |function sayhi() {

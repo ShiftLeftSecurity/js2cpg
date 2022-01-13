@@ -2,32 +2,25 @@ package io.shiftleft.js2cpg.io
 
 import java.io
 
-import org.slf4j.LoggerFactory
-
 import scala.collection.mutable
 import scala.sys.process.{Process, ProcessLogger}
 import scala.util.{Failure, Success, Try}
 
 object ExternalCommand {
-  private val logger              = LoggerFactory.getLogger(ExternalCommand.getClass)
-  private val windowsSystemPrefix = "Windows"
-  private val osNameProperty      = "os.name"
+
+  private val COMMAND_AND: String = " && "
+  private val IS_WIN: Boolean     = scala.util.Properties.isWin
+
+  def toOSCommand(command: String): String = if (IS_WIN) command + ".cmd" else command
 
   def run(command: String,
           inDir: String = ".",
           extraEnv: Map[String, String] = Map.empty): Try[String] = {
     val result                      = mutable.ArrayBuffer.empty[String]
-    val lineHandler: String => Unit = line => result.addOne(line)
-    val systemString                = System.getProperty(osNameProperty)
-    val shellPrefix =
-      if (systemString != null && systemString.startsWith(windowsSystemPrefix)) {
-        "cmd" :: "/c" :: Nil
-      } else {
-        "sh" :: "-c" :: Nil
-      }
-
-    Process(shellPrefix :+ command, new io.File(inDir), extraEnv.toList: _*)
-      .!(ProcessLogger(lineHandler, lineHandler)) match {
+    val lineHandler: String => Unit = line => result += line
+    val logger                      = ProcessLogger(lineHandler, lineHandler)
+    val commands                    = command.split(COMMAND_AND).toSeq
+    commands.map(Process(_, new io.File(inDir), extraEnv.toList: _*).!(logger)).sum match {
       case 0 =>
         Success(result.mkString(System.lineSeparator()))
       case _ =>
