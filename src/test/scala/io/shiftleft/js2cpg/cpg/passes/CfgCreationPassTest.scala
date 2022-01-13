@@ -26,8 +26,7 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("class Foo") shouldBe expected(("bar", AlwaysEdge))
         succOf("bar") shouldBe expected(("this", AlwaysEdge))
         succOf("this") shouldBe expected(("bar()", AlwaysEdge))
-        succOf("bar()") shouldBe expected(("class Foo , bar()", AlwaysEdge))
-        succOf("class Foo , bar()") shouldBe expected(("x = class Foo , bar()", AlwaysEdge))
+        succOf("bar()") shouldBe expected(("x = class Foo , bar()", AlwaysEdge))
         succOf("x = class Foo , bar()") shouldBe expected(("RET", AlwaysEdge))
       }
     }

@@ -1390,6 +1390,8 @@ class AstCreator(diffGraph: DiffGraph.Builder, source: JsSource, usedIdentNodes:
       case (_ @(TokenType.ASSIGN | TokenType.ASSIGN_INIT),
             _ @(_: ObjectNode | _: ArrayLiteralNode)) =>
         convertDestructingAssignment(binaryNode, None)
+      case _ if binaryNode.tokenType() == TokenType.COMMARIGHT =>
+        convertCommaOp(binaryNode)
       case _ => convertSimpleBinaryOp(binaryNode)
     }
   }
@@ -1610,6 +1612,19 @@ class AstCreator(diffGraph: DiffGraph.Builder, source: JsSource, usedIdentNodes:
     astEdgeBuilder.addAstEdge(returnTmpId, blockId, blockOrder)
     scope.popScope()
     localAstParentStack.pop()
+    blockId
+  }
+  private def convertCommaOp(commaop: BinaryNode): NewBlock = {
+    val lhsId = commaop.getLhs.accept(this)
+    val rhsId = commaop.getRhs.accept(this)
+
+    // generate the exact same code value that we used to when this was handled through `convertSimpleBinaryOp`
+    val code    = astNodeBuilder.codeOf(lhsId) + " , " + astNodeBuilder.codeOf(rhsId)
+    val blockId = astNodeBuilder.createBlockNode(commaop, customCode = Some(code))
+
+    astEdgeBuilder.addAstEdge(lhsId, blockId, 0)
+    astEdgeBuilder.addAstEdge(rhsId, blockId, 1)
+
     blockId
   }
 
