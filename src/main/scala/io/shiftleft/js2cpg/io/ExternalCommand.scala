@@ -20,7 +20,10 @@ object ExternalCommand {
     val lineHandler: String => Unit = line => result += line
     val logger                      = ProcessLogger(lineHandler, lineHandler)
     val commands                    = command.split(COMMAND_AND).toSeq
-    commands.map(Process(_, new io.File(inDir), extraEnv.toList: _*).!(logger)).sum match {
+    commands
+      .map(cmd =>
+        Try(Process(cmd, new io.File(inDir), extraEnv.toList: _*).!(logger)).toOption.getOrElse(1))
+      .sum match {
       case 0 =>
         Success(result.mkString(System.lineSeparator()))
       case _ =>
