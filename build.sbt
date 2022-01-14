@@ -16,8 +16,8 @@ Global / excludeLintKeys += Fast / configuration
 Global / excludeLintKeys += gitCommitString
 
 lazy val commonSettings = Seq(
-  scalaVersion := "2.13.7",
-  crossScalaVersions := Seq("2.13.7", "3.1.0"),
+  scalaVersion := "2.13.8",
+  crossScalaVersions := Seq("2.13.8", "3.1.0"),
   organization := "io.shiftleft",
   scalacOptions ++= Seq(
   ) ++ (
