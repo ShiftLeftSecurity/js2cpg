@@ -73,6 +73,7 @@ class Js2Cpg {
       .getFileTree(projectDir.path, config, List(".json"))
       .filter(_.toString.endsWith(PackageJsonParser.PACKAGE_JSON_FILENAME))
       .map(_.getParent)
+      .sortBy(_.toString)
 
     val subProjects = Set.from(allProjects) - projectDir.path
 
