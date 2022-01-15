@@ -97,7 +97,7 @@ lazy val commonSettings = Seq(
     "org.graalvm.js"           % "js"                 % "21.3.0",
     ("com.github.pathikrit"    %% "better-files"      % "3.9.1").cross(CrossVersion.for3Use2_13),
     "org.slf4j"                % "slf4j-api"          % "1.7.33",
-    "org.apache.logging.log4j" % "log4j-slf4j-impl"   % "2.17.0" % Runtime,
+    "org.apache.logging.log4j" % "log4j-slf4j-impl"   % "2.17.1" % Runtime,
     "com.fasterxml.jackson.core"    % "jackson-databind"       % "2.13.1",
     "com.atlassian.sourcemap"  % "sourcemap"          % "2.0.0",
     "commons-io"               % "commons-io"         % "2.11.0",
