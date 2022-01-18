@@ -10,6 +10,8 @@ object FileDefaults {
 
   val WEBPACK_PREFIX: String = "webpack://"
 
+  val REGISTRY_MARKER = ":registry="
+
   val JS_SUFFIX: String = ".js"
 
   val MJS_SUFFIX: String = ".mjs"
