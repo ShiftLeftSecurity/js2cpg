@@ -3,6 +3,7 @@ package io.shiftleft.js2cpg.preprocessing
 import better.files.File
 import better.files.File.LinkOptions
 import io.shiftleft.js2cpg.core.Config
+import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.js2cpg.io.FileDefaults._
 import io.shiftleft.js2cpg.io.FileUtils
 import org.slf4j.LoggerFactory
@@ -46,26 +47,25 @@ class TranspilationRunner(projectPath: Path,
     }
   }
 
+  private def extractNpmRcModules(npmrc: File): Seq[String] = {
+    if (npmrc.exists) {
+      val npmrcContent = FileUtils.readLinesInFile(npmrc.path)
+      npmrcContent.collect {
+        case line if line.contains(FileDefaults.REGISTRY_MARKER) =>
+          line.substring(0, line.indexOf(FileDefaults.REGISTRY_MARKER))
+      }
+    } else {
+      Seq.empty
+    }
+  }
+
   def handlePrivateModules(): List[(Path, Path)] = {
     val project           = File(config.srcDir)
     val nodeModulesFolder = project / NODE_MODULES_DIR_NAME
     if (!nodeModulesFolder.exists) {
       List.empty
     } else {
-      val npmrc          = project / NPMRC_NAME
-      val registryMarker = ":registry="
-      val privateModulesToCopy = config.privateDeps ++ (if (npmrc.exists) {
-                                                          npmrc.lines.collect {
-                                                            case line
-                                                                if line.contains(registryMarker) =>
-                                                              line.substring(
-                                                                0,
-                                                                line.indexOf(registryMarker))
-                                                          }.toSeq
-                                                        } else {
-                                                          Seq.empty
-                                                        })
-
+      val privateModulesToCopy = config.privateDeps ++ extractNpmRcModules(project / NPMRC_NAME)
       if (privateModulesToCopy.nonEmpty) {
         val slPrivateDir = File(projectPath) / PRIVATE_MODULES_DIR_NAME
         slPrivateDir.createDirectoryIfNotExists()
