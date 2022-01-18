@@ -1,8 +1,8 @@
 package io.shiftleft.js2cpg.cpg.passes
 
-import better.files.File
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.js2cpg.core.Report
+import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.passes.IntervalKeyPool
 
 import java.nio.file.Path
@@ -20,6 +20,6 @@ class PrivateKeyFilePass(filenames: List[(Path, Path)],
     Iterable("Content omitted for security reasons.")
 
   override def generateParts(): Array[(Path, Path)] =
-    super.generateParts().filter(p => File(p._1).lineIterator.exists(PRIVATE_KEY.matches))
+    super.generateParts().filter(p => FileUtils.readLinesInFile(p._1).exists(PRIVATE_KEY.matches))
 
 }
