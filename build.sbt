@@ -95,7 +95,7 @@ lazy val commonSettings = Seq(
     "io.shiftleft" %% "semanticcpg"       % cpgVersion,
     ("com.github.pathikrit" %% "better-files" % "3.9.1").cross(CrossVersion.for3Use2_13),
     "com.github.scopt"           %% "scopt"             % "4.0.1",
-    "org.graalvm.js"             % "js"                 % "21.3.0",
+    "org.graalvm.js"             % "js"                 % "21.3.1",
     "com.fasterxml.jackson.core" % "jackson-databind"   % "2.13.1",
     "com.atlassian.sourcemap"    % "sourcemap"          % "2.0.0",
     "commons-io"                 % "commons-io"         % "2.11.0",
