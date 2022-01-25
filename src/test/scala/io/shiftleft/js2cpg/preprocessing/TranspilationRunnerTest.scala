@@ -111,10 +111,10 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
           "_tmp_1.push",
           "_tmp_1.push(3)",
           "_tmp_1.push",
-          "(_tmp_0 = [1, 2, 3])",
-          "(_tmp_0 = [1, 2, 3]).map",
+          "(_tmp_0 = [1, 2, 3].map((n) => n + 1);)",
+          "(_tmp_0 = [1, 2, 3].map((n) => n + 1);).map",
           "n + 1",
-          "[1, 2, 3].map(anonymous)"
+          "[1, 2, 3].map((n) => n + 1);.map(anonymous)"
         )
       }
 
