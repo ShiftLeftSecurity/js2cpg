@@ -8,14 +8,28 @@ import com.oracle.js.parser.ir.Node
 import io.shiftleft.js2cpg.io.FileDefaults._
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.preprocessing.NuxtTranspiler
+import org.apache.commons.lang.StringUtils
 import org.slf4j.LoggerFactory
 
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
-class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
+object JsSource {
 
   private val logger = LoggerFactory.getLogger(getClass)
+
+  // maximum length of re-mapped code fields after transpilation in number of characters
+  val MAX_CODE_LENGTH: Int = 1000
+  val MIN_CODE_LENGTH: Int = 50
+
+  def shortenCode(code: String, length: Int = MAX_CODE_LENGTH): String =
+    StringUtils.abbreviate(StringUtils.normalizeSpace(code), math.max(MIN_CODE_LENGTH, length))
+
+}
+
+class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
+
+  import JsSource._
 
   private val absoluteFilePath = (File(projectDir.toAbsolutePath) / originalFilePath).pathAsString
   private val mapFilePath      = absoluteFilePath + ".map"
@@ -23,9 +37,6 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
 
   private val (positionToLineNumberMapping, positionToFirstPositionInLineMapping) =
     FileUtils.positionLookupTables(source.getString)
-
-  // maximum length of re-mapped code fields after transpilation in number of characters
-  private val MAX_CODE_LENGTH = 100
 
   private case class SourceMapOrigin(sourceFilePath: Path,
                                      sourceMap: Option[ReadableSourceMap],
@@ -202,7 +213,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
                             transpiledCodeLength: Int): String =
     currentLine match {
       case line if line.length >= transpiledCodeLength =>
-        line.substring(0, transpiledCodeLength - 1).stripLineEnd + " [...]"
+        shortenCode(line, transpiledCodeLength - 1)
       case line
           if line.length < transpiledCodeLength && sourceWithLineNumbers.contains(
             currentLineNumber + 1) =>

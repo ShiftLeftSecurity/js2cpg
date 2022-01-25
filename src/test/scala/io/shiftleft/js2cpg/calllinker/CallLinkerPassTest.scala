@@ -7,8 +7,6 @@ import io.shiftleft.js2cpg.core.Js2CpgMain
 import io.shiftleft.semanticcpg.language.toMethodForCallGraph
 import io.shiftleft.semanticcpg.language.toNodeTypeStarters
 import io.shiftleft.semanticcpg.language.NoResolve
-import io.shiftleft.semanticcpg.language.toCfgNodeMethods
-import io.shiftleft.semanticcpg.language.toTraversal
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.Inside
@@ -41,7 +39,6 @@ class CallLinkerPassTest extends AnyWordSpec with Matchers with Inside {
         inside(cpg.method("sayhi").l) {
           case List(m) =>
             m.name shouldBe "sayhi"
-            m.code should endWith(".js::program:sayhi")
             m.fullName should endWith(".js::program:sayhi")
         }
 

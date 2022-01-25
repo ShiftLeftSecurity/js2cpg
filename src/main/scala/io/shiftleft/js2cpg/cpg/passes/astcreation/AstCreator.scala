@@ -311,9 +311,7 @@ class AstCreator(diffGraph: DiffGraph.Builder, source: JsSource, usedIdentNodes:
 
     val (methodName, methodFullName) = calcMethodNameAndFullName(functionNode)
 
-    val methodId = astNodeBuilder.createMethodNode(methodName,
-                                                   methodFullName,
-                                                   astNodeBuilder.lineAndColumn(functionNode))
+    val methodId = astNodeBuilder.createMethodNode(methodName, methodFullName, functionNode)
     addMethodToAst(methodId)
 
     if (!functionNode.isProgram) {
