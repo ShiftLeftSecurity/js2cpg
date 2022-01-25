@@ -188,8 +188,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("2") shouldBe expected(("_tmp_0.key2 = 2", AlwaysEdge))
 
         succOf("_tmp_0.key2 = 2") shouldBe expected(("_tmp_0", 2, AlwaysEdge))
-        succOf("_tmp_0", 2) shouldBe expected(("x = { key1: \"value\", key2: 2 }", AlwaysEdge))
-        succOf("x = { key1: \"value\", key2: 2 }") shouldBe expected(("RET", AlwaysEdge))
+        succOf("_tmp_0", 2) shouldBe expected(("x = {\n key1: \"value\",\n key2: 2\n}", AlwaysEdge))
+        succOf("x = {\n key1: \"value\",\n key2: 2\n}") shouldBe expected(("RET", AlwaysEdge))
       }
     }
 
