@@ -23,7 +23,7 @@ object JsSource {
   val MIN_CODE_LENGTH: Int = 50
 
   def shortenCode(code: String, length: Int = MAX_CODE_LENGTH): String =
-    StringUtils.abbreviate(StringUtils.normalizeSpace(code), math.max(MIN_CODE_LENGTH, length))
+    StringUtils.abbreviate(code, math.max(MIN_CODE_LENGTH, length))
 
 }
 
