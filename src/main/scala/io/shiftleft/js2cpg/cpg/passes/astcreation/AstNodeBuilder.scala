@@ -7,8 +7,8 @@ import io.shiftleft.js2cpg.cpg.datastructures.{LineAndColumn, OrderTracker}
 import io.shiftleft.js2cpg.cpg.datastructures.scope.{MethodScope, Scope}
 import io.shiftleft.js2cpg.cpg.passes.Defines
 import io.shiftleft.js2cpg.parser.JsSource
+import io.shiftleft.js2cpg.parser.JsSource.shortenCode
 import io.shiftleft.passes.DiffGraph
-import org.apache.commons.lang.StringUtils
 
 class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
                                       private val astEdgeBuilder: AstEdgeBuilder,
@@ -22,10 +22,6 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     case code: HasCode => code.code
     case _             => ""
   }
-
-  private val MAX_CODE_LENGTH: Int = 1000
-
-  private def shortenCode(code: String): String = StringUtils.abbreviate(code, MAX_CODE_LENGTH)
 
   def lineAndColumn(node: Node): LineAndColumn = {
     LineAndColumn(source.getLine(node), source.getColumn(node))
@@ -366,16 +362,16 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
 
   def createMethodNode(methodName: String,
                        methodFullName: String,
-                       lineAndColumn: LineAndColumn): NewMethod = {
-    val line   = lineAndColumn.line
-    val column = lineAndColumn.column
-    // TODO: we might want to fix this later:
-    val code = methodFullName
+                       functionNode: FunctionNode): NewMethod = {
+    val lineColumn = lineAndColumn(functionNode)
+    val line       = lineColumn.line
+    val column     = lineColumn.column
+    val code       = shortenCode(sanitizeCode(functionNode))
 
     val method = NewMethod()
       .name(methodName)
       .filename(source.filePath)
-      .code(shortenCode(code))
+      .code(code)
       .fullName(methodFullName)
       .isExternal(false)
       .lineNumber(line)
