@@ -9,16 +9,19 @@ import scala.jdk.CollectionConverters._
 
 object PassHelpers {
 
-  def generateUnusedVariableName(usedVariableNames: mutable.HashMap[String, Int],
-                                 usedIdentNodes: Set[String],
-                                 variableName: String): String = {
+  def generateUnusedVariableName(
+    usedVariableNames: mutable.HashMap[String, Int],
+    usedIdentNodes: Set[String],
+    variableName: String
+  ): String = {
     var counter = usedVariableNames.getOrElse(variableName, 0)
 
     var currentVariableName = ""
-    while ({
-      currentVariableName = s"${variableName}_$counter"
-      counter += 1
-      usedIdentNodes.contains(currentVariableName)
+    while
+      ({
+        currentVariableName = s"${variableName}_$counter"
+        counter += 1
+        usedIdentNodes.contains(currentVariableName)
     }) {}
 
     usedVariableNames.put(variableName, counter)
@@ -64,8 +67,8 @@ object PassHelpers {
     callNode.getFunction match {
       case identNode: IdentNode if identNode.getName == "require" && callNode.getArgs.size() == 1 =>
         callNode.getArgs.asScala
-          .collectFirst {
-            case literalNode: LiteralNode.PrimitiveLiteralNode[_] => literalNode
+          .collectFirst { case literalNode: LiteralNode.PrimitiveLiteralNode[_] =>
+            literalNode
           }
           .map(_.getPropertyName)
       case accessNode: AccessNode if accessNode.getBase.isInstanceOf[CallNode] =>
@@ -123,65 +126,66 @@ object PassHelpers {
 
   def collectDestructingParameters(statements: Iterable[Statement]): List[List[IdentNode]] =
     statements
-      .collect {
-        case expressionStatement: ExpressionStatement =>
-          expressionStatement.getExpression match {
-            case binaryNode: BinaryNode
-                if binaryNode.getRhs.isInstanceOf[ParameterNode] &&
-                  binaryNode.getLhs.isInstanceOf[ArrayLiteralNode]
-                  && binaryNode.getRhs
-                    .asInstanceOf[ParameterNode]
-                    .toString()
-                    .startsWith("arguments") =>
-              binaryNode.getLhs
-                .asInstanceOf[ArrayLiteralNode]
-                .getElementExpressions
-                .asScala
-                .collect {
-                  case expr: Expression if expr.isInstanceOf[IdentNode] =>
-                    expr.asInstanceOf[IdentNode]
-                }
-                .toList
-            case binaryNode: BinaryNode
-                if binaryNode.getRhs.isInstanceOf[ParameterNode] &&
-                  binaryNode.getLhs.isInstanceOf[ObjectNode]
-                  && binaryNode.getRhs
-                    .asInstanceOf[ParameterNode]
-                    .toString()
-                    .startsWith("arguments") =>
-              binaryNode.getLhs
-                .asInstanceOf[ObjectNode]
-                .getElements
-                .asScala
-                .collect {
-                  case p: PropertyNode if p.getKey.isInstanceOf[IdentNode] =>
-                    p.getKey.asInstanceOf[IdentNode]
-                }
-                .toList
-            case binaryNode: BinaryNode
-                if binaryNode.getLhs.isInstanceOf[ObjectNode] && binaryNode.getRhs
-                  .isInstanceOf[TernaryNode] =>
-              val ternaryNode = binaryNode.getRhs.asInstanceOf[TernaryNode]
-              ternaryNode.getTest match {
-                case binaryNode2: BinaryNode if binaryNode2.getLhs.isInstanceOf[ParameterNode] =>
-                  if (binaryNode2.getLhs
-                        .asInstanceOf[ParameterNode]
-                        .toString()
-                        .startsWith("arguments")) {
-                    binaryNode.getLhs
-                      .asInstanceOf[ObjectNode]
-                      .getElements
-                      .asScala
-                      .collect {
-                        case p: PropertyNode if p.getKey.isInstanceOf[IdentNode] =>
-                          p.getKey.asInstanceOf[IdentNode]
-                      }
-                      .toList
-                  } else Nil
-                case _ => Nil
+      .collect { case expressionStatement: ExpressionStatement =>
+        expressionStatement.getExpression match {
+          case binaryNode: BinaryNode
+              if binaryNode.getRhs.isInstanceOf[ParameterNode] &&
+                binaryNode.getLhs.isInstanceOf[ArrayLiteralNode]
+                && binaryNode.getRhs
+                  .asInstanceOf[ParameterNode]
+                  .toString()
+                  .startsWith("arguments") =>
+            binaryNode.getLhs
+              .asInstanceOf[ArrayLiteralNode]
+              .getElementExpressions
+              .asScala
+              .collect {
+                case expr: Expression if expr.isInstanceOf[IdentNode] =>
+                  expr.asInstanceOf[IdentNode]
               }
-            case _ => Nil
-          }
+              .toList
+          case binaryNode: BinaryNode
+              if binaryNode.getRhs.isInstanceOf[ParameterNode] &&
+                binaryNode.getLhs.isInstanceOf[ObjectNode]
+                && binaryNode.getRhs
+                  .asInstanceOf[ParameterNode]
+                  .toString()
+                  .startsWith("arguments") =>
+            binaryNode.getLhs
+              .asInstanceOf[ObjectNode]
+              .getElements
+              .asScala
+              .collect {
+                case p: PropertyNode if p.getKey.isInstanceOf[IdentNode] =>
+                  p.getKey.asInstanceOf[IdentNode]
+              }
+              .toList
+          case binaryNode: BinaryNode
+              if binaryNode.getLhs.isInstanceOf[ObjectNode] && binaryNode.getRhs
+                .isInstanceOf[TernaryNode] =>
+            val ternaryNode = binaryNode.getRhs.asInstanceOf[TernaryNode]
+            ternaryNode.getTest match {
+              case binaryNode2: BinaryNode if binaryNode2.getLhs.isInstanceOf[ParameterNode] =>
+                if (
+                  binaryNode2.getLhs
+                    .asInstanceOf[ParameterNode]
+                    .toString()
+                    .startsWith("arguments")
+                ) {
+                  binaryNode.getLhs
+                    .asInstanceOf[ObjectNode]
+                    .getElements
+                    .asScala
+                    .collect {
+                      case p: PropertyNode if p.getKey.isInstanceOf[IdentNode] =>
+                        p.getKey.asInstanceOf[IdentNode]
+                    }
+                    .toList
+                } else Nil
+              case _ => Nil
+            }
+          case _ => Nil
+        }
       }
       .toList
       .filter(_.nonEmpty)
@@ -193,8 +197,8 @@ object PassHelpers {
             .exists(_.getName == varNode.getName.getName) =>
         true
       case _ =>
-        val candidate = statement.isInstanceOf[ExpressionStatement] && isSynthetic(statement,
-                                                                                   identNodes)
+        val candidate =
+          statement.isInstanceOf[ExpressionStatement] && isSynthetic(statement, identNodes)
         if (candidate) {
           statement.asInstanceOf[ExpressionStatement].getExpression match {
             case node: BinaryNode =>
@@ -246,7 +250,8 @@ object PassHelpers {
                   .asInstanceOf[UnaryNode]
                   .getExpression
                   .asInstanceOf[IdentNode]
-                  .getName)
+                  .getName
+              )
             case _ => false
           }
         case binaryNode: BinaryNode
@@ -255,10 +260,12 @@ object PassHelpers {
           val ternaryNode = binaryNode.getRhs.asInstanceOf[TernaryNode]
           ternaryNode.getTest match {
             case binaryNode2: BinaryNode if binaryNode2.getLhs.isInstanceOf[ParameterNode] =>
-              if (binaryNode2.getLhs
-                    .asInstanceOf[ParameterNode]
-                    .toString()
-                    .startsWith("arguments")) {
+              if (
+                binaryNode2.getLhs
+                  .asInstanceOf[ParameterNode]
+                  .toString()
+                  .startsWith("arguments")
+              ) {
                 binaryNode.getLhs.asInstanceOf[ObjectNode].getElements.asScala.exists {
                   case p if p == null => false
                   case p: PropertyNode if p.getKey.isInstanceOf[IdentNode] =>
@@ -269,7 +276,8 @@ object PassHelpers {
                         .asInstanceOf[UnaryNode]
                         .getExpression
                         .asInstanceOf[IdentNode]
-                        .getName)
+                        .getName
+                    )
                   case _ => false
                 }
               } else false
@@ -289,16 +297,18 @@ object PassHelpers {
               .asInstanceOf[ParameterNode]
               .toString()
               .startsWith("arguments") =>
-        if (binaryNode.getLhs
-              .asInstanceOf[ArrayLiteralNode]
-              .getElementExpressions
-              .asScala
-              .exists {
-                case expr if expr == null => false
-                case expr: Expression if expr.isInstanceOf[IdentNode] =>
-                  identNode.getName == expr.asInstanceOf[IdentNode].getName
-                case _ => false
-              }) {
+        if (
+          binaryNode.getLhs
+            .asInstanceOf[ArrayLiteralNode]
+            .getElementExpressions
+            .asScala
+            .exists {
+              case expr if expr == null => false
+              case expr: Expression if expr.isInstanceOf[IdentNode] =>
+                identNode.getName == expr.asInstanceOf[IdentNode].getName
+              case _ => false
+            }
+        ) {
           binaryNode.getRhs
             .asInstanceOf[ParameterNode]
             .getIndex
@@ -310,12 +320,14 @@ object PassHelpers {
               .asInstanceOf[ParameterNode]
               .toString()
               .startsWith("arguments") =>
-        if (binaryNode.getLhs.asInstanceOf[ObjectNode].getElements.asScala.exists {
-              case p if p == null => false
-              case p: PropertyNode if p.getKey.isInstanceOf[IdentNode] =>
-                identNode.getName == p.getKey.asInstanceOf[IdentNode].getName
-              case _ => false
-            }) {
+        if (
+          binaryNode.getLhs.asInstanceOf[ObjectNode].getElements.asScala.exists {
+            case p if p == null => false
+            case p: PropertyNode if p.getKey.isInstanceOf[IdentNode] =>
+              identNode.getName == p.getKey.asInstanceOf[IdentNode].getName
+            case _ => false
+          }
+        ) {
           binaryNode.getRhs
             .asInstanceOf[ParameterNode]
             .getIndex
@@ -326,16 +338,20 @@ object PassHelpers {
         val ternaryNode = binaryNode.getRhs.asInstanceOf[TernaryNode]
         ternaryNode.getTest match {
           case binaryNode2: BinaryNode if binaryNode2.getLhs.isInstanceOf[ParameterNode] =>
-            if (binaryNode2.getLhs
-                  .asInstanceOf[ParameterNode]
-                  .toString()
-                  .startsWith("arguments")) {
-              if (binaryNode.getLhs.asInstanceOf[ObjectNode].getElements.asScala.exists {
-                    case p if p == null => false
-                    case p: PropertyNode if p.getKey.isInstanceOf[IdentNode] =>
-                      identNode.getName == p.getKey.asInstanceOf[IdentNode].getName
-                    case _ => false
-                  }) {
+            if (
+              binaryNode2.getLhs
+                .asInstanceOf[ParameterNode]
+                .toString()
+                .startsWith("arguments")
+            ) {
+              if (
+                binaryNode.getLhs.asInstanceOf[ObjectNode].getElements.asScala.exists {
+                  case p if p == null => false
+                  case p: PropertyNode if p.getKey.isInstanceOf[IdentNode] =>
+                    identNode.getName == p.getKey.asInstanceOf[IdentNode].getName
+                  case _ => false
+                }
+              ) {
                 binaryNode2.getLhs
                   .asInstanceOf[ParameterNode]
                   .getIndex

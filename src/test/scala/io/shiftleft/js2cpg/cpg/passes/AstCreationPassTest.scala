@@ -139,7 +139,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for untagged runtime node in call" in AstFixture(
-      s"foo(`Hello $${world}!`)") { cpg =>
+      s"foo(`Hello $${world}!`)"
+    ) { cpg =>
       def method = cpg.method.nameExact(":program")
       method.checkNodeCount(1)
 
@@ -209,8 +210,10 @@ class AstCreationPassTest extends AbstractPassTest {
 
         def rawCall = methodBlock.expandAst(NodeTypes.CALL)
         rawCall.checkNodeCount(1)
-        rawCall.checkProperty(PropertyNames.CODE,
-                              """String.raw(__Runtime.TO_STRING("../","\.."), 42)""")
+        rawCall.checkProperty(
+          PropertyNames.CODE,
+          """String.raw(__Runtime.TO_STRING("../","\.."), 42)"""
+        )
 
         def rawCallArg = rawCall.expandAst(NodeTypes.LITERAL)
         rawCallArg.checkNodeCount(1)
@@ -343,13 +346,11 @@ class AstCreationPassTest extends AbstractPassTest {
         checkObjectInitialization(block.head, ("key2", "foo.compute()"))
     }
 
-    "have correct structure for object with computed property name" ignore AstFixture(
-      """
+    "have correct structure for object with computed property name" ignore AstFixture("""
         |var x = {
         | [ 1 + 1 ]: value()
         |}
-        |""".stripMargin) { _ =>
-      }
+        |""".stripMargin) { _ => }
 
     "have correct structure for conditional expression" in AstFixture("x ? y : z;") { cpg =>
       def file = cpg.file
@@ -420,7 +421,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for empty method nested in top level method" in AstFixture(
-      "function method(x) {}") { cpg =>
+      "function method(x) {}"
+    ) { cpg =>
       def method = cpg.method.nameExact(":program")
       method.checkNodeCount(1)
 
@@ -451,7 +453,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct parameter order in lambda function with ignored param" in AstFixture(
-      "var x = ([, param]) => param") { cpg =>
+      "var x = ([, param]) => param"
+    ) { cpg =>
       // happened in: https://github.com/ShiftLeftSecurity/js2cpg/issues/232
       // with the latest oracle js parser, anonymous function get an actual name
       def lambdaFullName = "test.js::program:anonymous"
@@ -467,8 +470,7 @@ class AstCreationPassTest extends AbstractPassTest {
       param.checkProperty(PropertyNames.CODE, "{param}")
     }
 
-    "have two lambda functions in same scope level with different full names" in AstFixture(
-      """
+    "have two lambda functions in same scope level with different full names" in AstFixture("""
           | var x = (a) => a
           | var y = (b) => b
         """.stripMargin) { cpg =>
@@ -624,20 +626,21 @@ class AstCreationPassTest extends AbstractPassTest {
       accessElement.checkProperty(PropertyNames.CANONICAL_NAME, "foo")
     }
 
-    "have block for while body for while statement with brackets" in AstFixture("while (x < 0) {}") {
-      cpg =>
-        def method = cpg.method.nameExact(":program")
-        method.checkNodeCount(1)
+    "have block for while body for while statement with brackets" in AstFixture(
+      "while (x < 0) {}"
+    ) { cpg =>
+      def method = cpg.method.nameExact(":program")
+      method.checkNodeCount(1)
 
-        def block = method.expandAst(NodeTypes.BLOCK)
-        block.checkNodeCount(1)
+      def block = method.expandAst(NodeTypes.BLOCK)
+      block.checkNodeCount(1)
 
-        def whileNode = block.expandAst(NodeTypes.CONTROL_STRUCTURE)
-        whileNode.checkNodeCount(1)
-        whileNode.checkProperty(PropertyNames.CONTROL_STRUCTURE_TYPE, ControlStructureTypes.WHILE)
+      def whileNode = block.expandAst(NodeTypes.CONTROL_STRUCTURE)
+      whileNode.checkNodeCount(1)
+      whileNode.checkProperty(PropertyNames.CONTROL_STRUCTURE_TYPE, ControlStructureTypes.WHILE)
 
-        def whileBlock = whileNode.expandAst(NodeTypes.BLOCK)
-        whileBlock.checkNodeCount(1)
+      def whileBlock = whileNode.expandAst(NodeTypes.BLOCK)
+      whileBlock.checkNodeCount(1)
     }
 
     "have no block for while body for while statement without brackets" in AstFixture("""
@@ -659,7 +662,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have local variable for function with correct type full name" in AstFixture(
-      "function method(x) {}") { cpg =>
+      "function method(x) {}"
+    ) { cpg =>
       def method = cpg.method.nameExact(":program")
       method.checkNodeCount(1)
 
@@ -674,7 +678,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have corresponding type decl with correct bindings for function" in AstFixture(
-      "function method(x) {}") { cpg =>
+      "function method(x) {}"
+    ) { cpg =>
       def typeDecl = cpg.typeDecl.nameExact("method")
       typeDecl.checkNodeCount(1)
       typeDecl.checkProperty(PropertyNames.FULL_NAME, "test.js::program:method")
@@ -715,41 +720,43 @@ class AstCreationPassTest extends AbstractPassTest {
         .checkProperty(PropertyNames.TYPE_FULL_NAME, "ANY")
     }
 
-    "have correct structure for decl assignment" in AstFixture("function foo(x) { var local = 1; }") {
-      cpg =>
-        def method = cpg.method.nameExact("foo")
-        method.checkNodeCount(1)
+    "have correct structure for decl assignment" in AstFixture(
+      "function foo(x) { var local = 1; }"
+    ) { cpg =>
+      def method = cpg.method.nameExact("foo")
+      method.checkNodeCount(1)
 
-        def block = method.expandAst(NodeTypes.BLOCK)
-        block.checkNodeCount(1)
+      def block = method.expandAst(NodeTypes.BLOCK)
+      block.checkNodeCount(1)
 
-        def methodReturn = method.expandAst(NodeTypes.METHOD_RETURN)
-        methodReturn.checkNodeCount(1)
+      def methodReturn = method.expandAst(NodeTypes.METHOD_RETURN)
+      methodReturn.checkNodeCount(1)
 
-        def parameterThis =
-          method.expandAst(NodeTypes.METHOD_PARAMETER_IN).filter(PropertyNames.ORDER, 0)
-        parameterThis.checkNodeCount(1)
-        parameterThis.checkProperty(PropertyNames.NAME, "this")
+      def parameterThis =
+        method.expandAst(NodeTypes.METHOD_PARAMETER_IN).filter(PropertyNames.ORDER, 0)
+      parameterThis.checkNodeCount(1)
+      parameterThis.checkProperty(PropertyNames.NAME, "this")
 
-        def parameterX =
-          method.expandAst(NodeTypes.METHOD_PARAMETER_IN).filter(PropertyNames.ORDER, 1)
-        parameterX.checkNodeCount(1)
-        parameterX.checkProperty(PropertyNames.NAME, "x")
+      def parameterX =
+        method.expandAst(NodeTypes.METHOD_PARAMETER_IN).filter(PropertyNames.ORDER, 1)
+      parameterX.checkNodeCount(1)
+      parameterX.checkProperty(PropertyNames.NAME, "x")
 
-        def local = block.expandAst(NodeTypes.LOCAL)
-        local.checkNodeCount(1)
-        local.checkProperty(PropertyNames.NAME, "local")
+      def local = block.expandAst(NodeTypes.LOCAL)
+      local.checkNodeCount(1)
+      local.checkProperty(PropertyNames.NAME, "local")
 
-        def assignmentCall = block.expandAst(NodeTypes.CALL)
-        assignmentCall.checkNodeCount(1)
+      def assignmentCall = block.expandAst(NodeTypes.CALL)
+      assignmentCall.checkNodeCount(1)
 
-        def assignmentOut = assignmentCall.expandAst(NodeTypes.IDENTIFIER)
-        assignmentOut.checkNodeCount(1)
-        assignmentOut.checkProperty(PropertyNames.NAME, "local")
+      def assignmentOut = assignmentCall.expandAst(NodeTypes.IDENTIFIER)
+      assignmentOut.checkNodeCount(1)
+      assignmentOut.checkProperty(PropertyNames.NAME, "local")
     }
 
     "have correct structure for decl assignment with identifier on right hand side" in AstFixture(
-      "function foo(x) { var local = x; }") { cpg =>
+      "function foo(x) { var local = x; }"
+    ) { cpg =>
       def method = cpg.method.nameExact("foo")
       method.checkNodeCount(1)
 
@@ -787,7 +794,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for decl assignment of multiple locals" in AstFixture(
-      "function foo(x,y) { var local1 = x; var local2 = y; }") { cpg =>
+      "function foo(x,y) { var local1 = x; var local2 = y; }"
+    ) { cpg =>
       def method = cpg.method.nameExact("foo")
       method.checkNodeCount(1)
 
@@ -846,7 +854,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "be correct for nested expression" in AstFixture(
-      "function method() { var x; var y; var z; x = y + z; }") { cpg =>
+      "function method() { var x; var y; var z; x = y + z; }"
+    ) { cpg =>
       def method = cpg.method.nameExact("method")
       method.checkNodeCount(1)
 
@@ -1196,7 +1205,8 @@ class AstCreationPassTest extends AbstractPassTest {
       }
 
       "be correct for switch with multiple cases" in AstFixture(
-        "switch (x) { case 1: y; case 2: z; }") { cpg =>
+        "switch (x) { case 1: y; case 2: z; }"
+      ) { cpg =>
         def program = cpg.method.nameExact(":program")
         program.checkNodeCount(1)
 
@@ -1246,7 +1256,8 @@ class AstCreationPassTest extends AbstractPassTest {
       }
 
       "be correct for switch with multiple cases on same spot" in AstFixture(
-        "switch (x) { case 1: case 2: y; }") { cpg =>
+        "switch (x) { case 1: case 2: y; }"
+      ) { cpg =>
         def program = cpg.method.nameExact(":program")
         program.checkNodeCount(1)
 
@@ -1291,7 +1302,8 @@ class AstCreationPassTest extends AbstractPassTest {
       }
 
       "be correct for switch with multiple cases and multiple cases on same spot" in AstFixture(
-        "switch (x) { case 1: case 2: y; case 3: z; }") { cpg =>
+        "switch (x) { case 1: case 2: y; case 3: z; }"
+      ) { cpg =>
         def program = cpg.method.nameExact(":program")
         program.checkNodeCount(1)
 
@@ -1383,7 +1395,8 @@ class AstCreationPassTest extends AbstractPassTest {
       }
 
       "be correct for switch with case and default combined" in AstFixture(
-        "switch (x) { case 1: y; break; default: z; }") { cpg =>
+        "switch (x) { case 1: y; break; default: z; }"
+      ) { cpg =>
         def program = cpg.method.nameExact(":program")
         program.checkNodeCount(1)
 
@@ -1436,7 +1449,8 @@ class AstCreationPassTest extends AbstractPassTest {
       }
 
       "be correct for switch with nested switch" in AstFixture(
-        "switch (x) { default: switch(y) { default: z; } }") { cpg =>
+        "switch (x) { default: switch(y) { default: z; } }"
+      ) { cpg =>
         def program = cpg.method.nameExact(":program")
         program.checkNodeCount(1)
 
@@ -1445,8 +1459,10 @@ class AstCreationPassTest extends AbstractPassTest {
 
         def topLevelSwitch = programBlock.expandAst(NodeTypes.CONTROL_STRUCTURE)
         topLevelSwitch.checkNodeCount(1)
-        topLevelSwitch.checkProperty(PropertyNames.CONTROL_STRUCTURE_TYPE,
-                                     ControlStructureTypes.SWITCH)
+        topLevelSwitch.checkProperty(
+          PropertyNames.CONTROL_STRUCTURE_TYPE,
+          ControlStructureTypes.SWITCH
+        )
 
         def topLevelSwitchExpr =
           topLevelSwitch.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "x")
@@ -1466,8 +1482,10 @@ class AstCreationPassTest extends AbstractPassTest {
 
         def nestedSwitch = topLevelSwitchBlock.expandAst(NodeTypes.CONTROL_STRUCTURE)
         nestedSwitch.checkNodeCount(1)
-        nestedSwitch.checkProperty(PropertyNames.CONTROL_STRUCTURE_TYPE,
-                                   ControlStructureTypes.SWITCH)
+        nestedSwitch.checkProperty(
+          PropertyNames.CONTROL_STRUCTURE_TYPE,
+          ControlStructureTypes.SWITCH
+        )
 
         def nestedSwitchExpr =
           nestedSwitch.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "y")
@@ -1516,8 +1534,7 @@ class AstCreationPassTest extends AbstractPassTest {
       identifierX.checkProperty(PropertyNames.NAME, "x")
     }
 
-    "be correct for member access used in an assignment (direct)" in AstFixture(
-      """
+    "be correct for member access used in an assignment (direct)" in AstFixture("""
           |function method(x) {
           |  z = x.a;
           |}
@@ -1552,8 +1569,7 @@ class AstCreationPassTest extends AbstractPassTest {
       identifierRightA.checkProperty(PropertyNames.CODE, "a")
     }
 
-    "be correct for member access used in an assignment (chained)" in AstFixture(
-      """
+    "be correct for member access used in an assignment (chained)" in AstFixture("""
          |function method(x) {
          |  z = x.a.b.c;
          |}
@@ -1604,7 +1620,8 @@ class AstCreationPassTest extends AbstractPassTest {
           |function method(x) {
           |  z = x.a.b.c();
           |}
-        """.stripMargin) { cpg =>
+        """.stripMargin
+    ) { cpg =>
       def method = cpg.method.nameExact("method")
       method.checkNodeCount(1)
 
@@ -2055,8 +2072,10 @@ class AstCreationPassTest extends AbstractPassTest {
       closureBinding.checkNodeCount(1)
       closureBinding.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "test.js::program:foo:bar:x")
       closureBinding.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBinding.checkProperty(PropertyNames.EVALUATION_STRATEGY,
-                                   EvaluationStrategies.BY_REFERENCE)
+      closureBinding.checkProperty(
+        PropertyNames.EVALUATION_STRATEGY,
+        EvaluationStrategies.BY_REFERENCE
+      )
 
       closureBinding.expandRef().head shouldBe fooLocalX.head
 
@@ -2113,16 +2132,20 @@ class AstCreationPassTest extends AbstractPassTest {
       def closureBindForX = closureBinding.filter(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
       closureBindForX.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "test.js::program:foo:bar:x")
       closureBindForX.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindForX.checkProperty(PropertyNames.EVALUATION_STRATEGY,
-                                    EvaluationStrategies.BY_REFERENCE)
+      closureBindForX.checkProperty(
+        PropertyNames.EVALUATION_STRATEGY,
+        EvaluationStrategies.BY_REFERENCE
+      )
 
       closureBindForX.expandRef().head shouldBe fooLocalX.head
 
       def closureBindForY = closureBinding.filter(PropertyNames.CLOSURE_ORIGINAL_NAME, "y")
       closureBindForY.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "test.js::program:foo:bar:y")
       closureBindForY.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "y")
-      closureBindForY.checkProperty(PropertyNames.EVALUATION_STRATEGY,
-                                    EvaluationStrategies.BY_REFERENCE)
+      closureBindForY.checkProperty(
+        PropertyNames.EVALUATION_STRATEGY,
+        EvaluationStrategies.BY_REFERENCE
+      )
 
       closureBindForY.expandRef().head shouldBe fooLocalY.head
 
@@ -2186,11 +2209,15 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def closureBindingXInFoo = barRef.expandCapture(NodeTypes.CLOSURE_BINDING)
       closureBindingXInFoo.checkNodeCount(1)
-      closureBindingXInFoo.checkProperty(PropertyNames.CLOSURE_BINDING_ID,
-                                         "test.js::program:foo:bar:x")
+      closureBindingXInFoo.checkProperty(
+        PropertyNames.CLOSURE_BINDING_ID,
+        "test.js::program:foo:bar:x"
+      )
       closureBindingXInFoo.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindingXInFoo.checkProperty(PropertyNames.EVALUATION_STRATEGY,
-                                         EvaluationStrategies.BY_REFERENCE)
+      closureBindingXInFoo.checkProperty(
+        PropertyNames.EVALUATION_STRATEGY,
+        EvaluationStrategies.BY_REFERENCE
+      )
 
       closureBindingXInFoo.expandRef().head shouldBe fooLocalX.head
 
@@ -2219,11 +2246,15 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def closureBindingXInBar = bazRef.expandCapture(NodeTypes.CLOSURE_BINDING)
       closureBindingXInBar.checkNodeCount(1)
-      closureBindingXInBar.checkProperty(PropertyNames.CLOSURE_BINDING_ID,
-                                         "test.js::program:foo:bar:baz:x")
+      closureBindingXInBar.checkProperty(
+        PropertyNames.CLOSURE_BINDING_ID,
+        "test.js::program:foo:bar:baz:x"
+      )
       closureBindingXInBar.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindingXInBar.checkProperty(PropertyNames.EVALUATION_STRATEGY,
-                                         EvaluationStrategies.BY_REFERENCE)
+      closureBindingXInBar.checkProperty(
+        PropertyNames.EVALUATION_STRATEGY,
+        EvaluationStrategies.BY_REFERENCE
+      )
 
       closureBindingXInBar.expandRef().head shouldBe barLocalX.head
 
@@ -2248,8 +2279,7 @@ class AstCreationPassTest extends AbstractPassTest {
       bazIdentifierX.expandRef().head shouldBe bazLocalX.head
     }
 
-    "have correct closure binding for capturing over 2 levels with intermediate blocks" in AstFixture(
-      """
+    "have correct closure binding for capturing over 2 levels with intermediate blocks" in AstFixture("""
                                                                                                         | function foo()
                                                                                                         | {
                                                                                                         |   x = 1
@@ -2279,11 +2309,15 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def closureBindingXInFoo = barRef.expandCapture(NodeTypes.CLOSURE_BINDING)
       closureBindingXInFoo.checkNodeCount(1)
-      closureBindingXInFoo.checkProperty(PropertyNames.CLOSURE_BINDING_ID,
-                                         "test.js::program:foo:bar:x")
+      closureBindingXInFoo.checkProperty(
+        PropertyNames.CLOSURE_BINDING_ID,
+        "test.js::program:foo:bar:x"
+      )
       closureBindingXInFoo.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindingXInFoo.checkProperty(PropertyNames.EVALUATION_STRATEGY,
-                                         EvaluationStrategies.BY_REFERENCE)
+      closureBindingXInFoo.checkProperty(
+        PropertyNames.EVALUATION_STRATEGY,
+        EvaluationStrategies.BY_REFERENCE
+      )
 
       closureBindingXInFoo.expandRef().head shouldBe fooLocalX.head
 
@@ -2315,11 +2349,15 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def closureBindingXInBar = bazRef.expandCapture(NodeTypes.CLOSURE_BINDING)
       closureBindingXInBar.checkNodeCount(1)
-      closureBindingXInBar.checkProperty(PropertyNames.CLOSURE_BINDING_ID,
-                                         "test.js::program:foo:bar:baz:x")
+      closureBindingXInBar.checkProperty(
+        PropertyNames.CLOSURE_BINDING_ID,
+        "test.js::program:foo:bar:baz:x"
+      )
       closureBindingXInBar.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindingXInBar.checkProperty(PropertyNames.EVALUATION_STRATEGY,
-                                         EvaluationStrategies.BY_REFERENCE)
+      closureBindingXInBar.checkProperty(
+        PropertyNames.EVALUATION_STRATEGY,
+        EvaluationStrategies.BY_REFERENCE
+      )
 
       closureBindingXInBar.expandRef().head shouldBe barLocalX.head
 
@@ -2358,7 +2396,8 @@ class AstCreationPassTest extends AbstractPassTest {
           |     }
           |   }
           | }
-        """.stripMargin) { cpg =>
+        """.stripMargin
+    ) { cpg =>
       def fooMethod = cpg.method.nameExact("foo")
       fooMethod.checkNodeCount(1)
 
@@ -2373,11 +2412,15 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def closureBindingXInFoo = barRef.expandCapture(NodeTypes.CLOSURE_BINDING)
       closureBindingXInFoo.checkNodeCount(1)
-      closureBindingXInFoo.checkProperty(PropertyNames.CLOSURE_BINDING_ID,
-                                         "test.js::program:foo:bar:x")
+      closureBindingXInFoo.checkProperty(
+        PropertyNames.CLOSURE_BINDING_ID,
+        "test.js::program:foo:bar:x"
+      )
       closureBindingXInFoo.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindingXInFoo.checkProperty(PropertyNames.EVALUATION_STRATEGY,
-                                         EvaluationStrategies.BY_REFERENCE)
+      closureBindingXInFoo.checkProperty(
+        PropertyNames.EVALUATION_STRATEGY,
+        EvaluationStrategies.BY_REFERENCE
+      )
 
       closureBindingXInFoo.expandRef().head shouldBe fooLocalX.head
 
@@ -2397,11 +2440,15 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def closureBindingXInBar = bazRef.expandCapture(NodeTypes.CLOSURE_BINDING)
       closureBindingXInBar.checkNodeCount(1)
-      closureBindingXInBar.checkProperty(PropertyNames.CLOSURE_BINDING_ID,
-                                         "test.js::program:foo:bar:baz:x")
+      closureBindingXInBar.checkProperty(
+        PropertyNames.CLOSURE_BINDING_ID,
+        "test.js::program:foo:bar:baz:x"
+      )
       closureBindingXInBar.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindingXInBar.checkProperty(PropertyNames.EVALUATION_STRATEGY,
-                                         EvaluationStrategies.BY_REFERENCE)
+      closureBindingXInBar.checkProperty(
+        PropertyNames.EVALUATION_STRATEGY,
+        EvaluationStrategies.BY_REFERENCE
+      )
 
       closureBindingXInBar.expandRef().head shouldBe barLocalX.head
 
@@ -2434,7 +2481,8 @@ class AstCreationPassTest extends AbstractPassTest {
           |   var anon1 = y => 2*x
           |   var anon2 = y => 2*x
           | }
-        """.stripMargin) { cpg =>
+        """.stripMargin
+    ) { cpg =>
       def fooMethod = cpg.method.nameExact("foo")
       fooMethod.checkNodeCount(1)
 
@@ -2453,11 +2501,15 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def closureBindingXAnon1 = anon1Ref.expandCapture(NodeTypes.CLOSURE_BINDING)
       closureBindingXAnon1.checkNodeCount(1)
-      closureBindingXAnon1.checkProperty(PropertyNames.CLOSURE_BINDING_ID,
-                                         "test.js::program:foo:anonymous:x")
+      closureBindingXAnon1.checkProperty(
+        PropertyNames.CLOSURE_BINDING_ID,
+        "test.js::program:foo:anonymous:x"
+      )
       closureBindingXAnon1.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindingXAnon1.checkProperty(PropertyNames.EVALUATION_STRATEGY,
-                                         EvaluationStrategies.BY_REFERENCE)
+      closureBindingXAnon1.checkProperty(
+        PropertyNames.EVALUATION_STRATEGY,
+        EvaluationStrategies.BY_REFERENCE
+      )
 
       closureBindingXAnon1.expandRef().head shouldBe fooLocalX.head
 
@@ -2470,17 +2522,22 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def closureBindingXAnon2 = anon2Ref.expandCapture(NodeTypes.CLOSURE_BINDING)
       closureBindingXAnon2.checkNodeCount(1)
-      closureBindingXAnon2.checkProperty(PropertyNames.CLOSURE_BINDING_ID,
-                                         "test.js::program:foo:anonymous1:x")
+      closureBindingXAnon2.checkProperty(
+        PropertyNames.CLOSURE_BINDING_ID,
+        "test.js::program:foo:anonymous1:x"
+      )
       closureBindingXAnon2.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindingXAnon2.checkProperty(PropertyNames.EVALUATION_STRATEGY,
-                                         EvaluationStrategies.BY_REFERENCE)
+      closureBindingXAnon2.checkProperty(
+        PropertyNames.EVALUATION_STRATEGY,
+        EvaluationStrategies.BY_REFERENCE
+      )
 
       closureBindingXAnon2.expandRef().head shouldBe fooLocalX.head
     }
 
     "have correct closure binding when using an external source file" in AstFixture(
-      File("src/test/resources/closurebinding/foobar.js")) { cpg =>
+      File("src/test/resources/closurebinding/foobar.js")
+    ) { cpg =>
       def fooMethod = cpg.method.nameExact("foo")
       fooMethod.checkNodeCount(1)
 
@@ -2497,8 +2554,10 @@ class AstCreationPassTest extends AbstractPassTest {
       closureBinding.checkNodeCount(1)
       closureBinding.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "foobar.js::program:foo:bar:x")
       closureBinding.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBinding.checkProperty(PropertyNames.EVALUATION_STRATEGY,
-                                   EvaluationStrategies.BY_REFERENCE)
+      closureBinding.checkProperty(
+        PropertyNames.EVALUATION_STRATEGY,
+        EvaluationStrategies.BY_REFERENCE
+      )
 
       closureBinding.expandRef().head shouldBe fooLocalX.head
 
@@ -2523,7 +2582,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct closure binding when using an external nested source file" in AstFixture(
-      File("src/test/resources/closurebinding/nested/a.js")) { cpg =>
+      File("src/test/resources/closurebinding/nested/a.js")
+    ) { cpg =>
       def a1Method = cpg.method.nameExact("a1")
       a1Method.checkNodeCount(1)
 
@@ -2540,8 +2600,10 @@ class AstCreationPassTest extends AbstractPassTest {
       closureBinding.checkNodeCount(1)
       closureBinding.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "a.js::program:a1:a2:x")
       closureBinding.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBinding.checkProperty(PropertyNames.EVALUATION_STRATEGY,
-                                   EvaluationStrategies.BY_REFERENCE)
+      closureBinding.checkProperty(
+        PropertyNames.EVALUATION_STRATEGY,
+        EvaluationStrategies.BY_REFERENCE
+      )
 
       closureBinding.expandRef().head shouldBe a1LocalX.head
 
@@ -2566,17 +2628,15 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct name when using external source files" in AstFixture(
-      FileUtils.getFileTree(Paths.get("src/test/resources/closurebinding"),
-                            Config(),
-                            List(JS_SUFFIX))
+      FileUtils
+        .getFileTree(Paths.get("src/test/resources/closurebinding"), Config(), List(JS_SUFFIX))
     ) { (file, cpg) =>
       def fileNode = cpg.file
       fileNode.checkNodeCount(1)
       fileNode.checkProperty(PropertyNames.NAME, file.name)
     }
 
-    "have correct method full names for scoped anonymous functions" in AstFixture(
-      """
+    "have correct method full names for scoped anonymous functions" in AstFixture("""
         | var anon1 = x => {
         |   var anon2 = y => {
         |   }
@@ -2689,7 +2749,8 @@ class AstCreationPassTest extends AbstractPassTest {
 
   "AST generation for destructing assignment" should {
     "have correct structure for object destruction assignment with declaration" in AstFixture(
-      "var {a, b} = x") { cpg =>
+      "var {a, b} = x"
+    ) { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -2753,7 +2814,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for object destruction assignment with declaration and ternary init" in AstFixture(
-      "const { a, b } = test() ? foo() : bar();") { cpg =>
+      "const { a, b } = test() ? foo() : bar();"
+    ) { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -2819,7 +2881,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for object destruction assignment without declaration" in AstFixture(
-      "({a, b} = x)") { cpg =>
+      "({a, b} = x)"
+    ) { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -2887,7 +2950,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for object destruction assignment with defaults" in AstFixture(
-      "var {a = 1, b = 2} = x") { cpg =>
+      "var {a = 1, b = 2} = x"
+    ) { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -2991,7 +3055,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for object destruction assignment with reassignment" in AstFixture(
-      "var {a: n, b: m} = x") { cpg =>
+      "var {a: n, b: m} = x"
+    ) { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -3063,7 +3128,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for object destruction assignment with reassignment and defaults" in AstFixture(
-      "var {a: n = 1, b: m = 2} = x") { cpg =>
+      "var {a: n = 1, b: m = 2} = x"
+    ) { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -3167,7 +3233,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for object deconstruction in function parameter" in AstFixture(
-      "function foo({ a }, b) {}") { cpg =>
+      "function foo({ a }, b) {}"
+    ) { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -3187,7 +3254,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for object destruction assignment in call argument" in AstFixture(
-      "foo({a, b} = x)") { cpg =>
+      "foo({a, b} = x)"
+    ) { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -3258,7 +3326,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for object destruction assignment with rest" in AstFixture(
-      "var {a, ...rest} = x") { cpg =>
+      "var {a, ...rest} = x"
+    ) { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -3306,15 +3375,16 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for object destruction assignment with computed property name" ignore AstFixture(
-      "var {[propName]: n} = x") { _ =>
-      }
+      "var {[propName]: n} = x"
+    ) { _ => }
 
     "have correct structure for nested object destruction assignment with defaults as parameter" in AstFixture(
       """
         |function userId({id = {}, b} = {}) {
         |  return id
         |}
-        |""".stripMargin) { cpg =>
+        |""".stripMargin
+    ) { cpg =>
       def userId = cpg.method.nameExact("userId")
       userId.checkNodeCount(1)
 
@@ -3378,8 +3448,7 @@ class AstCreationPassTest extends AbstractPassTest {
       tmpReturnIdentifier.checkProperty(PropertyNames.NAME, "_tmp_0")
     }
 
-    "have correct structure for object destruction assignment as parameter" in AstFixture(
-      """
+    "have correct structure for object destruction assignment as parameter" in AstFixture("""
         |function userId({id}) {
         |  return id
         |}
@@ -3414,7 +3483,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for array destruction assignment with declaration" in AstFixture(
-      "var [a, b] = x") { cpg =>
+      "var [a, b] = x"
+    ) { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -3478,7 +3548,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for array destruction assignment without declaration" in AstFixture(
-      "[a, b] = x") { cpg =>
+      "[a, b] = x"
+    ) { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -3542,7 +3613,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for array destruction assignment with defaults" in AstFixture(
-      "var [a = 1, b = 2] = x") { cpg =>
+      "var [a = 1, b = 2] = x"
+    ) { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -3646,7 +3718,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for array destruction assignment with ignores" in AstFixture(
-      "var [a, , b] = x") { cpg =>
+      "var [a, , b] = x"
+    ) { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -3710,11 +3783,10 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for array destruction assignment with rest" ignore AstFixture(
-      "var [a, ...rest] = x") { _ =>
-      }
+      "var [a, ...rest] = x"
+    ) { _ => }
 
-    "have correct structure for array destruction assignment as parameter" in AstFixture(
-      """
+    "have correct structure for array destruction assignment as parameter" in AstFixture("""
        |function userId([id]) {
        |  return id
        |}
@@ -3739,8 +3811,7 @@ class AstCreationPassTest extends AbstractPassTest {
       assignmentToId.checkNodeCount(1)
     }
 
-    "have correct structure for method spread argument" ignore AstFixture("foo(...args)") { _ =>
-      }
+    "have correct structure for method spread argument" ignore AstFixture("foo(...args)") { _ => }
   }
 
   "AST generation for classes" should {
@@ -3779,8 +3850,7 @@ class AstCreationPassTest extends AbstractPassTest {
       boundMethod.checkProperty(PropertyNames.FULL_NAME, "test.js::program:ClassA<constructor>")
     }
 
-    "have member for static method in <meta> TYPE_DECL for ClassA" in AstFixture(
-      """
+    "have member for static method in <meta> TYPE_DECL for ClassA" in AstFixture("""
        |var x = class ClassA {
        |  static staticFoo() {}
        |}""".stripMargin) { cpg =>
@@ -3793,8 +3863,10 @@ class AstCreationPassTest extends AbstractPassTest {
       def memberFoo = classAMetaTypeDecl.expandAst(NodeTypes.MEMBER)
       memberFoo.checkNodeCount(1)
       pendingUntilFixed {
-        memberFoo.checkProperty(PropertyNames.DYNAMIC_TYPE_HINT_FULL_NAME,
-                                "test.js::program:ClassA:staticFoo")
+        memberFoo.checkProperty(
+          PropertyNames.DYNAMIC_TYPE_HINT_FULL_NAME,
+          "test.js::program:ClassA:staticFoo"
+        )
       }
     }
 
@@ -3814,8 +3886,7 @@ class AstCreationPassTest extends AbstractPassTest {
       }
     }
 
-    "have member for non-static method in TYPE_DECL for ClassA" in AstFixture(
-      """
+    "have member for non-static method in TYPE_DECL for ClassA" in AstFixture("""
         |var x = class ClassA {
         |  foo() {}
         |}""".stripMargin) { cpg =>
@@ -3826,8 +3897,10 @@ class AstCreationPassTest extends AbstractPassTest {
       def memberFoo = classATypeDecl.expandAst(NodeTypes.MEMBER)
       memberFoo.checkNodeCount(1)
       pendingUntilFixed {
-        memberFoo.checkProperty(PropertyNames.DYNAMIC_TYPE_HINT_FULL_NAME,
-                                "test.js::program:ClassA:foo")
+        memberFoo.checkProperty(
+          PropertyNames.DYNAMIC_TYPE_HINT_FULL_NAME,
+          "test.js::program:ClassA:foo"
+        )
       }
     }
 
@@ -3863,7 +3936,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for type decls for classes with extends" in AstFixture(
-      "class ClassA extends Base {}") { cpg =>
+      "class ClassA extends Base {}"
+    ) { cpg =>
       def classATypeDecl =
         cpg.typeDecl.nameExact("ClassA").filter(PropertyNames.FULL_NAME, "ClassA")
       classATypeDecl.checkProperty(PropertyNames.INHERITS_FROM_TYPE_FULL_NAME, "Base")
@@ -3935,91 +4009,92 @@ class AstCreationPassTest extends AbstractPassTest {
       returnTmp.checkProperty(PropertyNames.NAME, tmpName)
     }
 
-    "have correct structure for simple new with arguments" in AstFixture("new MyClass(arg1, arg2)") {
-      cpg =>
-        def program = cpg.method.nameExact(":program")
-        program.checkNodeCount(1)
-        def newCall =
-          program
-            .expandAst(NodeTypes.BLOCK)
-            .filter(PropertyNames.CODE, "new MyClass(arg1, arg2)")
-        newCall.checkNodeCount(1)
+    "have correct structure for simple new with arguments" in AstFixture(
+      "new MyClass(arg1, arg2)"
+    ) { cpg =>
+      def program = cpg.method.nameExact(":program")
+      program.checkNodeCount(1)
+      def newCall =
+        program
+          .expandAst(NodeTypes.BLOCK)
+          .filter(PropertyNames.CODE, "new MyClass(arg1, arg2)")
+      newCall.checkNodeCount(1)
 
-        def block = newCall.expandAst(NodeTypes.BLOCK)
-        block.checkNodeCount(1)
+      def block = newCall.expandAst(NodeTypes.BLOCK)
+      block.checkNodeCount(1)
 
-        def tmpName = "_tmp_0"
+      def tmpName = "_tmp_0"
 
-        def localTmp = block.expandAst(NodeTypes.LOCAL)
-        localTmp.checkNodeCount(1)
-        localTmp.checkProperty(PropertyNames.NAME, tmpName)
+      def localTmp = block.expandAst(NodeTypes.LOCAL)
+      localTmp.checkNodeCount(1)
+      localTmp.checkProperty(PropertyNames.NAME, tmpName)
 
-        def tmpAssignment =
-          block.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, tmpName + " = .alloc")
-        tmpAssignment.checkNodeCount(1)
-        tmpAssignment.checkProperty(PropertyNames.NAME, Operators.assignment)
+      def tmpAssignment =
+        block.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, tmpName + " = .alloc")
+      tmpAssignment.checkNodeCount(1)
+      tmpAssignment.checkProperty(PropertyNames.NAME, Operators.assignment)
 
-        def tmp = tmpAssignment.expandAst(NodeTypes.IDENTIFIER)
-        tmp.checkNodeCount(1)
-        tmp.checkProperty(PropertyNames.CODE, tmpName)
-        tmp.checkProperty(PropertyNames.NAME, tmpName)
+      def tmp = tmpAssignment.expandAst(NodeTypes.IDENTIFIER)
+      tmp.checkNodeCount(1)
+      tmp.checkProperty(PropertyNames.CODE, tmpName)
+      tmp.checkProperty(PropertyNames.NAME, tmpName)
 
-        def allocCall = tmpAssignment.expandAst(NodeTypes.CALL)
-        allocCall.checkNodeCount(1)
-        allocCall.checkProperty(PropertyNames.NAME, ".alloc")
-        allocCall.checkProperty(PropertyNames.CODE, ".alloc")
+      def allocCall = tmpAssignment.expandAst(NodeTypes.CALL)
+      allocCall.checkNodeCount(1)
+      allocCall.checkProperty(PropertyNames.NAME, ".alloc")
+      allocCall.checkProperty(PropertyNames.CODE, ".alloc")
 
-        def constructorCall =
-          block.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "MyClass(arg1, arg2)")
-        constructorCall.checkNodeCount(1)
+      def constructorCall =
+        block.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "MyClass(arg1, arg2)")
+      constructorCall.checkNodeCount(1)
 
-        def name =
-          constructorCall.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "MyClass")
-        name.checkNodeCount(1)
+      def name =
+        constructorCall.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "MyClass")
+      name.checkNodeCount(1)
 
-        def receiver =
-          constructorCall.expandReceiver(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "MyClass")
-        receiver.checkNodeCount(1)
+      def receiver =
+        constructorCall.expandReceiver(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "MyClass")
+      receiver.checkNodeCount(1)
 
-        def tmpArg0 =
-          constructorCall.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, tmpName)
-        tmpArg0.checkNodeCount(1)
-        tmpArg0.checkProperty(PropertyNames.ARGUMENT_INDEX, 0)
+      def tmpArg0 =
+        constructorCall.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, tmpName)
+      tmpArg0.checkNodeCount(1)
+      tmpArg0.checkProperty(PropertyNames.ARGUMENT_INDEX, 0)
 
-        def tmpArg0Argument =
-          constructorCall
-            .expand(EdgeTypes.ARGUMENT, NodeTypes.IDENTIFIER)
-            .filter(PropertyNames.NAME, tmpName)
-        tmpArg0Argument.checkNodeCount(1)
-        tmpArg0Argument.checkProperty(PropertyNames.ARGUMENT_INDEX, 0)
+      def tmpArg0Argument =
+        constructorCall
+          .expand(EdgeTypes.ARGUMENT, NodeTypes.IDENTIFIER)
+          .filter(PropertyNames.NAME, tmpName)
+      tmpArg0Argument.checkNodeCount(1)
+      tmpArg0Argument.checkProperty(PropertyNames.ARGUMENT_INDEX, 0)
 
-        def arg1 =
-          constructorCall.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "arg1")
-        arg1.checkNodeCount(1)
-        arg1.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
+      def arg1 =
+        constructorCall.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "arg1")
+      arg1.checkNodeCount(1)
+      arg1.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
 
-        def arg1Argument =
-          constructorCall
-            .expand(EdgeTypes.ARGUMENT, NodeTypes.IDENTIFIER)
-            .filter(PropertyNames.NAME, "arg1")
-        arg1Argument.checkNodeCount(1)
-        arg1Argument.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
+      def arg1Argument =
+        constructorCall
+          .expand(EdgeTypes.ARGUMENT, NodeTypes.IDENTIFIER)
+          .filter(PropertyNames.NAME, "arg1")
+      arg1Argument.checkNodeCount(1)
+      arg1Argument.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
 
-        def arg2 =
-          constructorCall.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "arg2")
-        arg2.checkNodeCount(1)
-        arg2.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
+      def arg2 =
+        constructorCall.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "arg2")
+      arg2.checkNodeCount(1)
+      arg2.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
 
-        def arg2Argument =
-          constructorCall
-            .expand(EdgeTypes.ARGUMENT, NodeTypes.IDENTIFIER)
-            .filter(PropertyNames.NAME, "arg2")
-        arg2Argument.checkNodeCount(1)
-        arg2Argument.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
+      def arg2Argument =
+        constructorCall
+          .expand(EdgeTypes.ARGUMENT, NodeTypes.IDENTIFIER)
+          .filter(PropertyNames.NAME, "arg2")
+      arg2Argument.checkNodeCount(1)
+      arg2Argument.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
 
-        def returnTmp = block.expandAst(NodeTypes.IDENTIFIER)
-        returnTmp.checkNodeCount(1)
-        returnTmp.checkProperty(PropertyNames.NAME, tmpName)
+      def returnTmp = block.expandAst(NodeTypes.IDENTIFIER)
+      returnTmp.checkNodeCount(1)
+      returnTmp.checkProperty(PropertyNames.NAME, tmpName)
     }
 
     "have correct structure for new with access path" in AstFixture("new foo.bar.MyClass()") {
@@ -4090,7 +4165,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for throw new exceptions" in AstFixture(
-      "function() { throw new Foo() }") { cpg =>
+      "function() { throw new Foo() }"
+    ) { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -4226,7 +4302,8 @@ class AstCreationPassTest extends AbstractPassTest {
 
   "AST generation for default parameters" should {
     "have correct structure for method parameter with default" in AstFixture(
-      "function foo(a = 1) {}") { cpg =>
+      "function foo(a = 1) {}"
+    ) { cpg =>
       def foo = cpg.method.nameExact("foo")
       foo.checkNodeCount(1)
 
@@ -4266,7 +4343,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for multiple method parameters with default" in AstFixture(
-      "function foo(a = 1, b = 2) {}") { cpg =>
+      "function foo(a = 1, b = 2) {}"
+    ) { cpg =>
       def foo = cpg.method.nameExact("foo")
       foo.checkNodeCount(1)
 
@@ -4339,7 +4417,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for method mixed parameters with default" in AstFixture(
-      "function foo(a, b = 1) {}") { cpg =>
+      "function foo(a, b = 1) {}"
+    ) { cpg =>
       def foo = cpg.method.nameExact("foo")
       foo.checkNodeCount(1)
 
@@ -4384,7 +4463,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "have correct structure for multiple method mixed parameters with default" in AstFixture(
-      "function foo(a, b = 1, c = 2) {}") { cpg =>
+      "function foo(a, b = 1, c = 2) {}"
+    ) { cpg =>
       def foo = cpg.method.nameExact("foo")
       foo.checkNodeCount(1)
 
@@ -4505,7 +4585,8 @@ class AstCreationPassTest extends AbstractPassTest {
     }
 
     "not create static builtin call for calls not exactly matching dictionary" in AstFixture(
-      """JSON.parse.apply("foo");""") { cpg =>
+      """JSON.parse.apply("foo");"""
+    ) { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -4555,8 +4636,7 @@ class AstCreationPassTest extends AbstractPassTest {
       depB.checkProperty(PropertyNames.VERSION, "require")
     }
 
-    "have correct dependencies (strange requires)" in AstFixture(
-      """
+    "have correct dependencies (strange requires)" in AstFixture("""
         |var _ = require("depA");
         |var b = require("depB").some.strange().call().here;
         |var { c } = require('depC');
@@ -4616,8 +4696,7 @@ class AstCreationPassTest extends AbstractPassTest {
       depB.checkProperty(PropertyNames.DEPENDENCY_GROUP_ID, "depB")
     }
 
-    "have correct dependencies (different variations of import)" in AstFixture(
-      """
+    "have correct dependencies (different variations of import)" in AstFixture("""
        |import name from "module-name";
        |import * as otherName from "module-name";
        |import { member1 } from "module-name";

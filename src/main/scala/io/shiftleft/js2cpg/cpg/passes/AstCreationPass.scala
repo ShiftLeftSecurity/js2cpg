@@ -15,16 +15,16 @@ import io.shiftleft.js2cpg.util.SourceWrapper._
 
 import scala.util.{Failure, Success, Try}
 
-/**
-  * Given a list of filenames, this pass creates the abstract syntax tree and CPG AST for each file.
+/** Given a list of filenames, this pass creates the abstract syntax tree and CPG AST for each file.
   * Files are processed in parallel.
   */
-class AstCreationPass(srcDir: File,
-                      filenames: List[(Path, Path)],
-                      cpg: Cpg,
-                      keyPool: IntervalKeyPool,
-                      report: Report)
-    extends ConcurrentWriterCpgPass[(Path, Path)](cpg, keyPool = Some(keyPool)) {
+class AstCreationPass(
+  srcDir: File,
+  filenames: List[(Path, Path)],
+  cpg: Cpg,
+  keyPool: IntervalKeyPool,
+  report: Report
+) extends ConcurrentWriterCpgPass[(Path, Path)](cpg, keyPool = Some(keyPool)) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
@@ -43,26 +43,27 @@ class AstCreationPass(srcDir: File,
         Some((parseResult, preAnalyze(parseResult)))
     }
 
-    parseResult.map {
-      case (parseResult, usedIdentNodes) =>
-        val (result, duration) = {
-          TimeUtils.time(generateCpg(parseResult, DiffGraph.newBuilder, usedIdentNodes))
-        }
-        val path = parseResult.jsSource.originalFilePath
-        result match {
-          case Failure(exception) =>
-            logger.warn(s"Failed to generate CPG for '$path'!", exception)
-          case Success(localDiff) =>
-            logger.info(s"Processed file '$path'")
-            report.updateReportDuration(path, duration)
-            diffGraph.moveFrom(localDiff)
-        }
+    parseResult.map { case (parseResult, usedIdentNodes) =>
+      val (result, duration) = {
+        TimeUtils.time(generateCpg(parseResult, DiffGraph.newBuilder, usedIdentNodes))
+      }
+      val path = parseResult.jsSource.originalFilePath
+      result match {
+        case Failure(exception) =>
+          logger.warn(s"Failed to generate CPG for '$path'!", exception)
+        case Success(localDiff) =>
+          logger.info(s"Processed file '$path'")
+          report.updateReportDuration(path, duration)
+          diffGraph.moveFrom(localDiff)
+      }
     }
   }
 
-  private def generateCpg(parseResult: ParseResult,
-                          diffGraph: DiffGraph.Builder,
-                          usedIdentNodes: Set[String]): Try[DiffGraph.Builder] = {
+  private def generateCpg(
+    parseResult: ParseResult,
+    diffGraph: DiffGraph.Builder,
+    usedIdentNodes: Set[String]
+  ): Try[DiffGraph.Builder] = {
     Try {
       val source = parseResult.jsSource
       val ast    = parseResult.ast

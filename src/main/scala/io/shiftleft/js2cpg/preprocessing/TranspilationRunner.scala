@@ -12,10 +12,12 @@ import java.nio.file.{Path, StandardCopyOption}
 import scala.util.Try
 import scala.util.chaining.scalaUtilChainingOps
 
-class TranspilationRunner(projectPath: Path,
-                          tmpTranspileDir: Path,
-                          config: Config,
-                          subDir: Option[Path] = None) {
+class TranspilationRunner(
+  projectPath: Path,
+  tmpTranspileDir: Path,
+  config: Config,
+  subDir: Option[Path] = None
+) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
@@ -35,11 +37,13 @@ class TranspilationRunner(projectPath: Path,
 
     // When we got no sub-project, we also run the following ones:
     if (subDir.isEmpty) {
-      val otherTranspilers = Seq(new VueTranspiler(config, projectPath),
-                                 new EjsTranspiler(config, projectPath),
-                                 new PugTranspiler(config, projectPath))
-      val base = baseTranspilers.copy(
-        transpilers = baseTranspilers.transpilers.prepended(new NuxtTranspiler(config, projectPath))
+      val otherTranspilers = Seq(
+        new VueTranspiler(config, projectPath),
+        new EjsTranspiler(config, projectPath),
+        new PugTranspiler(config, projectPath)
+      )
+      val base = baseTranspilers.copy(transpilers =
+        baseTranspilers.transpilers.prepended(new NuxtTranspiler(config, projectPath))
       )
       base +: otherTranspilers
     } else {
@@ -90,10 +94,15 @@ class TranspilationRunner(projectPath: Path,
           Try(
             folder.copyToDirectory(slPrivateDir)(
               linkOptions = LinkOptions.noFollow,
-              copyOptions = Seq(StandardCopyOption.REPLACE_EXISTING) ++ LinkOptions.noFollow)).tap(
+              copyOptions = Seq(StandardCopyOption.REPLACE_EXISTING) ++ LinkOptions.noFollow
+            )
+          ).tap(
             _.failed
-              .foreach(logger
-                .debug(s"Unable to copy private module '${folder.name}' to '$slPrivateDir': ", _)))
+              .foreach(
+                logger
+                  .debug(s"Unable to copy private module '${folder.name}' to '$slPrivateDir': ", _)
+              )
+          )
         }
 
         FileUtils

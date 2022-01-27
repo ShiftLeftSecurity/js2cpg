@@ -25,7 +25,8 @@ object MemoryMetrics {
           memoryMetric(optJmx).foreach { value =>
             logger.debug(
               "Memory used/committed (MB): " +
-                (value.usedMem / MB) + " / " + (value.committedMem / MB))
+                (value.usedMem / MB) + " / " + (value.committedMem / MB)
+            )
           }
 
           gcMetric(optJmx).foreach { value =>
@@ -33,14 +34,16 @@ object MemoryMetrics {
               "GC: Parallel count - " + value.parCollectionCount +
                 ", Parallel time - " + value.parCollectionTime +
                 "Concurrent count - " + value.conCollectionCount +
-                ", Concurrent time - " + value.conCollectionCount)
+                ", Concurrent time - " + value.conCollectionCount
+            )
           }
 
           cpuMetric(optJmx).foreach { value =>
             logger.debug("CPU: Thread count - " + value.threadCount)
           }
 
-          try { Thread.sleep(sleep.toLong) } catch {
+          try { Thread.sleep(sleep.toLong) }
+          catch {
             case _: InterruptedException =>
               // ignore, get out of the loop
               running = false

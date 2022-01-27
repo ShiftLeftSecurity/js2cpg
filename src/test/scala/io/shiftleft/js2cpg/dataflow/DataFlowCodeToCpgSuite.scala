@@ -38,7 +38,7 @@ class DataFlowCodeToCpgSuite extends Js2CpgCodeToCpgSuite {
       case point: MethodParameterIn =>
         val method      = point.method.head
         val method_name = method.name
-        val code        = s"$method_name(${method.parameter.l.sortBy(_.order).map(_.code).mkString(", ")})"
+        val code = s"$method_name(${method.parameter.l.sortBy(_.order).map(_.code).mkString(", ")})"
         (code, point.lineNumber.getOrElse(Int.box(-1)))
       case point =>
         (point.statement.repr, point.lineNumber.getOrElse(Int.box(-1)))

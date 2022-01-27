@@ -9,9 +9,8 @@ import overflowdb.traversal._
 
 import scala.collection.mutable
 
-/**
-  * The Javascript specific call linker links static call sites (by full name) and
-  * call sites to methods in the same file (by name).
+/** The Javascript specific call linker links static call sites (by full name) and call sites to
+  * methods in the same file (by name).
   */
 class CallLinkerPass(cpg: Cpg) extends CpgPass(cpg) {
 
@@ -57,7 +56,8 @@ class CallLinkerPass(cpg: Cpg) extends CpgPass(cpg) {
               assignee
                 .argument(2)
                 .asInstanceOf[nodes.FieldIdentifier]
-                .canonicalName)
+                .canonicalName
+            )
           case _ => None
         }
         .headOption
@@ -77,8 +77,10 @@ class CallLinkerPass(cpg: Cpg) extends CpgPass(cpg) {
     Iterator(diffGraph)
   }
 
-  private def linkCallsites(methodsByNameAndFile: MethodsByNameAndFileType,
-                            methodsByFullName: MethodsByFullNameType): DiffGraph = {
+  private def linkCallsites(
+    methodsByNameAndFile: MethodsByNameAndFileType,
+    methodsByFullName: MethodsByFullNameType
+  ): DiffGraph = {
     val diffGraph = DiffGraph.newBuilder
 
     cpg.call.foreach { call =>
@@ -89,8 +91,10 @@ class CallLinkerPass(cpg: Cpg) extends CpgPass(cpg) {
       } else {
         getReceiverIdentifierName(call) match {
           case Some(name) =>
-            for (file   <- call.file.headOption;
-                 method <- methodsByNameAndFile.get((file.name, name))) {
+            for (
+              file   <- call.file.headOption;
+              method <- methodsByNameAndFile.get((file.name, name))
+            ) {
               diffGraph.addEdgeInOriginal(call, method, EdgeTypes.CALL)
             }
           case None =>
@@ -106,7 +110,9 @@ class CallLinkerPass(cpg: Cpg) extends CpgPass(cpg) {
   // Obtain method name for dynamic calls where the receiver is an identifier.
   private def getReceiverIdentifierName(call: nodes.Call): Option[String] = {
     def fromFieldAccess(c: nodes.Call) =
-      if (c.methodFullName == Operators.fieldAccess && JS_EXPORT_NAMES.contains(c.argument(1).code)) {
+      if (
+        c.methodFullName == Operators.fieldAccess && JS_EXPORT_NAMES.contains(c.argument(1).code)
+      ) {
         Some(c.argument(2).code)
       } else {
         None

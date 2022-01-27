@@ -29,10 +29,12 @@ class EjsTranspiler(override val config: Config, override val projectPath: Path)
   private def offset(str: String): Int =
     (str.trim.linesIterator.length - str.linesIterator.length) + 1
 
-  private def extractJsCode(tpl: String,
-                            positionToLineNumberMapping: SortedMap[Int, Int],
-                            positionToFirstPositionInLineMapping: SortedMap[Int, Int],
-                            ejsFileName: String): (String, WritableSourceMap) = {
+  private def extractJsCode(
+    tpl: String,
+    positionToLineNumberMapping: SortedMap[Int, Int],
+    positionToFirstPositionInLineMapping: SortedMap[Int, Int],
+    ejsFileName: String
+  ): (String, WritableSourceMap) = {
     val sourceMap =
       new Builder().withSources(java.util.Collections.singletonList(ejsFileName)).build()
     val result = mutable.ArrayBuffer.empty[String]
@@ -73,11 +75,13 @@ class EjsTranspiler(override val config: Config, override val projectPath: Path)
           throw new UnsupportedOperationException("Unknown EJS tag: " + n)
       }
       if (extractedJsCode.nonEmpty) {
-        sourceMap.addMapping(generatedLineNumber,
-                             generatedColumnNumber,
-                             sourceLineNumber - offset(parse(1)),
-                             sourceColumnNumber,
-                             ejsFileName)
+        sourceMap.addMapping(
+          generatedLineNumber,
+          generatedColumnNumber,
+          sourceLineNumber - offset(parse(1)),
+          sourceColumnNumber,
+          ejsFileName
+        )
         result.append(extractedJsCode)
       }
     }
@@ -86,14 +90,18 @@ class EjsTranspiler(override val config: Config, override val projectPath: Path)
 
   override def shouldRun(): Boolean = config.templateTranspiling && ejsFiles.nonEmpty
 
-  private def getLineOfSource(positionToLineNumberMapping: SortedMap[Int, Int],
-                              position: Int): Int = {
+  private def getLineOfSource(
+    positionToLineNumberMapping: SortedMap[Int, Int],
+    position: Int
+  ): Int = {
     val (_, lineNumber) = positionToLineNumberMapping.minAfter(position).get
     lineNumber
   }
 
-  private def getColumnOfSource(positionToFirstPositionInLineMapping: SortedMap[Int, Int],
-                                position: Int): Int = {
+  private def getColumnOfSource(
+    positionToFirstPositionInLineMapping: SortedMap[Int, Int],
+    position: Int
+  ): Int = {
     val (_, firstPositionInLine) = positionToFirstPositionInLineMapping.minAfter(position).get
     position - firstPositionInLine
   }
@@ -107,10 +115,12 @@ class EjsTranspiler(override val config: Config, override val projectPath: Path)
       val ejsFileContent = FileUtils.readLinesInFile(ejsFile).mkString("\n")
       val (positionToLineNumberMapping, positionToFirstPositionInLineMapping) =
         FileUtils.positionLookupTables(ejsFileContent)
-      val (jsCode, sourceMap) = extractJsCode(ejsFileContent,
-                                              positionToLineNumberMapping,
-                                              positionToFirstPositionInLineMapping,
-                                              ejsFile.toString)
+      val (jsCode, sourceMap) = extractJsCode(
+        ejsFileContent,
+        positionToLineNumberMapping,
+        positionToFirstPositionInLineMapping,
+        ejsFile.toString
+      )
       transpiledFile.parent.createDirectoryIfNotExists(createParents = true)
       sourceMapFile.parent.createDirectoryIfNotExists(createParents = true)
       transpiledFile.writeText(jsCode)

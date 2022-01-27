@@ -9,11 +9,12 @@ import org.slf4j.LoggerFactory
 import java.nio.file.{Path, Paths}
 import scala.util.{Failure, Success}
 
-class BabelTranspiler(override val config: Config,
-                      override val projectPath: Path,
-                      subDir: Option[Path] = None,
-                      inDir: Option[Path] = None)
-    extends Transpiler {
+class BabelTranspiler(
+  override val config: Config,
+  override val projectPath: Path,
+  subDir: Option[Path] = None,
+  inDir: Option[Path] = None
+) extends Transpiler {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
