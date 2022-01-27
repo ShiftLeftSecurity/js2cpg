@@ -8,12 +8,13 @@ import org.slf4j.LoggerFactory
 import java.nio.file.{InvalidPathException, Path, Paths}
 import scala.util.{Failure, Try}
 
-case class PathFilter(rootPath: Path,
-                      config: Config,
-                      filterIgnoredFiles: Boolean,
-                      extensions: List[String],
-                      withNodeModuleFolder: Boolean = false)
-    extends (Path => FilterResult) {
+case class PathFilter(
+  rootPath: Path,
+  config: Config,
+  filterIgnoredFiles: Boolean,
+  extensions: List[String],
+  withNodeModuleFolder: Boolean = false
+) extends (Path => FilterResult) {
 
   private val logger = LoggerFactory.getLogger(PathFilter.getClass)
 
@@ -39,11 +40,12 @@ case class PathFilter(rootPath: Path,
     }
   }
 
-  /**
-    * We only accept a file if its a regular file and has the appropriate extension.
+  /** We only accept a file if its a regular file and has the appropriate extension.
     *
-    * @param file the file to inspect
-    * @return true iff file is a regular file and has the appropriate extension
+    * @param file
+    *   the file to inspect
+    * @return
+    *   true iff file is a regular file and has the appropriate extension
     */
   private def acceptFile(file: File): Boolean =
     file.isRegularFile && !file.extension.contains(DTS_SUFFIX) &&

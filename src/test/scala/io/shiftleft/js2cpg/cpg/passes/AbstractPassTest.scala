@@ -57,9 +57,8 @@ abstract class AbstractPassTest extends AnyWordSpec with Matchers {
 
     def filter[P](nodeProperty: String, value: P): Traversal[T] = {
       nodes.filter { node =>
-        node.propertiesMap.asScala.exists {
-          case (property, propertyValue) =>
-            property == nodeProperty && propertyValue == value
+        node.propertiesMap.asScala.exists { case (property, propertyValue) =>
+          property == nodeProperty && propertyValue == value
         }
       }
     }

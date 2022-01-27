@@ -29,20 +29,21 @@ abstract class JmxClient {
     withRetries(url, retries)
   }
 
-  /**
-    * Returns an optional JMXMetric with raw JVM memory stats.
+  /** Returns an optional JMXMetric with raw JVM memory stats.
     */
   def memoryMetric(jmxc: Option[JMXConnector]): Option[JmxMemoryMetric] = {
     try {
       jmxc flatMap { jmxc =>
         val memoryMbean =
-          jmxc.getMBeanServerConnection.getAttribute(new ObjectName("java.lang:type=Memory"),
-                                                     "HeapMemoryUsage")
+          jmxc.getMBeanServerConnection.getAttribute(
+            new ObjectName("java.lang:type=Memory"),
+            "HeapMemoryUsage"
+          )
         val cd = memoryMbean.asInstanceOf[CompositeData]
 
         Some(
-          JmxMemoryMetric(cd.get("used").asInstanceOf[Long],
-                          cd.get("committed").asInstanceOf[Long]))
+          JmxMemoryMetric(cd.get("used").asInstanceOf[Long], cd.get("committed").asInstanceOf[Long])
+        )
       }
     } catch {
       case e: Throwable =>
@@ -51,8 +52,7 @@ abstract class JmxClient {
     }
   }
 
-  /**
-    * Returns an optional JMXMetric with raw JVM cpu stats.
+  /** Returns an optional JMXMetric with raw JVM cpu stats.
     */
   def cpuMetric(jmxc: Option[JMXConnector]): Option[JmxCpuMetric] = {
     try {
@@ -74,8 +74,7 @@ abstract class JmxClient {
     }
   }
 
-  /**
-    * Returns an optional JMXMetric with raw JVM GC stats.
+  /** Returns an optional JMXMetric with raw JVM GC stats.
     */
   def gcMetric(jmxc: Option[JMXConnector]): Option[JmxGCMetric] = {
     try {
@@ -83,32 +82,41 @@ abstract class JmxClient {
         val connection = jmxc.getMBeanServerConnection
         val gcParCollectionCount =
           connection
-            .getAttribute(new ObjectName("java.lang:type=GarbageCollector,name=ParNew"),
-                          "CollectionCount")
+            .getAttribute(
+              new ObjectName("java.lang:type=GarbageCollector,name=ParNew"),
+              "CollectionCount"
+            )
             .asInstanceOf[Long]
         val gcParCollectionTime =
           connection
-            .getAttribute(new ObjectName("java.lang:type=GarbageCollector,name=ParNew"),
-                          "CollectionTime")
+            .getAttribute(
+              new ObjectName("java.lang:type=GarbageCollector,name=ParNew"),
+              "CollectionTime"
+            )
             .asInstanceOf[Long]
         val gcConCollectionCount =
           connection
             .getAttribute(
               new ObjectName("java.lang:type=GarbageCollector,name=ConcurrentMarkSweep"),
-              "CollectionCount")
+              "CollectionCount"
+            )
             .asInstanceOf[Long]
         val gcConCollectionTime =
           connection
             .getAttribute(
               new ObjectName("java.lang:type=GarbageCollector,name=ConcurrentMarkSweep"),
-              "CollectionTime")
+              "CollectionTime"
+            )
             .asInstanceOf[Long]
 
         Some(
-          JmxGCMetric(gcParCollectionCount,
-                      gcParCollectionTime,
-                      gcConCollectionCount,
-                      gcConCollectionTime))
+          JmxGCMetric(
+            gcParCollectionCount,
+            gcParCollectionTime,
+            gcConCollectionCount,
+            gcConCollectionTime
+          )
+        )
       }
     } catch {
       case e: Throwable =>

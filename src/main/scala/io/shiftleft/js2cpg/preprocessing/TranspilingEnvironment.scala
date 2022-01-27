@@ -57,8 +57,10 @@ trait TranspilingEnvironment {
 
   private def setNpmPython(): Boolean = {
     logger.debug("\t+ Setting npm config ...")
-    ExternalCommand.run(s"${TranspilingEnvironment.NPM} config set python python2.7",
-                        projectPath.toString) match {
+    ExternalCommand.run(
+      s"${TranspilingEnvironment.NPM} config set python python2.7",
+      projectPath.toString
+    ) match {
       case Success(_) =>
         logger.debug("\t+ Set successfully")
         true

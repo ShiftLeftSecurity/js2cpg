@@ -24,10 +24,11 @@ object TypescriptTranspiler {
 
 }
 
-class TypescriptTranspiler(override val config: Config,
-                           override val projectPath: Path,
-                           subDir: Option[Path] = None)
-    extends Transpiler {
+class TypescriptTranspiler(
+  override val config: Config,
+  override val projectPath: Path,
+  subDir: Option[Path] = None
+) extends Transpiler {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
@@ -54,9 +55,11 @@ class TypescriptTranspiler(override val config: Config,
       if (ignoredDir.isDirectory) {
         Try(CommonsFileUtils.moveDirectory(ignoredDir.toJava, (to / dir).toJava)) match {
           case Failure(exception) =>
-            logger.debug(s"Could not move '$ignoredDir' to '$to' during Typescript transpilation!" +
-                           " Please check the permissions for that directory.",
-                         exception)
+            logger.debug(
+              s"Could not move '$ignoredDir' to '$to' during Typescript transpilation!" +
+                " Please check the permissions for that directory.",
+              exception
+            )
           case Success(_) => // this is fine
         }
       }
@@ -94,7 +97,8 @@ class TypescriptTranspiler(override val config: Config,
     }
     logger.info("Installing TypeScript dependencies and plugins. That will take a while.")
     logger.debug(
-      s"\t+ Installing Typescript plugins with command '$command' in path '$projectPath'")
+      s"\t+ Installing Typescript plugins with command '$command' in path '$projectPath'"
+    )
     ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
       case Success(_) =>
         logger.info("\t+ TypeScript plugins installed")
@@ -149,7 +153,8 @@ class TypescriptTranspiler(override val config: Config,
           val command =
             s"${ExternalCommand.toOSCommand(tsc)} -sourcemap $sourceRoot --outDir $projOutDir -t ES2017 -m $module --jsx react --noEmit false $projCommand"
           logger.debug(
-            s"\t+ TypeScript compiling $projectPath $projCommand to $projOutDir (using $module style modules)")
+            s"\t+ TypeScript compiling $projectPath $projCommand to $projOutDir (using $module style modules)"
+          )
 
           ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
             case Success(_)         => logger.debug("\t+ TypeScript compiling finished")

@@ -73,7 +73,8 @@ class Js2cpgArgumentsParser {
       })
     opt[String](PACKAGE_JSON)
       .text(
-        s"path to the projects package.json (path relative to $SRCDIR or absolute path; defaults to '${SRCDIR + java.io.File.separator + PackageJsonParser.PACKAGE_JSON_FILENAME}')")
+        s"path to the projects package.json (path relative to $SRCDIR or absolute path; defaults to '${SRCDIR + java.io.File.separator + PackageJsonParser.PACKAGE_JSON_FILENAME}')"
+      )
       .action((x, c) => c.copy(packageJsonLocation = x))
       .validate(path => {
         val f = new File(path)
@@ -88,7 +89,8 @@ class Js2cpgArgumentsParser {
           failure("Output file cannot be empty")
         } else if (!new File(x).getAbsoluteFile.getParentFile.exists()) {
           failure("Directory of the output file does not exist")
-        } else success)
+        } else success
+      )
     opt[Unit](NO_TS)
       .text("disables transpiling Typescript files to Javascript")
       .action((_, c) => c.copy(tsTranspiling = false))
@@ -118,12 +120,14 @@ class Js2cpgArgumentsParser {
       .hidden()
     opt[Unit](WITH_NODE_MODULES_FOLDER)
       .text(
-        s"include the node_module folder (defaults to `${Config.DEFAULT_WITH_NODE_MODULES_FOLDER}`)")
+        s"include the node_module folder (defaults to `${Config.DEFAULT_WITH_NODE_MODULES_FOLDER}`)"
+      )
       .action((_, c) => c.copy(withNodeModuleFolder = true))
       .hidden()
     opt[Unit](WITH_TS_TYPES)
       .text(
-        s"query types via Typescript; needs a `package.json` (defaults to `${Config.DEFAULT_TS_TYPES}`)")
+        s"query types via Typescript; needs a `package.json` (defaults to `${Config.DEFAULT_TS_TYPES}`)"
+      )
       .action((_, c) => c.copy(withTsTypes = true))
       .hidden() // deprecated
     opt[Seq[String]](EXCLUDE)
@@ -132,20 +136,26 @@ class Js2cpgArgumentsParser {
       .text("files to exclude during CPG generation (paths relative to <srcdir> or absolute paths)")
     opt[String](EXCLUDE_REGEX)
       .action((x, c) => c.copy(ignoredFilesRegex = x.r))
-      .text("a regex specifying files to exclude during CPG generation (the absolute file path is matched)")
+      .text(
+        "a regex specifying files to exclude during CPG generation (the absolute file path is matched)"
+      )
     // for backwards compatibility - has no effect:
     opt[Unit](IGNORE_MINIFIED)
       .text(
-        "ignore minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')")
+        "ignore minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')"
+      )
       .hidden() // deprecated
     opt[Unit](WITH_MINIFIED)
       .action((_, c) => c.copy(ignoreMinified = false))
       .hidden() // deprecated
-      .text("include minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')")
+      .text(
+        "include minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')"
+      )
     opt[Unit](INCLUDE_MINIFIED)
       .action((_, c) => c.copy(ignoreMinified = false))
       .text(
-        "include minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')")
+        "include minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')"
+      )
     opt[Unit](WITH_TESTS)
       .action((_, c) => c.copy(ignoreTests = false))
       .hidden() // deprecated
@@ -155,18 +165,21 @@ class Js2cpgArgumentsParser {
       .text("include test files")
     opt[Unit](IGNORE_PRIVATE_DEPS)
       .text(
-        s"ignores private modules/dependencies in 'node_modules/' (defaults to `${Config.DEFAULT_IGNORE_PRIVATE_DEPS}`)")
+        s"ignores private modules/dependencies in 'node_modules/' (defaults to `${Config.DEFAULT_IGNORE_PRIVATE_DEPS}`)"
+      )
       .action((_, c) => c.copy(ignorePrivateDeps = true))
       .hidden()
     opt[Unit](EXCLUDE_PRIVATE_DEPS)
       .text(
-        s"excludes private modules/dependencies in 'node_modules/' (defaults to `${Config.DEFAULT_IGNORE_PRIVATE_DEPS}`)")
+        s"excludes private modules/dependencies in 'node_modules/' (defaults to `${Config.DEFAULT_IGNORE_PRIVATE_DEPS}`)"
+      )
       .action((_, c) => c.copy(ignorePrivateDeps = true))
     opt[Seq[String]](PRIVATE_DEPS)
       .valueName("<dep1>,<dep2>,...")
       .action((x, c) => c.copy(privateDeps = c.privateDeps ++ x.flatMap(d => Seq(d, s"@$d"))))
       .text(
-        s"additional private dependencies to be analyzed from '${FileDefaults.NODE_MODULES_DIR_NAME}'")
+        s"additional private dependencies to be analyzed from '${FileDefaults.NODE_MODULES_DIR_NAME}'"
+      )
     opt[Unit](INCLUDE_CONFIGS)
       .text("include configuration files (*.conf.js, *.config.js, *.json)")
       .action((_, c) => c.copy(includeConfigs = true))
@@ -179,7 +192,8 @@ class Js2cpgArgumentsParser {
       .hidden()
     opt[String](MODULE_MODE)
       .text(
-        s"set the module mode for transpiling (default is ${TypescriptTranspiler.DEFAULT_MODULE}, alternatives are e.g., esnext or es2015)")
+        s"set the module mode for transpiling (default is ${TypescriptTranspiler.DEFAULT_MODULE}, alternatives are e.g., esnext or es2015)"
+      )
       .action((module, c) => c.copy(moduleMode = Some(module)))
       .hidden()
   }

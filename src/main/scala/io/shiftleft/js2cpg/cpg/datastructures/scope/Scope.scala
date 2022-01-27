@@ -4,8 +4,7 @@ import io.shiftleft.codepropertygraph.generated.nodes.NewNode
 
 import scala.collection.mutable
 
-/**
-  * Handles the scope stack for tracking identifier to variable relation.
+/** Handles the scope stack for tracking identifier to variable relation.
   */
 class Scope {
 
@@ -20,24 +19,32 @@ class Scope {
 
   def isEmpty: Boolean = stack.isEmpty
 
-  def pushNewMethodScope(methodFullName: String,
-                         name: String,
-                         scopeNode: NewNode,
-                         capturingRefId: Option[NewNode]): Unit =
+  def pushNewMethodScope(
+    methodFullName: String,
+    name: String,
+    scopeNode: NewNode,
+    capturingRefId: Option[NewNode]
+  ): Unit =
     stack = Some(
-      new MethodScopeElement(methodFullName,
-                             capturingRefId,
-                             name,
-                             scopeNode,
-                             surroundingScope = stack))
+      new MethodScopeElement(
+        methodFullName,
+        capturingRefId,
+        name,
+        scopeNode,
+        surroundingScope = stack
+      )
+    )
 
   def pushNewBlockScope(scopeNode: NewNode): Unit = {
     peek match {
       case Some(stackTop) =>
         stack = Some(
-          new BlockScopeElement(stackTop.subScopeCounter.toString,
-                                scopeNode,
-                                surroundingScope = stack))
+          new BlockScopeElement(
+            stackTop.subScopeCounter.toString,
+            scopeNode,
+            surroundingScope = stack
+          )
+        )
         stackTop.subScopeCounter += 1
       case None =>
         stack = Some(new BlockScopeElement("0", scopeNode, surroundingScope = stack))
@@ -61,7 +68,8 @@ class Scope {
   }
 
   def resolve[A](
-      unresolvedHandler: (NewNode, String) => (NewNode, ScopeType)): Iterator[ResolvedReference] = {
+    unresolvedHandler: (NewNode, String) => (NewNode, ScopeType)
+  ): Iterator[ResolvedReference] = {
     pendingReferences.iterator.map { pendingReference =>
       val resolvedReferenceOption = pendingReference.tryResolve()
 
@@ -69,20 +77,24 @@ class Scope {
         val methodScopeNodeId = Scope.getEnclosingMethodScope(pendingReference.stack)
         val (newVariableNode, scopeType) =
           unresolvedHandler(methodScopeNodeId, pendingReference.variableName)
-        addVariable(pendingReference.stack,
-                    pendingReference.variableName,
-                    newVariableNode,
-                    scopeType)
+        addVariable(
+          pendingReference.stack,
+          pendingReference.variableName,
+          newVariableNode,
+          scopeType
+        )
         pendingReference.tryResolve().get
       }
     }
 
   }
 
-  private def addVariable(stack: Option[ScopeElement],
-                          variableName: String,
-                          variableNode: NewNode,
-                          scopeType: ScopeType): Unit = {
+  private def addVariable(
+    stack: Option[ScopeElement],
+    variableName: String,
+    variableNode: NewNode,
+    scopeType: ScopeType
+  ): Unit = {
     val scopeToAddTo = scopeType match {
       case MethodScope =>
         new ScopeElementIterator(stack).find(_.isInstanceOf[MethodScopeElement]).get
@@ -96,9 +108,8 @@ class Scope {
 object Scope {
   def getEnclosingMethodScope(scopeHead: Option[ScopeElement]): NewNode = {
     new ScopeElementIterator(scopeHead)
-      .collectFirst {
-        case methodScopeElement: MethodScopeElement =>
-          methodScopeElement.scopeNode
+      .collectFirst { case methodScopeElement: MethodScopeElement =>
+        methodScopeElement.scopeNode
       }
       .getOrElse(throw new RuntimeException("Cannot find method scope."))
     // There are no references outside of methods. Meaning we always find a MethodScope here.

@@ -14,11 +14,13 @@ object Report {
 
   private type Reports = TrieMap[FileName, ReportEntry]
 
-  private case class ReportEntry(loc: Long,
-                                 parsed: Boolean,
-                                 cpgGen: Boolean,
-                                 duration: Long,
-                                 isConfig: Boolean = false) {
+  private case class ReportEntry(
+    loc: Long,
+    parsed: Boolean,
+    cpgGen: Boolean,
+    duration: Long,
+    isConfig: Boolean = false
+  ) {
     def toSeq: Seq[String] = {
       val lines = loc.toString
       val dur   = if (duration == 0) "-" else TimeUtils.pretty(Duration.fromNanos(duration))
@@ -48,7 +50,8 @@ class Report {
         val rows = table.map(
           _.zip(colWidths)
             .map { case (item, size) => (" %-" + (size - 1) + "s").format(item) }
-            .mkString("|", "|", "|"))
+            .mkString("|", "|", "|")
+        )
         // Formatted separator row, used to separate the header and draw table borders
         val separator = colWidths.map("-" * _).mkString("+", "+", "+")
         // Put the table together and return
@@ -80,17 +83,20 @@ class Report {
         s"${reports.count(_._2.parsed)}/$numOfReports",
         s"${reports.count(_._2.cpgGen)}/$numOfReports",
         s"${TimeUtils.pretty(Duration.fromNanos(reports.map(_._2.duration).sum))}"
-      ))
+      )
+    )
     val table = header ++ rows ++ footer
     logger.info(s"Report:${System.lineSeparator()}" + formatTable(table))
   }
 
-  def addReportInfo(fileName: FileName,
-                    loc: Long,
-                    parsed: Boolean = false,
-                    cpgGen: Boolean = false,
-                    duration: Long = 0,
-                    isConfig: Boolean = false): Unit =
+  def addReportInfo(
+    fileName: FileName,
+    loc: Long,
+    parsed: Boolean = false,
+    cpgGen: Boolean = false,
+    duration: Long = 0,
+    isConfig: Boolean = false
+  ): Unit =
     reports(fileName) = ReportEntry(loc, parsed, cpgGen, duration, isConfig)
 
   def updateReportDuration(fileName: FileName, duration: Long): Unit =

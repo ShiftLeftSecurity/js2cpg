@@ -24,12 +24,11 @@ class DependenciesPass(cpg: Cpg, config: Config, keyPool: KeyPool)
     val dependencies: Map[String, String] =
       packagesJsons.flatMap(p => PackageJsonParser.dependencies(p)).toMap
 
-    dependencies.foreach {
-      case (name, version) =>
-        val dep = NewDependency()
-          .name(name)
-          .version(version)
-        diffGraph.addNode(dep)
+    dependencies.foreach { case (name, version) =>
+      val dep = NewDependency()
+        .name(name)
+        .version(version)
+      diffGraph.addNode(dep)
     }
 
     Iterator(diffGraph.build())
