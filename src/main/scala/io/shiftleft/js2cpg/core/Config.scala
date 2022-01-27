@@ -35,26 +35,28 @@ object Config {
 
 }
 
-case class Config(srcDir: String = "",
-                  tsTranspiling: Boolean = Config.DEFAULT_TS_TRANSPILING,
-                  babelTranspiling: Boolean = Config.DEFAULT_BABEL_TRANSPILING,
-                  vueTranspiling: Boolean = Config.DEFAULT_VUE_TRANSPILING,
-                  nuxtTranspiling: Boolean = Config.DEFAULT_NUXT_TRANSPILING,
-                  templateTranspiling: Boolean = Config.DEFAULT_TEMPLATE_TRANSPILING,
-                  packageJsonLocation: String = PackageJsonParser.PACKAGE_JSON_FILENAME,
-                  outputFile: String = Config.DEFAULT_CPG_OUT_FILE,
-                  withTsTypes: Boolean = Config.DEFAULT_TS_TYPES,
-                  ignoredFilesRegex: Regex = Config.DEFAULT_IGNORED_FILES_REGEX,
-                  ignoredFiles: Seq[Path] = Config.DEFAULT_IGNORED_FILES,
-                  ignoreMinified: Boolean = Config.DEFAULT_IGNORE_MINIFIED,
-                  ignoreTests: Boolean = Config.DEFAULT_IGNORE_TESTS,
-                  ignorePrivateDeps: Boolean = Config.DEFAULT_IGNORE_PRIVATE_DEPS,
-                  privateDeps: Seq[String] = Config.DEFAULT_PRIVATE_DEPS,
-                  includeConfigs: Boolean = Config.DEFAULT_INCLUDE_CONFIGS,
-                  includeHtml: Boolean = Config.DEFAULT_INCLUDE_HTML,
-                  jvmMetrics: Option[Int] = Config.DEFAULT_JVM_METRICS,
-                  moduleMode: Option[String] = Config.DEFAULT_MODULE_MODE,
-                  withNodeModuleFolder: Boolean = Config.DEFAULT_WITH_NODE_MODULES_FOLDER) {
+case class Config(
+  srcDir: String = "",
+  tsTranspiling: Boolean = Config.DEFAULT_TS_TRANSPILING,
+  babelTranspiling: Boolean = Config.DEFAULT_BABEL_TRANSPILING,
+  vueTranspiling: Boolean = Config.DEFAULT_VUE_TRANSPILING,
+  nuxtTranspiling: Boolean = Config.DEFAULT_NUXT_TRANSPILING,
+  templateTranspiling: Boolean = Config.DEFAULT_TEMPLATE_TRANSPILING,
+  packageJsonLocation: String = PackageJsonParser.PACKAGE_JSON_FILENAME,
+  outputFile: String = Config.DEFAULT_CPG_OUT_FILE,
+  withTsTypes: Boolean = Config.DEFAULT_TS_TYPES,
+  ignoredFilesRegex: Regex = Config.DEFAULT_IGNORED_FILES_REGEX,
+  ignoredFiles: Seq[Path] = Config.DEFAULT_IGNORED_FILES,
+  ignoreMinified: Boolean = Config.DEFAULT_IGNORE_MINIFIED,
+  ignoreTests: Boolean = Config.DEFAULT_IGNORE_TESTS,
+  ignorePrivateDeps: Boolean = Config.DEFAULT_IGNORE_PRIVATE_DEPS,
+  privateDeps: Seq[String] = Config.DEFAULT_PRIVATE_DEPS,
+  includeConfigs: Boolean = Config.DEFAULT_INCLUDE_CONFIGS,
+  includeHtml: Boolean = Config.DEFAULT_INCLUDE_HTML,
+  jvmMetrics: Option[Int] = Config.DEFAULT_JVM_METRICS,
+  moduleMode: Option[String] = Config.DEFAULT_MODULE_MODE,
+  withNodeModuleFolder: Boolean = Config.DEFAULT_WITH_NODE_MODULES_FOLDER
+) {
 
   def createPathForPackageJson(): Path = Paths.get(packageJsonLocation) match {
     case path if path.isAbsolute => path
@@ -94,15 +96,15 @@ case class Config(srcDir: String = "",
       |\t- Typescript types: $withTsTypes
       |\t- Ignored files regex: '$ignoredFilesRegex'
       |\t- Ignored folders: ${ignoredFiles
-         .filter(f => new File(f.toString).isDirectory)
-         .map(f => s"${System.lineSeparator()}\t\t'${f.toString}'")
-         .mkString}
+      .filter(f => new File(f.toString).isDirectory)
+      .map(f => s"${System.lineSeparator()}\t\t'${f.toString}'")
+      .mkString}
       |\t- Ignore minified files: $ignoreMinified
       |\t- Ignore test files: $ignoreTests
       |\t- Ignore private dependencies: $ignorePrivateDeps
       |\t- Additional private dependencies: ${privateDeps
-         .map(f => s"${System.lineSeparator()}\t\t'$f'")
-         .mkString}
+      .map(f => s"${System.lineSeparator()}\t\t'$f'")
+      .mkString}
       |\t- Include configuration files: $includeConfigs
       |\t- Include HTML files: $includeHtml
       |\t- Output file: '$outputFile'

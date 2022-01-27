@@ -29,9 +29,11 @@ object NuxtTranspiler {
       val nuxtFolder     = dir.resolve(NUXT_FOLDER)
       val nuxtDistFolder = nuxtFolder.resolve("dist")
       FileUtils
-        .getFileTree(nuxtFolder,
-                     config.copy(ignoredFiles = config.ignoredFiles :+ nuxtDistFolder),
-                     List(JS_SUFFIX))
+        .getFileTree(
+          nuxtFolder,
+          config.copy(ignoredFiles = config.ignoredFiles :+ nuxtDistFolder),
+          List(JS_SUFFIX)
+        )
         .map(f => (f, dir))
     } else { Nil }
   }

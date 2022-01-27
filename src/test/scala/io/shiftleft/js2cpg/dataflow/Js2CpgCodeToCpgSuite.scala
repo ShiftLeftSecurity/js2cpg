@@ -24,7 +24,9 @@ class Js2CpgFrontend(override val fileSuffix: String = ".js") extends LanguageFr
       cpg = CpgLoader
         .loadFromOverflowDb(
           CpgLoaderConfig.withDefaults.withOverflowConfig(
-            overflowdb.Config.withDefaults.withStorageLocation(cpgFile.pathAsString)))
+            overflowdb.Config.withDefaults.withStorageLocation(cpgFile.pathAsString)
+          )
+        )
     }
     cpg
   }

@@ -18,12 +18,8 @@ object PackageJsonParser {
   val PACKAGE_JSON_FILENAME      = "package.json"
   val PACKAGE_JSON_LOCK_FILENAME = "package-lock.json"
 
-  private val projectDependencies = Seq(
-    "dependencies",
-    "devDependencies",
-    "peerDependencies",
-    "optionalDependencies"
-  )
+  private val projectDependencies =
+    Seq("dependencies", "devDependencies", "peerDependencies", "optionalDependencies")
 
   private val cachedDependencies: TrieMap[Path, Map[String, String]] = TrieMap.empty
 
@@ -42,13 +38,12 @@ object PackageJsonParser {
           val dependencyIt = Option(packageJson.get("dependencies"))
             .map(_.fields().asScala)
             .getOrElse(Iterator.empty)
-          dependencyIt.foreach {
-            case entry: java.util.Map.Entry[String, JsonNode] =>
-              val depName     = entry.getKey
-              val versionNode = entry.getValue.get("version")
-              if (versionNode != null) {
-                depToVersion = depToVersion.updated(depName, versionNode.asText())
-              }
+          dependencyIt.foreach { case entry: java.util.Map.Entry[String, JsonNode] =>
+            val depName     = entry.getKey
+            val versionNode = entry.getValue.get("version")
+            if (versionNode != null) {
+              depToVersion = depToVersion.updated(depName, versionNode.asText())
+            }
           }
           depToVersion
         }.toOption
@@ -65,9 +60,8 @@ object PackageJsonParser {
               val dependencyIt = Option(packageJson.get(dependency))
                 .map(_.fields().asScala)
                 .getOrElse(Iterator.empty)
-              dependencyIt.foreach {
-                case entry: java.util.Map.Entry[String, JsonNode] =>
-                  depToVersion = depToVersion.updated(entry.getKey, entry.getValue.asText())
+              dependencyIt.foreach { case entry: java.util.Map.Entry[String, JsonNode] =>
+                depToVersion = depToVersion.updated(entry.getKey, entry.getValue.asText())
               }
             }
           depToVersion
@@ -82,7 +76,8 @@ object PackageJsonParser {
             deps.get
           } else {
             logger.debug(
-              s"No project dependencies found in $PACKAGE_JSON_FILENAME or $PACKAGE_JSON_LOCK_FILENAME at '${depsPath.getParent}'.")
+              s"No project dependencies found in $PACKAGE_JSON_FILENAME or $PACKAGE_JSON_LOCK_FILENAME at '${depsPath.getParent}'."
+            )
             Map.empty
           }
         }

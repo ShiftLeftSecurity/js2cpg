@@ -33,18 +33,17 @@ class CallLinkerPassTest extends AnyWordSpec with Matchers with Inside {
         val cpg =
           CpgLoader
             .loadFromOverflowDb(
-              CpgLoaderConfig.withDefaults.withOverflowConfig(
-                Config.withDefaults.withStorageLocation(cpgPath)))
+              CpgLoaderConfig.withDefaults
+                .withOverflowConfig(Config.withDefaults.withStorageLocation(cpgPath))
+            )
 
-        inside(cpg.method("sayhi").l) {
-          case List(m) =>
-            m.name shouldBe "sayhi"
-            m.fullName should endWith(".js::program:sayhi")
+        inside(cpg.method("sayhi").l) { case List(m) =>
+          m.name shouldBe "sayhi"
+          m.fullName should endWith(".js::program:sayhi")
         }
 
-        inside(cpg.method("sayhi").callIn(NoResolve).l) {
-          case List(call) =>
-            call.code shouldBe "sayhi()"
+        inside(cpg.method("sayhi").callIn(NoResolve).l) { case List(call) =>
+          call.code shouldBe "sayhi()"
         }
 
       }

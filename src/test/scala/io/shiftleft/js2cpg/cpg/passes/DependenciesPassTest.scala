@@ -24,7 +24,8 @@ class DependenciesPassTest extends AbstractPassTest {
         |  "dependencies": {
         |  }
         |}
-        |""".stripMargin) { cpg =>
+        |""".stripMargin
+    ) { cpg =>
       getDependencies(cpg).size shouldBe 0
     }
 
@@ -96,9 +97,10 @@ class DependenciesPassTest extends AbstractPassTest {
 
   private object DependencyFixture extends Fixture {
     def apply(
-        code: String,
-        packageJsonContent: String,
-        packageJsonName: String = PackageJsonParser.PACKAGE_JSON_FILENAME)(f: Cpg => Unit): Unit = {
+      code: String,
+      packageJsonContent: String,
+      packageJsonName: String = PackageJsonParser.PACKAGE_JSON_FILENAME
+    )(f: Cpg => Unit): Unit = {
       File.usingTemporaryDirectory("js2cpgTest") { dir =>
         val file = dir / "file.js"
         val json = dir / packageJsonName

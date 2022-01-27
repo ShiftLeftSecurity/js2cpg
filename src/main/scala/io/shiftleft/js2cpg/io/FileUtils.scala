@@ -40,23 +40,23 @@ object FileUtils {
   }
 
   def logAndClearExcludedPaths(): Unit = {
-    excludedPaths.foreach {
-      case (path, reason) =>
-        logger.debug(s"Excluded '$path' ($reason).")
+    excludedPaths.foreach { case (path, reason) =>
+      logger.debug(s"Excluded '$path' ($reason).")
     }
     excludedPaths.clear()
   }
 
-  /**
-    * Cleans the given path as String and removes unwanted elements that
-    * occur during transpilation on the Windows platform and/or CI environments.
+  /** Cleans the given path as String and removes unwanted elements that occur during transpilation
+    * on the Windows platform and/or CI environments.
     */
   def cleanPath(sourceFileName: String): String = {
-    val replacedDots = sourceFileName.
-    // replace leading relative path elements
-    replace("../", "").
-    // replace Nul characters (happens in some internationalized source maps)
-    replace("\u0000", "")
+    val replacedDots = sourceFileName
+      .
+        // replace leading relative path elements
+      replace("../", "")
+      .
+      // replace Nul characters (happens in some internationalized source maps)
+      replace("\u0000", "")
 
     val replacedFile = if ("""file:///.:.*""".r.matches(replacedDots)) {
       replacedDots.replace("file:///", "")
@@ -70,28 +70,30 @@ object FileUtils {
     }
   }
 
-  def getFileTree(rootPath: Path,
-                  config: Config,
-                  extensions: List[String],
-                  filterIgnoredFiles: Boolean = true): List[Path] = {
+  def getFileTree(
+    rootPath: Path,
+    config: Config,
+    extensions: List[String],
+    filterIgnoredFiles: Boolean = true
+  ): List[Path] = {
     val fileCollector = FileCollector(PathFilter(rootPath, config, filterIgnoredFiles, extensions))
     Files.walkFileTree(rootPath, fileCollector)
     excludedPaths.addAll(fileCollector.excludedPaths)
     fileCollector.files
   }
 
-  private def copyTo(
-      from: File,
-      destination: File,
-      config: Config,
-  )(implicit
-    copyOptions: File.CopyOptions = File.CopyOptions(false)): File = {
+  private def copyTo(from: File, destination: File, config: Config)(implicit
+    copyOptions: File.CopyOptions = File.CopyOptions(false)
+  ): File = {
     val fileCollector = FileCollector(
-      PathFilter(from.path,
-                 config,
-                 filterIgnoredFiles = false,
-                 extensions = List.empty,
-                 withNodeModuleFolder = config.withNodeModuleFolder))
+      PathFilter(
+        from.path,
+        config,
+        filterIgnoredFiles = false,
+        extensions = List.empty,
+        withNodeModuleFolder = config.withNodeModuleFolder
+      )
+    )
     if (from.isDirectory) {
       Files.walkFileTree(
         from.path,
@@ -123,12 +125,9 @@ object FileUtils {
     destination
   }
 
-  def copyToDirectory(
-      from: File,
-      directory: File,
-      config: Config
-  )(implicit
-    copyOptions: File.CopyOptions = File.CopyOptions.default): File = {
+  def copyToDirectory(from: File, directory: File, config: Config)(implicit
+    copyOptions: File.CopyOptions = File.CopyOptions.default
+  ): File = {
     copyTo(from, directory / from.name, config)(copyOptions)
   }
 
@@ -136,8 +135,8 @@ object FileUtils {
     EmScriptenCleaner.clean(IOUtils.readLinesInFile(path))
 
   def contentMapFromFile(path: Path): Map[Int, String] =
-    readLinesInFile(path).zipWithIndex.map {
-      case (line, lineNumber) => lineNumber -> line
+    readLinesInFile(path).zipWithIndex.map { case (line, lineNumber) =>
+      lineNumber -> line
     }.toMap
 
   def positionLookupTables(source: String): (SortedMap[Int, Int], SortedMap[Int, Int]) = {
@@ -165,19 +164,20 @@ object FileUtils {
     (positionToLineNumber, positionToFirstPositionInLine)
   }
 
-  final case class FileStatistics(linesOfCode: Long,
-                                  longestLineLength: Int,
-                                  containsMarker: Boolean)
+  final case class FileStatistics(
+    linesOfCode: Long,
+    longestLineLength: Int,
+    containsMarker: Boolean
+  )
 
-  /**
-    * Calculates various statistics of the source.
-    *  - lines of code
-    *  - longest line of code
-    *  - containment of a given marker
+  /** Calculates various statistics of the source.
+    *   - lines of code
+    *   - longest line of code
+    *   - containment of a given marker
     *
-    * This implementation is just as fast as the unix word count program `wc -l`.
-    * By using Scala BufferedSource we gain a lot of performance as it uses
-    * a Java PushbackReader and BufferedReader.
+    * This implementation is just as fast as the unix word count program `wc -l`. By using Scala
+    * BufferedSource we gain a lot of performance as it uses a Java PushbackReader and
+    * BufferedReader.
     */
   def fileStatistics(lines: Seq[String]): FileStatistics = {
     var linesOfCode       = 0L

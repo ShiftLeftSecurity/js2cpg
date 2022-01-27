@@ -2,7 +2,7 @@ package io.shiftleft.js2cpg.cpg.passes
 
 class DefineTypes extends Enumeration {
   type Defines = Value
-  //val ANY, NUMBER, STRING, FUNCTION, OBJECT, ARRAY = Value
+  // val ANY, NUMBER, STRING, FUNCTION, OBJECT, ARRAY = Value
   val ANY: Tpe      = Tpe("ANY")
   val NUMBER: Tpe   = Tpe("__ecma.Number")
   val STRING: Tpe   = Tpe("__ecma.String")

@@ -31,7 +31,8 @@ class Js2Cpg {
       }
       if (config.tsTranspiling) {
         logger.warn(
-          "\t- Typescript compilation did not yield any *.js files. Does a valid 'tsconfig.json' exist in that folder?")
+          "\t- Typescript compilation did not yield any *.js files. Does a valid 'tsconfig.json' exist in that folder?"
+        )
       }
       if (config.vueTranspiling) {
         logger.warn("\t- Vue.js transpilation did not yield any *.js files.")
@@ -45,7 +46,8 @@ class Js2Cpg {
 
   private def handleVsixProject(project: File, tmpProjectDir: File): File = {
     logger.debug(
-      s"Project is a VS code extension file (*$VSIX_SUFFIX). Unpacking it to '$tmpProjectDir'.")
+      s"Project is a VS code extension file (*$VSIX_SUFFIX). Unpacking it to '$tmpProjectDir'."
+    )
     project.streamedUnzip(tmpProjectDir) / "extension"
   }
 
@@ -58,11 +60,14 @@ class Js2Cpg {
       Try(FileUtils.copyToDirectory(realProjectPath, tmpProjectDir, config)) match {
         case Failure(_) =>
           logger.debug(
-            s"Unable to copy project to temporary workspace '$tmpProjectDir'. Does it contain broken symlinks?")
+            s"Unable to copy project to temporary workspace '$tmpProjectDir'. Does it contain broken symlinks?"
+          )
           logger.debug(
-            s"Retrying to copy '$realProjectPath' to temporary workspace '$tmpProjectDir' without symlinks.")
-          FileUtils.copyToDirectory(realProjectPath, tmpProjectDir, config)(
-            copyOptions = Seq(StandardCopyOption.REPLACE_EXISTING) ++ LinkOptions.noFollow)
+            s"Retrying to copy '$realProjectPath' to temporary workspace '$tmpProjectDir' without symlinks."
+          )
+          FileUtils.copyToDirectory(realProjectPath, tmpProjectDir, config)(copyOptions =
+            Seq(StandardCopyOption.REPLACE_EXISTING) ++ LinkOptions.noFollow
+          )
         case Success(value) => value
       }
     }
@@ -84,9 +89,7 @@ class Js2Cpg {
         List(head)
       case _ =>
         logger.info(s"Found the following sub-projects:${subProjects
-          .map(
-            p => projectDir.relativize(p)
-          )
+          .map(p => projectDir.relativize(p))
           .mkString("\n\t- ", "\n\t- ", "")}")
         projectDir.path +: subProjects.toList
     }
@@ -94,16 +97,17 @@ class Js2Cpg {
 
   private def isInCi: Boolean = sys.env.get("CI").contains("true")
 
-  private def collectJsFiles(jsFiles: List[(Path, Path)],
-                             dir: Path,
-                             config: Config): List[(Path, Path)] = {
+  private def collectJsFiles(
+    jsFiles: List[(Path, Path)],
+    dir: Path,
+    config: Config
+  ): List[(Path, Path)] = {
     val transpiledJsFiles = FileUtils
       .getFileTree(dir, config, List(JS_SUFFIX, MJS_SUFFIX))
       .map(f => (f, dir))
-    jsFiles.filterNot {
-      case (f, rootDir) =>
-        val filename = f.toString.replace(rootDir.toString, "")
-        transpiledJsFiles.exists(_._1.toString.endsWith(filename))
+    jsFiles.filterNot { case (f, rootDir) =>
+      val filename = f.toString.replace(rootDir.toString, "")
+      transpiledJsFiles.exists(_._1.toString.endsWith(filename))
     } ++ transpiledJsFiles
   }
 
@@ -210,10 +214,12 @@ class Js2Cpg {
       .createAndApply()
     new ConfigPass(configFiles(config, List(VUE_SUFFIX)), cpg, vueAsConfigPassPool, report)
       .createAndApply()
-    new PrivateKeyFilePass(configFiles(config, List(KEY_SUFFIX)),
-                           cpg,
-                           privateKeyFilePassPool,
-                           report)
+    new PrivateKeyFilePass(
+      configFiles(config, List(KEY_SUFFIX)),
+      cpg,
+      privateKeyFilePassPool,
+      report
+    )
       .createAndApply()
 
     if (config.includeHtml) {

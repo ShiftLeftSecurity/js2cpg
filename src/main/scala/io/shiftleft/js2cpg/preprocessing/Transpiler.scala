@@ -43,11 +43,12 @@ trait Transpiler extends TranspilingEnvironment {
 
   protected def logExecution(): Unit
 
-  /**
-    * Runs the transpiler at the specified transpile directory tmpTranspileDir.
+  /** Runs the transpiler at the specified transpile directory tmpTranspileDir.
     *
-    * @param tmpTranspileDir the directory to run the transpiler in
-    * @return true if other transpilers in the chain (see [[TranspilerGroup]]) should run, false if not
+    * @param tmpTranspileDir
+    *   the directory to run the transpiler in
+    * @return
+    *   true if other transpilers in the chain (see [[TranspilerGroup]]) should run, false if not
     */
   protected def transpile(tmpTranspileDir: Path): Boolean
 

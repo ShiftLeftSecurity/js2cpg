@@ -23,28 +23,27 @@ class BuiltinTypesPass(cpg: Cpg, keyPool: KeyPool) extends CpgPass(cpg, keyPool 
     diffGraph.addNode(namespaceBlock)
 
     val orderTracker = new OrderTracker()
-    Defines.values.foreach {
-      case typeName: Defines.Tpe =>
-        val typeNameLabel = typeName.label
+    Defines.values.foreach { case typeName: Defines.Tpe =>
+      val typeNameLabel = typeName.label
 
-        val tpe = NewType()
-          .name(typeNameLabel)
-          .fullName(typeNameLabel)
-          .typeDeclFullName(typeNameLabel)
-        diffGraph.addNode(tpe)
+      val tpe = NewType()
+        .name(typeNameLabel)
+        .fullName(typeNameLabel)
+        .typeDeclFullName(typeNameLabel)
+      diffGraph.addNode(tpe)
 
-        val typeDecl = NewTypeDecl()
-          .name(typeNameLabel)
-          .fullName(typeNameLabel)
-          .isExternal(false)
-          .astParentType(NodeTypes.NAMESPACE_BLOCK)
-          .astParentFullName(Defines.GLOBAL_NAMESPACE)
-          .order(orderTracker.order)
-          .filename("builtintypes")
+      val typeDecl = NewTypeDecl()
+        .name(typeNameLabel)
+        .fullName(typeNameLabel)
+        .isExternal(false)
+        .astParentType(NodeTypes.NAMESPACE_BLOCK)
+        .astParentFullName(Defines.GLOBAL_NAMESPACE)
+        .order(orderTracker.order)
+        .filename("builtintypes")
 
-        diffGraph.addNode(typeDecl)
-        orderTracker.inc()
-        diffGraph.addEdge(namespaceBlock, typeDecl, EdgeTypes.AST)
+      diffGraph.addNode(typeDecl)
+      orderTracker.inc()
+      diffGraph.addEdge(namespaceBlock, typeDecl, EdgeTypes.AST)
     }
 
     Iterator(diffGraph.build())

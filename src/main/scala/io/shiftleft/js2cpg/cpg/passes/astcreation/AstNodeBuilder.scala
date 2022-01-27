@@ -10,10 +10,12 @@ import io.shiftleft.js2cpg.parser.JsSource
 import io.shiftleft.js2cpg.parser.JsSource.shortenCode
 import io.shiftleft.passes.DiffGraph
 
-class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
-                                      private val astEdgeBuilder: AstEdgeBuilder,
-                                      private val source: JsSource,
-                                      private val scope: Scope) {
+class AstNodeBuilder[NodeBuilderType](
+  private val diffGraph: DiffGraph.Builder,
+  private val astEdgeBuilder: AstEdgeBuilder,
+  private val source: JsSource,
+  private val scope: Scope
+) {
 
   implicit def int2IntegerOpt(x: Option[Int]): Option[Integer] = x.map(java.lang.Integer.valueOf)
   implicit def int2Integer(x: Int): Integer                    = java.lang.Integer.valueOf(x)
@@ -36,11 +38,13 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     dependency
   }
 
-  def createParameterInNode(name: String,
-                            code: String,
-                            methodNode: NewMethod,
-                            lineAndColumnProvider: Node,
-                            orderTracker: OrderTracker): NewMethodParameterIn = {
+  def createParameterInNode(
+    name: String,
+    code: String,
+    methodNode: NewMethod,
+    lineAndColumnProvider: Node,
+    orderTracker: OrderTracker
+  ): NewMethodParameterIn = {
     val lineColumn = lineAndColumn(lineAndColumnProvider)
     val line       = lineColumn.line
     val column     = lineColumn.column
@@ -88,11 +92,13 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     unknown
   }
 
-  def createTypeDeclNode(name: String,
-                         fullName: String,
-                         astParentType: String,
-                         astParentFullName: String,
-                         inheritsFrom: Option[String]): NewTypeDecl = {
+  def createTypeDeclNode(
+    name: String,
+    fullName: String,
+    astParentType: String,
+    astParentFullName: String,
+    inheritsFrom: Option[String]
+  ): NewTypeDecl = {
     val typeDecl = NewTypeDecl()
       .name(name)
       .fullName(fullName)
@@ -105,9 +111,11 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     typeDecl
   }
 
-  def createIdentifierNode(name: String,
-                           lineAndColumnProvider: Node,
-                           dynamicTypeOption: Option[String]): NewIdentifier = {
+  def createIdentifierNode(
+    name: String,
+    lineAndColumnProvider: Node,
+    dynamicTypeOption: Option[String]
+  ): NewIdentifier = {
     val lineColumn = lineAndColumn(lineAndColumnProvider)
     val line       = lineColumn.line
     val column     = lineColumn.column
@@ -137,13 +145,17 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     fieldIdentifier
   }
 
-  def createFieldAccessNode(baseId: NewNode,
-                            partId: NewNode,
-                            lineAndColumn: LineAndColumn): NewCall = {
-    val call = createCallNode(codeOf(baseId) + "." + codeOf(partId),
-                              Operators.fieldAccess,
-                              DispatchTypes.STATIC_DISPATCH,
-                              lineAndColumn)
+  def createFieldAccessNode(
+    baseId: NewNode,
+    partId: NewNode,
+    lineAndColumn: LineAndColumn
+  ): NewCall = {
+    val call = createCallNode(
+      codeOf(baseId) + "." + codeOf(partId),
+      Operators.fieldAccess,
+      DispatchTypes.STATIC_DISPATCH,
+      lineAndColumn
+    )
 
     astEdgeBuilder.addAstEdge(baseId, call, 1)
     astEdgeBuilder.addArgumentEdge(baseId, call, 1)
@@ -154,10 +166,12 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     call
   }
 
-  def createStaticCallNode(code: String,
-                           methodName: String,
-                           fullName: String,
-                           lineAndColumn: LineAndColumn): NewCall = {
+  def createStaticCallNode(
+    code: String,
+    methodName: String,
+    fullName: String,
+    lineAndColumn: LineAndColumn
+  ): NewCall = {
     val line   = lineAndColumn.line
     val column = lineAndColumn.column
     val call = NewCall()
@@ -174,13 +188,17 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     call
   }
 
-  def createEqualsCallNode(lhsId: NewNode,
-                           rhsId: NewNode,
-                           lineAndColumn: LineAndColumn): NewCall = {
-    val call = createCallNode(codeOf(lhsId) + " === " + codeOf(rhsId),
-                              Operators.equals,
-                              DispatchTypes.STATIC_DISPATCH,
-                              lineAndColumn)
+  def createEqualsCallNode(
+    lhsId: NewNode,
+    rhsId: NewNode,
+    lineAndColumn: LineAndColumn
+  ): NewCall = {
+    val call = createCallNode(
+      codeOf(lhsId) + " === " + codeOf(rhsId),
+      Operators.equals,
+      DispatchTypes.STATIC_DISPATCH,
+      lineAndColumn
+    )
 
     astEdgeBuilder.addAstEdge(lhsId, call, 1)
     astEdgeBuilder.addArgumentEdge(lhsId, call, 1)
@@ -191,13 +209,17 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     call
   }
 
-  def createIndexAccessNode(baseId: NewNode,
-                            indexId: NewNode,
-                            lineAndColumn: LineAndColumn): NewCall = {
-    val call = createCallNode(codeOf(baseId) + "[" + codeOf(indexId) + "]",
-                              Operators.indexAccess,
-                              DispatchTypes.STATIC_DISPATCH,
-                              lineAndColumn)
+  def createIndexAccessNode(
+    baseId: NewNode,
+    indexId: NewNode,
+    lineAndColumn: LineAndColumn
+  ): NewCall = {
+    val call = createCallNode(
+      codeOf(baseId) + "[" + codeOf(indexId) + "]",
+      Operators.indexAccess,
+      DispatchTypes.STATIC_DISPATCH,
+      lineAndColumn
+    )
 
     astEdgeBuilder.addAstEdge(baseId, call, 1)
     astEdgeBuilder.addArgumentEdge(baseId, call, 1)
@@ -207,11 +229,13 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     call
   }
 
-  def createAssignmentNode(destId: NewNode,
-                           sourceId: NewNode,
-                           lineAndColumn: LineAndColumn,
-                           withParenthesis: Boolean = false,
-                           customCode: String = ""): NewCall = {
+  def createAssignmentNode(
+    destId: NewNode,
+    sourceId: NewNode,
+    lineAndColumn: LineAndColumn,
+    withParenthesis: Boolean = false,
+    customCode: String = ""
+  ): NewCall = {
     val code = if (customCode.isEmpty) {
       if (withParenthesis) {
         s"(${codeOf(destId)} = ${codeOf(sourceId)})"
@@ -234,9 +258,11 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     call
   }
 
-  def createLiteralNode(code: String,
-                        lineAndColumn: LineAndColumn,
-                        dynamicTypeOption: Option[String]): NewLiteral = {
+  def createLiteralNode(
+    code: String,
+    lineAndColumn: LineAndColumn,
+    dynamicTypeOption: Option[String]
+  ): NewLiteral = {
     val line   = lineAndColumn.line
     val column = lineAndColumn.column
     val literal = NewLiteral()
@@ -266,10 +292,12 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     }
   }
 
-  def createTernaryNode(testId: NewNode,
-                        trueId: NewNode,
-                        falseId: NewNode,
-                        lineAndColumn: LineAndColumn): NewCall = {
+  def createTernaryNode(
+    testId: NewNode,
+    trueId: NewNode,
+    falseId: NewNode,
+    lineAndColumn: LineAndColumn
+  ): NewCall = {
     val code = codeOf(testId) + " ? " + codeOf(trueId) + " : " + codeOf(falseId)
     val callId =
       createCallNode(code, Operators.conditional, DispatchTypes.STATIC_DISPATCH, lineAndColumn)
@@ -284,10 +312,12 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     callId
   }
 
-  def createCallNode(code: String,
-                     callName: String,
-                     dispatchType: String,
-                     lineAndColumn: LineAndColumn): NewCall = {
+  def createCallNode(
+    code: String,
+    callName: String,
+    dispatchType: String,
+    lineAndColumn: LineAndColumn
+  ): NewCall = {
     val line   = lineAndColumn.line
     val column = lineAndColumn.column
     val call = NewCall()
@@ -320,8 +350,10 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     namespaceBlock
   }
 
-  def createClosureBindingNode(closureBindingId: String,
-                               closureOriginalName: String): NewClosureBinding = {
+  def createClosureBindingNode(
+    closureBindingId: String,
+    closureOriginalName: String
+  ): NewClosureBinding = {
     val closureBinding = NewClosureBinding()
       .closureBindingId(Some(closureBindingId))
       .evaluationStrategy(EvaluationStrategies.BY_REFERENCE)
@@ -331,9 +363,11 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     closureBinding
   }
 
-  def createMethodRefNode(code: String,
-                          methodFullName: String,
-                          functionNode: FunctionNode): NewMethodRef = {
+  def createMethodRefNode(
+    code: String,
+    methodFullName: String,
+    functionNode: FunctionNode
+  ): NewMethodRef = {
     val lineColumn = lineAndColumn(functionNode)
     val line       = lineColumn.line
     val column     = lineColumn.column
@@ -360,9 +394,11 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     typeRef
   }
 
-  def createMethodNode(methodName: String,
-                       methodFullName: String,
-                       functionNode: FunctionNode): NewMethod = {
+  def createMethodNode(
+    methodName: String,
+    methodFullName: String,
+    functionNode: FunctionNode
+  ): NewMethod = {
     val lineColumn = lineAndColumn(functionNode)
     val line       = lineColumn.line
     val column     = lineColumn.column
@@ -387,9 +423,11 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     modifier
   }
 
-  def createBlockNode(node: Node,
-                      keepWholeCode: Boolean = false,
-                      customCode: Option[String] = None): NewBlock = {
+  def createBlockNode(
+    node: Node,
+    keepWholeCode: Boolean = false,
+    customCode: Option[String] = None
+  ): NewBlock = {
     val lineColumn = lineAndColumn(node)
     val line       = lineColumn.line
     val column     = lineColumn.column
@@ -466,9 +504,11 @@ class AstNodeBuilder[NodeBuilderType](private val diffGraph: DiffGraph.Builder,
     member
   }
 
-  def createLocalNode(name: String,
-                      typeFullName: String,
-                      closureBindingId: Option[String] = None): NewLocal = {
+  def createLocalNode(
+    name: String,
+    typeFullName: String,
+    closureBindingId: Option[String] = None
+  ): NewLocal = {
     val code = "N/A"
     val local = NewLocal()
       .code(shortenCode(code))

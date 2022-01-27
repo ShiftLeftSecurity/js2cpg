@@ -34,11 +34,14 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
         val cpg =
           CpgLoader
             .loadFromOverflowDb(
-              CpgLoaderConfig.withDefaults.withOverflowConfig(
-                Config.withDefaults.withStorageLocation(cpgPath)))
+              CpgLoaderConfig.withDefaults
+                .withOverflowConfig(Config.withDefaults.withStorageLocation(cpgPath))
+            )
 
-        fileNames(cpg) should contain allElementsOf Set(s"@privateA${java.io.File.separator}a.js",
-                                                        s"@privateB${java.io.File.separator}b.js")
+        fileNames(cpg) should contain allElementsOf Set(
+          s"@privateA${java.io.File.separator}a.js",
+          s"@privateB${java.io.File.separator}b.js"
+        )
       }
     }
 
@@ -49,18 +52,22 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString,
-                "--output",
-                cpgPath,
-                "--no-babel",
-                "--private-deps-ns",
-                "privateC,privateD"))
+          Array(
+            tmpProjectPath.pathAsString,
+            "--output",
+            cpgPath,
+            "--no-babel",
+            "--private-deps-ns",
+            "privateC,privateD"
+          )
+        )
 
         val cpg =
           CpgLoader
             .loadFromOverflowDb(
-              CpgLoaderConfig.withDefaults.withOverflowConfig(
-                Config.withDefaults.withStorageLocation(cpgPath)))
+              CpgLoaderConfig.withDefaults
+                .withOverflowConfig(Config.withDefaults.withStorageLocation(cpgPath))
+            )
 
         fileNames(cpg) should contain allElementsOf Set(
           s"@privateA${java.io.File.separator}a.js",
@@ -78,18 +85,22 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
 
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpProjectPath.pathAsString,
-                "--output",
-                cpgPath,
-                "--no-babel",
-                "--exclude-regex",
-                s".*@privateA${Pattern.quote(java.io.File.separator)}a.js"))
+          Array(
+            tmpProjectPath.pathAsString,
+            "--output",
+            cpgPath,
+            "--no-babel",
+            "--exclude-regex",
+            s".*@privateA${Pattern.quote(java.io.File.separator)}a.js"
+          )
+        )
 
         val cpg =
           CpgLoader
             .loadFromOverflowDb(
-              CpgLoaderConfig.withDefaults.withOverflowConfig(
-                Config.withDefaults.withStorageLocation(cpgPath)))
+              CpgLoaderConfig.withDefaults
+                .withOverflowConfig(Config.withDefaults.withStorageLocation(cpgPath))
+            )
 
         fileNames(cpg) should contain only s"@privateB${java.io.File.separator}b.js"
       }
@@ -106,8 +117,9 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
         val cpg =
           CpgLoader
             .loadFromOverflowDb(
-              CpgLoaderConfig.withDefaults.withOverflowConfig(
-                Config.withDefaults.withStorageLocation(cpgPath)))
+              CpgLoaderConfig.withDefaults
+                .withOverflowConfig(Config.withDefaults.withStorageLocation(cpgPath))
+            )
 
         fileNames(cpg) should contain only "index.js"
       }

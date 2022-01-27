@@ -12,13 +12,15 @@ object JsFileChecks {
   private val logger = LoggerFactory.getLogger(JsFileChecks.getClass)
 
   private def printPerformanceHints(relPath: String, reasons: Seq[String]): Unit = {
-    logger.debug(s"""The file '$relPath' may have negative impact on the analyzing performance!
+    logger.debug(
+      s"""The file '$relPath' may have negative impact on the analyzing performance!
          | ${if (reasons.length > 1) "Reasons:" else "Reason:"}
          | ${reasons.mkString(System.lineSeparator())}
          | Please check if:
          | \t- this file is the result of your build process
          | \t- this file is the result of applying transpilation tools (e.g., Typescript, Emscripten)
-         | You might want to exclude this file when running js2cpg by adding it to '--${Js2cpgArgumentsParser.EXCLUDE}'.""".stripMargin)
+         | You might want to exclude this file when running js2cpg by adding it to '--${Js2cpgArgumentsParser.EXCLUDE}'.""".stripMargin
+    )
   }
 
   def check(relPath: String, lines: Seq[String]): FileStatistics = {
@@ -43,7 +45,8 @@ object JsFileChecks {
     // check for being stored in a build/ or dist/ folder during build or distribution process
     if (BUILD_PATH_REGEX.matches(relPath)) {
       reasons.append(
-        "\t- it is stored or copied to a www, dist, build or vendor folder during the build or distribution process")
+        "\t- it is stored or copied to a www, dist, build or vendor folder during the build or distribution process"
+      )
     }
 
     if (reasons.nonEmpty) {
