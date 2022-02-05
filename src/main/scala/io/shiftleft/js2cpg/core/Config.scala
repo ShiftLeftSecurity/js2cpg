@@ -96,15 +96,15 @@ case class Config(
       |\t- Typescript types: $withTsTypes
       |\t- Ignored files regex: '$ignoredFilesRegex'
       |\t- Ignored folders: ${ignoredFiles
-      .filter(f => new File(f.toString).isDirectory)
-      .map(f => s"${System.lineSeparator()}\t\t'${f.toString}'")
-      .mkString}
+        .filter(f => new File(f.toString).isDirectory)
+        .map(f => s"${System.lineSeparator()}\t\t'${f.toString}'")
+        .mkString}
       |\t- Ignore minified files: $ignoreMinified
       |\t- Ignore test files: $ignoreTests
       |\t- Ignore private dependencies: $ignorePrivateDeps
       |\t- Additional private dependencies: ${privateDeps
-      .map(f => s"${System.lineSeparator()}\t\t'$f'")
-      .mkString}
+        .map(f => s"${System.lineSeparator()}\t\t'$f'")
+        .mkString}
       |\t- Include configuration files: $includeConfigs
       |\t- Include HTML files: $includeHtml
       |\t- Output file: '$outputFile'
