@@ -89,8 +89,8 @@ class Js2Cpg {
         List(head)
       case _ =>
         logger.info(s"Found the following sub-projects:${subProjects
-          .map(p => projectDir.relativize(p))
-          .mkString("\n\t- ", "\n\t- ", "")}")
+            .map(p => projectDir.relativize(p))
+            .mkString("\n\t- ", "\n\t- ", "")}")
         projectDir.path +: subProjects.toList
     }
   }
