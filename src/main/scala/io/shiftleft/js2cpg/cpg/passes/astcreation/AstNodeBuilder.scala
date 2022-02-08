@@ -8,10 +8,10 @@ import io.shiftleft.js2cpg.cpg.datastructures.scope.{MethodScope, Scope}
 import io.shiftleft.js2cpg.cpg.passes.Defines
 import io.shiftleft.js2cpg.parser.JsSource
 import io.shiftleft.js2cpg.parser.JsSource.shortenCode
-import io.shiftleft.passes.DiffGraph
+import overflowdb.BatchedUpdate.DiffGraphBuilder
 
 class AstNodeBuilder[NodeBuilderType](
-  private val diffGraph: DiffGraph.Builder,
+  private val diffGraph: DiffGraphBuilder,
   private val astEdgeBuilder: AstEdgeBuilder,
   private val source: JsSource,
   private val scope: Scope

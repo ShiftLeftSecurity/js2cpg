@@ -32,7 +32,7 @@ class AstCreationPass(
 
   override def generateParts(): Array[(Path, Path)] = filenames.toArray
 
-  override def runOnPart(diffGraph: DiffGraph.Builder, filename: (Path, Path)): Unit = {
+  override def runOnPart(diffGraph: DiffGraphBuilder, filename: (Path, Path)): Unit = {
     val (file, fileRoot) = filename
 
     val parseResult = parse(file, fileRoot) match {
@@ -45,7 +45,7 @@ class AstCreationPass(
 
     parseResult.map { case (parseResult, usedIdentNodes) =>
       val (result, duration) = {
-        TimeUtils.time(generateCpg(parseResult, DiffGraph.newBuilder, usedIdentNodes))
+        TimeUtils.time(generateCpg(parseResult, new DiffGraphBuilder, usedIdentNodes))
       }
       val path = parseResult.jsSource.originalFilePath
       result match {
@@ -54,16 +54,16 @@ class AstCreationPass(
         case Success(localDiff) =>
           logger.info(s"Processed file '$path'")
           report.updateReportDuration(path, duration)
-          diffGraph.moveFrom(localDiff)
+          diffGraph.absorb(localDiff)
       }
     }
   }
 
   private def generateCpg(
     parseResult: ParseResult,
-    diffGraph: DiffGraph.Builder,
+    diffGraph: DiffGraphBuilder,
     usedIdentNodes: Set[String]
-  ): Try[DiffGraph.Builder] = {
+  ): Try[DiffGraphBuilder] = {
     Try {
       val source = parseResult.jsSource
       val ast    = parseResult.ast

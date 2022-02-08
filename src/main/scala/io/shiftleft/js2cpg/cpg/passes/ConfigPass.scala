@@ -23,7 +23,7 @@ class ConfigPass(filenames: List[(Path, Path)], cpg: Cpg, keyPool: IntervalKeyPo
 
   override def generateParts(): Array[(Path, Path)] = filenames.toArray
 
-  override def runOnPart(diffGraph: DiffGraph.Builder, file: (Path, Path)): Unit = {
+  override def runOnPart(diffGraph: DiffGraphBuilder, file: (Path, Path)): Unit = {
     val (filePath, fileRootPath) = file
     val relativeFile             = fileRootPath.relativize(filePath)
     val fileName                 = relativeFile.toString
@@ -31,7 +31,7 @@ class ConfigPass(filenames: List[(Path, Path)], cpg: Cpg, keyPool: IntervalKeyPo
     logger.debug(s"Adding file '$relativeFile' as config.")
 
     val (result, time) = TimeUtils.time {
-      val localDiff  = DiffGraph.newBuilder
+      val localDiff  = new DiffGraphBuilder
       val content    = fileContent(filePath)
       val loc        = content.size
       val configNode = NewConfigFile().name(fileName).content(content.mkString("\n"))
@@ -48,7 +48,7 @@ class ConfigPass(filenames: List[(Path, Path)], cpg: Cpg, keyPool: IntervalKeyPo
       localDiff
     }
 
-    diffGraph.moveFrom(result)
+    diffGraph.absorb(result)
     report.updateReportDuration(fileName, time)
   }
 
