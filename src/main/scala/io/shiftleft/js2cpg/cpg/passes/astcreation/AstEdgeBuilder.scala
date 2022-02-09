@@ -3,10 +3,10 @@ package io.shiftleft.js2cpg.cpg.passes.astcreation
 import io.shiftleft.codepropertygraph.generated.EdgeTypes
 import io.shiftleft.codepropertygraph.generated.nodes._
 import io.shiftleft.js2cpg.cpg.datastructures.OrderTracker
-import io.shiftleft.passes.DiffGraph
+import overflowdb.BatchedUpdate.DiffGraphBuilder
 import org.slf4j.LoggerFactory
 
-class AstEdgeBuilder(private val diffGraph: DiffGraph.Builder) {
+class AstEdgeBuilder(private val diffGraph: DiffGraphBuilder) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 

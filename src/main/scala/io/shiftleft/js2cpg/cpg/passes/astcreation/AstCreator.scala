@@ -68,7 +68,7 @@ import io.shiftleft.js2cpg.cpg.datastructures.scope._
 import io.shiftleft.js2cpg.cpg.passes.{Defines, EcmaBuiltins, PassHelpers}
 import io.shiftleft.js2cpg.cpg.passes.PassHelpers.ParamNodeInitKind
 import io.shiftleft.js2cpg.parser.{GeneralizingAstVisitor, JsSource}
-import io.shiftleft.passes.DiffGraph
+import overflowdb.BatchedUpdate.DiffGraphBuilder
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
@@ -84,7 +84,7 @@ object AstCreator {
 
 }
 
-class AstCreator(diffGraph: DiffGraph.Builder, source: JsSource, usedIdentNodes: Set[String])
+class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: Set[String])
     extends GeneralizingAstVisitor[NewNode] {
 
   import AstCreator._
