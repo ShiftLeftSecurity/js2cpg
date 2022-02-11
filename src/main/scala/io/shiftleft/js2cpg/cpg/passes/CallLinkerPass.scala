@@ -6,6 +6,7 @@ import io.shiftleft.passes.{CpgPass, DiffGraph}
 import io.shiftleft.semanticcpg.language._
 import overflowdb.traversal.NodeOps
 import overflowdb.traversal.jIteratortoTraversal
+import overflowdb.traversal.toNodeTraversal
 
 import scala.collection.mutable
 
@@ -56,7 +57,7 @@ class CallLinkerPass(cpg: Cpg) extends CpgPass(cpg) {
           case _ => None
         }
         .headOption
-        .foreach { name: String => methodsByNameAndFile.put((method.filename, name), method) }
+        .foreach { name => methodsByNameAndFile.put((method.filename, name), method) }
     }
 
     (methodsByNameAndFile, methodsByFullName)

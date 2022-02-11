@@ -36,7 +36,7 @@ object PackageJsonParser {
           val dependencyIt = Option(packageJson.get("dependencies"))
             .map(_.fields().asScala)
             .getOrElse(Iterator.empty)
-          dependencyIt.foreach { entry: java.util.Map.Entry[String, JsonNode] =>
+          dependencyIt.foreach { entry =>
             val depName     = entry.getKey
             val versionNode = entry.getValue.get("version")
             if (versionNode != null) {
@@ -58,7 +58,7 @@ object PackageJsonParser {
               val dependencyIt = Option(packageJson.get(dependency))
                 .map(_.fields().asScala)
                 .getOrElse(Iterator.empty)
-              dependencyIt.foreach { entry: java.util.Map.Entry[String, JsonNode] =>
+              dependencyIt.foreach { entry =>
                 depToVersion = depToVersion.updated(entry.getKey, entry.getValue.asText())
               }
             }
