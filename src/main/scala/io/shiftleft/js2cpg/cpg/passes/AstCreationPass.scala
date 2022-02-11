@@ -9,7 +9,7 @@ import io.shiftleft.js2cpg.core.Report
 import io.shiftleft.js2cpg.cpg.passes.astcreation.AstCreator
 import io.shiftleft.js2cpg.io.{FileUtils, JsFileChecks, TimeUtils}
 import io.shiftleft.js2cpg.parser.{JavaScriptParser, JsSource}
-import io.shiftleft.passes.{DiffGraph, IntervalKeyPool, ConcurrentWriterCpgPass}
+import io.shiftleft.passes.{IntervalKeyPool, ConcurrentWriterCpgPass}
 import org.slf4j.LoggerFactory
 import io.shiftleft.js2cpg.util.SourceWrapper._
 

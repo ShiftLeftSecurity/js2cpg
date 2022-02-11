@@ -17,7 +17,7 @@ abstract class JmxClient {
         jmxc.foreach(_.connect())
         jmxc
       } catch {
-        case e: Throwable =>
+        case _: Throwable =>
           if (retriesLeft > 0) {
             Thread.sleep(100)
             withRetries(url, retriesLeft - 1)
@@ -46,7 +46,7 @@ abstract class JmxClient {
         )
       }
     } catch {
-      case e: Throwable =>
+      case _: Throwable =>
         // Ok to ignore, the application finished.
         None
     }
@@ -68,7 +68,7 @@ abstract class JmxClient {
         Some(JmxCpuMetric(osMbean, threads))
       }
     } catch {
-      case e: Throwable =>
+      case _: Throwable =>
         // Ok to ignore, the application finished.
         None
     }
@@ -119,7 +119,7 @@ abstract class JmxClient {
         )
       }
     } catch {
-      case e: Throwable =>
+      case _: Throwable =>
         // Ok to ignore, the application finished.
         None
     }
