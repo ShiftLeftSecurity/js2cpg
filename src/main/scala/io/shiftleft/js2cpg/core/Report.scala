@@ -82,7 +82,7 @@ class Report {
         s"${reports.map(_._2.loc).sum}",
         s"${reports.count(_._2.parsed)}/$numOfReports",
         s"${reports.count(_._2.cpgGen)}/$numOfReports",
-        s"${TimeUtils.pretty(Duration.fromNanos(reports.map(_._2.duration).sum))}"
+        ""
       )
     )
     val table = header ++ rows ++ footer

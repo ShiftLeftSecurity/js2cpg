@@ -3,13 +3,11 @@ package io.shiftleft.js2cpg.parser
 import java.nio.file.{Path, Paths}
 import io.shiftleft.js2cpg.io.FileUtils
 import org.slf4j.LoggerFactory
-import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.JsonNode
 
 import scala.collection.concurrent.TrieMap
 import scala.util.Try
-import scala.util.Using
 import scala.jdk.CollectionConverters._
 
 object PackageJsonParser {
@@ -38,7 +36,7 @@ object PackageJsonParser {
           val dependencyIt = Option(packageJson.get("dependencies"))
             .map(_.fields().asScala)
             .getOrElse(Iterator.empty)
-          dependencyIt.foreach { case entry: java.util.Map.Entry[String, JsonNode] =>
+          dependencyIt.foreach { entry: java.util.Map.Entry[String, JsonNode] =>
             val depName     = entry.getKey
             val versionNode = entry.getValue.get("version")
             if (versionNode != null) {
@@ -60,7 +58,7 @@ object PackageJsonParser {
               val dependencyIt = Option(packageJson.get(dependency))
                 .map(_.fields().asScala)
                 .getOrElse(Iterator.empty)
-              dependencyIt.foreach { case entry: java.util.Map.Entry[String, JsonNode] =>
+              dependencyIt.foreach { entry: java.util.Map.Entry[String, JsonNode] =>
                 depToVersion = depToVersion.updated(entry.getKey, entry.getValue.asText())
               }
             }
