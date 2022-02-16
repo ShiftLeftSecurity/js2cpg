@@ -76,7 +76,7 @@ class Js2Cpg {
   private def findProjects(projectDir: File, config: Config): List[Path] = {
     val allProjects = FileUtils
       .getFileTree(projectDir.path, config, List(".json"))
-      .filter(_.toString.endsWith(PackageJsonParser.PACKAGE_JSON_FILENAME))
+      .filter(PackageJsonParser.isValidProjectPackageJson)
       .map(_.getParent)
       .sortBy(_.toString)
 

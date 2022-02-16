@@ -4,11 +4,13 @@ import java.nio.file.{Path, Paths}
 import io.shiftleft.js2cpg.io.FileUtils
 import org.slf4j.LoggerFactory
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.JsonNode
+import org.apache.commons.lang.StringUtils
 
 import scala.collection.concurrent.TrieMap
 import scala.util.Try
 import scala.jdk.CollectionConverters._
+import scala.util.Failure
+import scala.util.Success
 
 object PackageJsonParser {
   private val logger = LoggerFactory.getLogger(PackageJsonParser.getClass)
@@ -20,6 +22,19 @@ object PackageJsonParser {
     Seq("dependencies", "devDependencies", "peerDependencies", "optionalDependencies")
 
   private val cachedDependencies: TrieMap[Path, Map[String, String]] = TrieMap.empty
+
+  def isValidProjectPackageJson(packageJsonPath: Path): Boolean = {
+    if (packageJsonPath.toString.endsWith(PackageJsonParser.PACKAGE_JSON_FILENAME)) {
+      val isNotEmpty = Try(FileUtils.readLinesInFile(packageJsonPath)) match {
+        case Success(content) =>
+          content.forall(l => StringUtils.isNotBlank(StringUtils.normalizeSpace(l)))
+        case Failure(_) => false
+      }
+      isNotEmpty && dependencies(packageJsonPath).nonEmpty
+    } else {
+      false
+    }
+  }
 
   def dependencies(packageJsonPath: Path): Map[String, String] =
     cachedDependencies.getOrElseUpdate(

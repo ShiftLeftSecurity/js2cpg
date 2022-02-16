@@ -91,9 +91,9 @@ class TypescriptTranspiler(
 
   private def installTsPlugins(): Boolean = {
     val command = if (yarnAvailable()) {
-      s"${TranspilingEnvironment.YARN_ADD} typescript --dev"
+      s"${TranspilingEnvironment.YARN_ADD} typescript"
     } else {
-      s"${TranspilingEnvironment.NPM_INSTALL} --save-dev typescript"
+      s"${TranspilingEnvironment.NPM_INSTALL} typescript"
     }
     logger.info("Installing TypeScript dependencies and plugins. That will take a while.")
     logger.debug(
