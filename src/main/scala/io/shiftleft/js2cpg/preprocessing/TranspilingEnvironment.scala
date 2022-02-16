@@ -17,11 +17,11 @@ object TranspilingEnvironment {
   val NPM: String  = ExternalCommand.toOSCommand("npm")
 
   val YARN_ADD: String =
-    s"$YARN add --prefer-offline --ignore-scripts --legacy-peer-deps"
+    s"$YARN --prefer-offline --ignore-scripts --legacy-peer-deps --dev -W add"
   val YARN_INSTALL: String =
-    s"$YARN install --prefer-offline --ignore-scripts --legacy-peer-deps"
+    s"$YARN --prefer-offline --ignore-scripts --legacy-peer-deps install"
   val NPM_INSTALL: String =
-    s"$NPM install --prefer-offline --no-audit --progress=false --ignore-scripts --legacy-peer-deps"
+    s"$NPM --prefer-offline --no-audit --progress=false --ignore-scripts --legacy-peer-deps --save-dev install"
 }
 
 trait TranspilingEnvironment {

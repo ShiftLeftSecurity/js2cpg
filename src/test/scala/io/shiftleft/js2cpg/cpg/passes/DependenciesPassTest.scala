@@ -12,6 +12,38 @@ class DependenciesPassTest extends AbstractPassTest {
 
   "DependenciesPass" should {
 
+    "ignore empty package.json" in {
+      File.usingTemporaryDirectory("js2cpgTest") { dir =>
+        val json = dir / PackageJsonParser.PACKAGE_JSON_FILENAME
+        json.write("")
+        PackageJsonParser.isValidProjectPackageJson(json.path) shouldBe false
+      }
+    }
+
+    "ignore package.json without any useful content" in {
+      File.usingTemporaryDirectory("js2cpgTest") { dir =>
+        val json = dir / PackageJsonParser.PACKAGE_JSON_FILENAME
+        json.write("""
+            |{
+            |  "name": "something",
+            |  "version": "0.1.0",
+            |  "description": "foobar",
+            |  "main": "./target_node/index.js",
+            |  "private": true
+            |}
+            |""".stripMargin)
+        PackageJsonParser.isValidProjectPackageJson(json.path) shouldBe false
+      }
+    }
+
+    "ignore package.json without dependencies" in {
+      File.usingTemporaryDirectory("js2cpgTest") { dir =>
+        val json = dir / PackageJsonParser.PACKAGE_JSON_FILENAME
+        json.write("{}")
+        PackageJsonParser.isValidProjectPackageJson(json.path) shouldBe false
+      }
+    }
+
     "generate dependency nodes correctly (no dependencies at all)" in DependencyFixture("", "{}") {
       cpg =>
         getDependencies(cpg).size shouldBe 0
