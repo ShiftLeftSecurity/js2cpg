@@ -11,6 +11,8 @@ object ExternalCommand {
   private val COMMAND_AND: String = " && "
   private val IS_WIN: Boolean     = scala.util.Properties.isWin
 
+  val ENV_PATH_CONTENT: String = scala.util.Properties.envOrElse("PATH", "")
+
   def toOSCommand(command: String): String = if (IS_WIN) command + ".cmd" else command
 
   def run(
