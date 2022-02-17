@@ -3,6 +3,7 @@ package io.shiftleft.js2cpg.preprocessing
 import better.files.File
 import better.files.File.LinkOptions
 import io.shiftleft.js2cpg.core.Config
+import io.shiftleft.js2cpg.io.ExternalCommand
 import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.js2cpg.io.FileDefaults._
 import io.shiftleft.js2cpg.io.FileUtils
@@ -115,7 +116,12 @@ class TranspilationRunner(
   def execute(): Unit = {
     if (transpilers.exists(_.shouldRun())) {
       if (!transpilers.headOption.exists(_.validEnvironment())) {
-        logger.error("npm is not available in your environment. Please install npm and node.js.")
+        val errorMsg =
+          s"""npm is not available in your environment. Please install npm and node.js.
+            |Also please check if it is set correctly in your systems PATH variable.
+            |Your PATH is: '${ExternalCommand.ENV_PATH_CONTENT}'
+            |""".stripMargin
+        logger.error(errorMsg)
         System.exit(1)
       }
       transpilers.takeWhile(_.run(tmpTranspileDir))
