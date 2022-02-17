@@ -151,7 +151,7 @@ class TypescriptTranspiler(
             else ""
 
           val command =
-            s"${ExternalCommand.toOSCommand(tsc)} -sourcemap $sourceRoot --outDir $projOutDir -t ES2017 -m $module --jsx react --noEmit false $projCommand"
+            s"$tsc -sourcemap $sourceRoot --outDir $projOutDir -t ES2017 -m $module --jsx react --noEmit false $projCommand"
           logger.debug(
             s"\t+ TypeScript compiling $projectPath $projCommand to $projOutDir (using $module style modules)"
           )

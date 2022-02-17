@@ -55,7 +55,7 @@ class NuxtTranspiler(override val config: Config, override val projectPath: Path
 
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
     val nuxt    = Paths.get(projectPath.toString, "node_modules", ".bin", "nuxt").toString
-    val command = s"${ExternalCommand.toOSCommand(nuxt)} --force-exit"
+    val command = s"$nuxt --force-exit"
     logger.debug(s"\t+ Nuxt.js transpiling $projectPath")
     ExternalCommand.run(command, projectPath.toString) match {
       case Success(_) =>

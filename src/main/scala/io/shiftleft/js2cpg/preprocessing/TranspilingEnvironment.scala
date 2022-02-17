@@ -7,21 +7,20 @@ import org.slf4j.LoggerFactory
 import scala.util.{Failure, Success}
 
 object TranspilingEnvironment {
+
   // These are singleton objects because we want to check the environment only once
   // even if multiple transpilers require this specific environment:
   private var isValid: Option[Boolean]         = None
   private var isYarnAvailable: Option[Boolean] = None
   private var isNpmAvailable: Option[Boolean]  = None
 
-  val YARN: String = ExternalCommand.toOSCommand("yarn")
-  val NPM: String  = ExternalCommand.toOSCommand("npm")
-
   val YARN_ADD: String =
-    s"$YARN --prefer-offline --ignore-scripts --legacy-peer-deps --dev -W add"
+    s"yarn --prefer-offline --ignore-scripts --legacy-peer-deps --dev -W add"
   val YARN_INSTALL: String =
-    s"$YARN --prefer-offline --ignore-scripts --legacy-peer-deps install"
+    s"yarn --prefer-offline --ignore-scripts --legacy-peer-deps install"
   val NPM_INSTALL: String =
-    s"$NPM --prefer-offline --no-audit --progress=false --ignore-scripts --legacy-peer-deps --save-dev install"
+    s"npm --prefer-offline --no-audit --progress=false --ignore-scripts --legacy-peer-deps --save-dev install"
+
 }
 
 trait TranspilingEnvironment {
@@ -33,7 +32,7 @@ trait TranspilingEnvironment {
 
   private def checkForYarn(): Boolean = {
     logger.debug("\t+ Checking yarn ...")
-    ExternalCommand.run(s"${TranspilingEnvironment.YARN} -v", projectPath.toString) match {
+    ExternalCommand.run(s"yarn -v", projectPath.toString) match {
       case Success(result) =>
         logger.debug(s"\t+ yarn is available: $result")
         true
@@ -45,7 +44,7 @@ trait TranspilingEnvironment {
 
   private def checkForNpm(): Boolean = {
     logger.debug(s"\t+ Checking npm ...")
-    ExternalCommand.run(s"${TranspilingEnvironment.NPM} -v", projectPath.toString) match {
+    ExternalCommand.run(s"npm -v", projectPath.toString) match {
       case Success(result) =>
         logger.debug(s"\t+ npm is available: $result")
         true
@@ -57,10 +56,7 @@ trait TranspilingEnvironment {
 
   private def setNpmPython(): Boolean = {
     logger.debug("\t+ Setting npm config ...")
-    ExternalCommand.run(
-      s"${TranspilingEnvironment.NPM} config set python python2.7",
-      projectPath.toString
-    ) match {
+    ExternalCommand.run(s"npm config set python python2.7", projectPath.toString) match {
       case Success(_) =>
         logger.debug("\t+ Set successfully")
         true

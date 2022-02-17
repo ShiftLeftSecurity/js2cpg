@@ -11,7 +11,8 @@ object ExternalCommand {
   private val COMMAND_AND: String = " && "
   private val IS_WIN: Boolean     = scala.util.Properties.isWin
 
-  def toOSCommand(command: String): String = if (IS_WIN) command + ".cmd" else command
+  private def toOSCommand(command: String): Seq[String] =
+    if (IS_WIN) Seq("cmd", "/c", command) else Seq("sh", "-c", command)
 
   def run(
     command: String,
@@ -24,7 +25,8 @@ object ExternalCommand {
     val commands                    = command.split(COMMAND_AND).toSeq
     commands
       .map(cmd =>
-        Try(Process(cmd, new io.File(inDir), extraEnv.toList: _*).!(logger)).toOption.getOrElse(1)
+        Try(Process(toOSCommand(cmd), new io.File(inDir), extraEnv.toList: _*).!(logger)).toOption
+          .getOrElse(1)
       )
       .sum match {
       case 0 =>

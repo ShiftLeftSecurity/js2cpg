@@ -36,7 +36,7 @@ class BabelTranspiler(
       subDir.map(s => File(tmpTranspileDir.toString, s.toString)).getOrElse(File(tmpTranspileDir))
 
     val babel = Paths.get(projectPath.toString, "node_modules", ".bin", "babel").toString
-    val command = s"${ExternalCommand.toOSCommand(babel)} . " +
+    val command = s"$babel . " +
       "--no-babelrc " +
       s"--source-root '${in.toString}' " +
       "--source-maps true " +
