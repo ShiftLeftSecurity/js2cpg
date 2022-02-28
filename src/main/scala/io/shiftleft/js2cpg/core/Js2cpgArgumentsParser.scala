@@ -119,15 +119,11 @@ class Js2cpgArgumentsParser {
       .text("enables transpiling Typescript files to Javascript")
       .hidden()
     opt[Unit](WITH_NODE_MODULES_FOLDER)
-      .text(
-        s"include the node_module folder (defaults to `${Config.DEFAULT_WITH_NODE_MODULES_FOLDER}`)"
-      )
+      .text(s"include the node_module folder (defaults to `${Config.DEFAULT_WITH_NODE_MODULES_FOLDER}`)")
       .action((_, c) => c.copy(withNodeModuleFolder = true))
       .hidden()
     opt[Unit](WITH_TS_TYPES)
-      .text(
-        s"query types via Typescript; needs a `package.json` (defaults to `${Config.DEFAULT_TS_TYPES}`)"
-      )
+      .text(s"query types via Typescript; needs a `package.json` (defaults to `${Config.DEFAULT_TS_TYPES}`)")
       .action((_, c) => c.copy(withTsTypes = true))
       .hidden() // deprecated
     opt[Seq[String]](EXCLUDE)
@@ -136,26 +132,18 @@ class Js2cpgArgumentsParser {
       .text("files to exclude during CPG generation (paths relative to <srcdir> or absolute paths)")
     opt[String](EXCLUDE_REGEX)
       .action((x, c) => c.copy(ignoredFilesRegex = x.r))
-      .text(
-        "a regex specifying files to exclude during CPG generation (the absolute file path is matched)"
-      )
+      .text("a regex specifying files to exclude during CPG generation (the absolute file path is matched)")
     // for backwards compatibility - has no effect:
     opt[Unit](IGNORE_MINIFIED)
-      .text(
-        "ignore minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')"
-      )
+      .text("ignore minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')")
       .hidden() // deprecated
     opt[Unit](WITH_MINIFIED)
       .action((_, c) => c.copy(ignoreMinified = false))
       .hidden() // deprecated
-      .text(
-        "include minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')"
-      )
+      .text("include minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')")
     opt[Unit](INCLUDE_MINIFIED)
       .action((_, c) => c.copy(ignoreMinified = false))
-      .text(
-        "include minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')"
-      )
+      .text("include minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')")
     opt[Unit](WITH_TESTS)
       .action((_, c) => c.copy(ignoreTests = false))
       .hidden() // deprecated
@@ -177,9 +165,7 @@ class Js2cpgArgumentsParser {
     opt[Seq[String]](PRIVATE_DEPS)
       .valueName("<dep1>,<dep2>,...")
       .action((x, c) => c.copy(privateDeps = c.privateDeps ++ x.flatMap(d => Seq(d, s"@$d"))))
-      .text(
-        s"additional private dependencies to be analyzed from '${FileDefaults.NODE_MODULES_DIR_NAME}'"
-      )
+      .text(s"additional private dependencies to be analyzed from '${FileDefaults.NODE_MODULES_DIR_NAME}'")
     opt[Unit](INCLUDE_CONFIGS)
       .text("include configuration files (*.conf.js, *.config.js, *.json)")
       .action((_, c) => c.copy(includeConfigs = true))

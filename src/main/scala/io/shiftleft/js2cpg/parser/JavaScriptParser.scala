@@ -23,10 +23,7 @@ object JavaScriptParser {
     case l if l.length == 1 =>
       Seq(s"(function (exports, require, module, __filename, __dirname) { ${l.head} });")
     case l if l.length == 2 =>
-      Seq(
-        s"(function (exports, require, module, __filename, __dirname) { ${l.head}",
-        s"${l(1)} });"
-      )
+      Seq(s"(function (exports, require, module, __filename, __dirname) { ${l.head}", s"${l(1)} });")
     case l =>
       val (head, body, last) = (l.head, l.tail.slice(0, l.tail.length - 1), l.last)
       s"(function (exports, require, module, __filename, __dirname) { $head" +: body :+ s"$last });"
@@ -54,9 +51,8 @@ object JavaScriptParser {
     }
   }
 
-  private class ErrorNodeCollector(
-    private val errorNodes: mutable.Buffer[ErrorNode] = mutable.ListBuffer.empty
-  ) extends DefaultAstVisitor {
+  private class ErrorNodeCollector(private val errorNodes: mutable.Buffer[ErrorNode] = mutable.ListBuffer.empty)
+      extends DefaultAstVisitor {
 
     override def enterErrorNode(errorNode: ErrorNode): Boolean = {
       errorNodes += errorNode
@@ -74,11 +70,7 @@ object JavaScriptParser {
   }
 
   private def buildParser(jsSource: JsSource, errorManager: Js2CpgErrMgr): Parser = {
-    new Parser(
-      ScriptEnvironment.builder().ecmaScriptVersion(ecmaVersion2020).build(),
-      jsSource.source,
-      errorManager
-    )
+    new Parser(ScriptEnvironment.builder().ecmaScriptVersion(ecmaVersion2020).build(), jsSource.source, errorManager)
   }
 
   private def nodeJsFix(jsSource: JsSource): JsSource = {
@@ -99,9 +91,7 @@ object JavaScriptParser {
         val fixed     = buildParser(newSource, moduleErrorManager).parseModule(moduleName)
         if (fixed == null) {
           moduleErrorManager.printMessages()
-          throw new ParserException(
-            s"Parsing of file '${jsSource.filePath}' failed! See DEBUG logs."
-          )
+          throw new ParserException(s"Parsing of file '${jsSource.filePath}' failed! See DEBUG logs.")
         } else {
           logger.debug(s"Applied NodeJS fix for file '${jsSource.filePath}'.")
           (fixed, newSource)
@@ -115,9 +105,7 @@ object JavaScriptParser {
           case null =>
             moduleErrorManager.printMessages()
             nonStrictErrorManager.printMessages()
-            throw new ParserException(
-              s"Parsing of file '${jsSource.filePath}' failed! See DEBUG logs."
-            )
+            throw new ParserException(s"Parsing of file '${jsSource.filePath}' failed! See DEBUG logs.")
           case nonStrictAst =>
             logger.debug(s"Falling back to non-strict mode for file '${jsSource.filePath}'.")
             (nonStrictAst, jsSource)

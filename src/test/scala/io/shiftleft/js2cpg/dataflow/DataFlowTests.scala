@@ -93,11 +93,7 @@ class JSDataFlowTest2 extends DataFlowCodeToCpgSuite {
     def flows                                 = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSetMutable shouldBe
-      Set(
-        List(("foo(a)", 7)),
-        List(("a = 10", 5), ("a < y", 6), ("foo(a)", 7)),
-        List(("a < y", 6), ("foo(a)", 7))
-      )
+      Set(List(("foo(a)", 7)), List(("a = 10", 5), ("a < y", 6), ("foo(a)", 7)), List(("a < y", 6), ("foo(a)", 7)))
   }
 }
 
@@ -305,9 +301,7 @@ class JSDataFlowTest10 extends DataFlowCodeToCpgSuite {
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSetMutable shouldBe
-      Set(
-        List(("a = 37", 3), ("b = a", 4), ("b + c", 6), ("z = b + c", 6), ("z++", 7), ("x = z", 9))
-      )
+      Set(List(("a = 37", 3), ("b = a", 4), ("b + c", 6), ("z = b + c", 6), ("z++", 7), ("x = z", 9)))
   }
 }
 
@@ -436,14 +430,7 @@ class JSDataFlowTest16 extends DataFlowCodeToCpgSuite {
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSetMutable shouldBe Set(
-      List(
-        ("source()", 3),
-        ("return source()", 3),
-        ("RET", 2),
-        ("bar()", 9),
-        ("y = bar()", 9),
-        ("sink(y)", 10)
-      )
+      List(("source()", 3), ("return source()", 3), ("RET", 2), ("bar()", 9), ("y = bar()", 9), ("sink(y)", 10))
     )
   }
 
@@ -539,9 +526,7 @@ class JSDataFlowTest19 extends DataFlowCodeToCpgSuite {
     def sink   = cpg.call.code("sink.*").argument
     def flows  = sink.reachableByFlows(source)
 
-    flows.map(flowToResultPairs).toSetMutable shouldBe Set(
-      List(("source(a.b)", 3), ("sink(a.b)", 4))
-    )
+    flows.map(flowToResultPairs).toSetMutable shouldBe Set(List(("source(a.b)", 3), ("sink(a.b)", 4)))
   }
 }
 

@@ -13,12 +13,7 @@ import java.nio.file.{Path, StandardCopyOption}
 import scala.util.Try
 import scala.util.chaining.scalaUtilChainingOps
 
-class TranspilationRunner(
-  projectPath: Path,
-  tmpTranspileDir: Path,
-  config: Config,
-  subDir: Option[Path] = None
-) {
+class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Config, subDir: Option[Path] = None) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 

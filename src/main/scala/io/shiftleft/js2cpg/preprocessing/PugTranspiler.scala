@@ -9,8 +9,7 @@ import org.slf4j.LoggerFactory
 import java.nio.file.{Path, Paths}
 import scala.util.{Failure, Success}
 
-class PugTranspiler(override val config: Config, override val projectPath: Path)
-    extends Transpiler {
+class PugTranspiler(override val config: Config, override val projectPath: Path) extends Transpiler {
 
   private val logger = LoggerFactory.getLogger(getClass)
 

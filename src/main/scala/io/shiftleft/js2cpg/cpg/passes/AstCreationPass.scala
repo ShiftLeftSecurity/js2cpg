@@ -15,16 +15,11 @@ import io.shiftleft.js2cpg.util.SourceWrapper._
 
 import scala.util.{Failure, Success, Try}
 
-/** Given a list of filenames, this pass creates the abstract syntax tree and CPG AST for each file.
-  * Files are processed in parallel.
+/** Given a list of filenames, this pass creates the abstract syntax tree and CPG AST for each file. Files are processed
+  * in parallel.
   */
-class AstCreationPass(
-  srcDir: File,
-  filenames: List[(Path, Path)],
-  cpg: Cpg,
-  keyPool: IntervalKeyPool,
-  report: Report
-) extends ConcurrentWriterCpgPass[(Path, Path)](cpg, keyPool = Some(keyPool)) {
+class AstCreationPass(srcDir: File, filenames: List[(Path, Path)], cpg: Cpg, keyPool: IntervalKeyPool, report: Report)
+    extends ConcurrentWriterCpgPass[(Path, Path)](cpg, keyPool = Some(keyPool)) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 

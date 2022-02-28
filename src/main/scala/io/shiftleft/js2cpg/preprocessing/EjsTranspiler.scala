@@ -12,8 +12,7 @@ import java.nio.file.Path
 import scala.collection.{mutable, SortedMap}
 import scala.util.{Failure, Success, Try}
 
-class EjsTranspiler(override val config: Config, override val projectPath: Path)
-    extends Transpiler {
+class EjsTranspiler(override val config: Config, override val projectPath: Path) extends Transpiler {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
@@ -90,18 +89,12 @@ class EjsTranspiler(override val config: Config, override val projectPath: Path)
 
   override def shouldRun(): Boolean = config.templateTranspiling && ejsFiles.nonEmpty
 
-  private def getLineOfSource(
-    positionToLineNumberMapping: SortedMap[Int, Int],
-    position: Int
-  ): Int = {
+  private def getLineOfSource(positionToLineNumberMapping: SortedMap[Int, Int], position: Int): Int = {
     val (_, lineNumber) = positionToLineNumberMapping.minAfter(position).get
     lineNumber
   }
 
-  private def getColumnOfSource(
-    positionToFirstPositionInLineMapping: SortedMap[Int, Int],
-    position: Int
-  ): Int = {
+  private def getColumnOfSource(positionToFirstPositionInLineMapping: SortedMap[Int, Int], position: Int): Int = {
     val (_, firstPositionInLine) = positionToFirstPositionInLineMapping.minAfter(position).get
     position - firstPositionInLine
   }

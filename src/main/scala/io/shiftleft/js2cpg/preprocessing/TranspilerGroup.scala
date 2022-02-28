@@ -8,11 +8,8 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import scala.util.{Failure, Success}
 
-case class TranspilerGroup(
-  override val config: Config,
-  override val projectPath: Path,
-  transpilers: Seq[Transpiler]
-) extends Transpiler {
+case class TranspilerGroup(override val config: Config, override val projectPath: Path, transpilers: Seq[Transpiler])
+    extends Transpiler {
 
   private val logger = LoggerFactory.getLogger(getClass)
 

@@ -24,11 +24,8 @@ object TypescriptTranspiler {
 
 }
 
-class TypescriptTranspiler(
-  override val config: Config,
-  override val projectPath: Path,
-  subDir: Option[Path] = None
-) extends Transpiler {
+class TypescriptTranspiler(override val config: Config, override val projectPath: Path, subDir: Option[Path] = None)
+    extends Transpiler {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
@@ -96,9 +93,7 @@ class TypescriptTranspiler(
       s"${TranspilingEnvironment.NPM_INSTALL} typescript"
     }
     logger.info("Installing TypeScript dependencies and plugins. That will take a while.")
-    logger.debug(
-      s"\t+ Installing Typescript plugins with command '$command' in path '$projectPath'"
-    )
+    logger.debug(s"\t+ Installing Typescript plugins with command '$command' in path '$projectPath'")
     ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
       case Success(_) =>
         logger.info("\t+ TypeScript plugins installed")

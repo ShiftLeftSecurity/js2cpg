@@ -5,8 +5,7 @@ import io.shiftleft.js2cpg.parser.DefaultAstVisitor
 
 import scala.collection.mutable
 
-class UsedIdentNodesPass(val usedIdentNodes: mutable.Set[String] = mutable.HashSet.empty)
-    extends DefaultAstVisitor {
+class UsedIdentNodesPass(val usedIdentNodes: mutable.Set[String] = mutable.HashSet.empty) extends DefaultAstVisitor {
 
   override def enterIdentNode(identNode: IdentNode): Boolean = {
     usedIdentNodes.add(identNode.getName)

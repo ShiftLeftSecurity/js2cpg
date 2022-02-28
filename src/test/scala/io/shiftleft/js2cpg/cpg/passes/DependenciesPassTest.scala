@@ -44,9 +44,8 @@ class DependenciesPassTest extends AbstractPassTest {
       }
     }
 
-    "generate dependency nodes correctly (no dependencies at all)" in DependencyFixture("", "{}") {
-      cpg =>
-        getDependencies(cpg).size shouldBe 0
+    "generate dependency nodes correctly (no dependencies at all)" in DependencyFixture("", "{}") { cpg =>
+      getDependencies(cpg).size shouldBe 0
     }
 
     "generate dependency nodes correctly (empty dependency)" in DependencyFixture(

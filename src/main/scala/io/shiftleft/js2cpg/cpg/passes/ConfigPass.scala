@@ -36,13 +36,7 @@ class ConfigPass(filenames: List[(Path, Path)], cpg: Cpg, keyPool: IntervalKeyPo
       val loc        = content.size
       val configNode = NewConfigFile().name(fileName).content(content.mkString("\n"))
 
-      report.addReportInfo(
-        fileName,
-        loc.toLong,
-        parsed = true,
-        cpgGen = true,
-        isConfig = isConfigFile(fileName)
-      )
+      report.addReportInfo(fileName, loc.toLong, parsed = true, cpgGen = true, isConfig = isConfigFile(fileName))
 
       localDiff.addNode(configNode)
       localDiff

@@ -5,7 +5,7 @@ import better.files.File
 import java.nio.file.{Files, FileVisitResult, Path, SimpleFileVisitor}
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileDefaults._
-import io.shiftleft.x2cpg.IOUtils
+import io.shiftleft.utils.IOUtils
 import org.slf4j.LoggerFactory
 
 import java.nio.file.attribute.BasicFileAttributes
@@ -46,8 +46,8 @@ object FileUtils {
     excludedPaths.clear()
   }
 
-  /** Cleans the given path as String and removes unwanted elements that occur during transpilation
-    * on the Windows platform and/or CI environments.
+  /** Cleans the given path as String and removes unwanted elements that occur during transpilation on the Windows
+    * platform and/or CI environments.
     */
   def cleanPath(sourceFileName: String): String = {
     val replacedDots = sourceFileName
@@ -164,20 +164,15 @@ object FileUtils {
     (positionToLineNumber, positionToFirstPositionInLine)
   }
 
-  final case class FileStatistics(
-    linesOfCode: Long,
-    longestLineLength: Int,
-    containsMarker: Boolean
-  )
+  final case class FileStatistics(linesOfCode: Long, longestLineLength: Int, containsMarker: Boolean)
 
   /** Calculates various statistics of the source.
     *   - lines of code
     *   - longest line of code
     *   - containment of a given marker
     *
-    * This implementation is just as fast as the unix word count program `wc -l`. By using Scala
-    * BufferedSource we gain a lot of performance as it uses a Java PushbackReader and
-    * BufferedReader.
+    * This implementation is just as fast as the unix word count program `wc -l`. By using Scala BufferedSource we gain
+    * a lot of performance as it uses a Java PushbackReader and BufferedReader.
     */
   def fileStatistics(lines: Seq[String]): FileStatistics = {
     var linesOfCode       = 0L

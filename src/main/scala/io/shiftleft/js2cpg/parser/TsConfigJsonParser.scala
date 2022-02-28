@@ -14,10 +14,7 @@ object TsConfigJsonParser {
   private val logger = LoggerFactory.getLogger(TsConfigJsonParser.getClass)
 
   def module(projectPath: Path, tsc: String): String = {
-    ExternalCommand.run(
-      s"${ExternalCommand.toOSCommand(tsc)} --showConfig",
-      projectPath.toString
-    ) match {
+    ExternalCommand.run(s"${ExternalCommand.toOSCommand(tsc)} --showConfig", projectPath.toString) match {
       case Success(tsConfig) =>
         val json = new ObjectMapper().readTree(tsConfig)
         val moduleOption =
@@ -38,10 +35,7 @@ object TsConfigJsonParser {
 
   def isSolutionTsConfig(projectPath: Path, tsc: String): Boolean = {
     // a solution tsconfig is one with 0 files and at least one reference, see https://angular.io/config/solution-tsconfig
-    ExternalCommand.run(
-      s"${ExternalCommand.toOSCommand(tsc)} --listFilesOnly",
-      projectPath.toString
-    ) match {
+    ExternalCommand.run(s"${ExternalCommand.toOSCommand(tsc)} --listFilesOnly", projectPath.toString) match {
       case Success(files) =>
         files.isEmpty
       case Failure(exception) =>
@@ -53,10 +47,7 @@ object TsConfigJsonParser {
   }
 
   def subprojects(projectPath: Path, tsc: String): List[String] = {
-    ExternalCommand.run(
-      s"${ExternalCommand.toOSCommand(tsc)} --showConfig",
-      projectPath.toString
-    ) match {
+    ExternalCommand.run(s"${ExternalCommand.toOSCommand(tsc)} --showConfig", projectPath.toString) match {
       case Success(config) =>
         val json = new ObjectMapper().readTree(config)
         val referenceIt =
@@ -66,9 +57,7 @@ object TsConfigJsonParser {
         }.toList
 
       case Failure(exception) =>
-        logger.debug(
-          s"\t- TypeScript - listing files failed: ${exception.getMessage}. Assuming no solution tsconfig."
-        )
+        logger.debug(s"\t- TypeScript - listing files failed: ${exception.getMessage}. Assuming no solution tsconfig.")
         Nil
     }
   }

@@ -50,9 +50,7 @@ class ExcludeTest extends AnyWordSpec with Matchers with TableDrivenPropertyChec
               .withOverflowConfig(Config.withDefaults.withStorageLocation(cpgPath))
           )
 
-      fileNames(cpg) should contain theSameElementsAs expectedFiles.map(
-        _.replace("/", java.io.File.separator)
-      )
+      fileNames(cpg) should contain theSameElementsAs expectedFiles.map(_.replace("/", java.io.File.separator))
     }
   }
 

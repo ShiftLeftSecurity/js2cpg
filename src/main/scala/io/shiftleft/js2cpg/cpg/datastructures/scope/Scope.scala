@@ -25,26 +25,12 @@ class Scope {
     scopeNode: NewNode,
     capturingRefId: Option[NewNode]
   ): Unit =
-    stack = Some(
-      new MethodScopeElement(
-        methodFullName,
-        capturingRefId,
-        name,
-        scopeNode,
-        surroundingScope = stack
-      )
-    )
+    stack = Some(new MethodScopeElement(methodFullName, capturingRefId, name, scopeNode, surroundingScope = stack))
 
   def pushNewBlockScope(scopeNode: NewNode): Unit = {
     peek match {
       case Some(stackTop) =>
-        stack = Some(
-          new BlockScopeElement(
-            stackTop.subScopeCounter.toString,
-            scopeNode,
-            surroundingScope = stack
-          )
-        )
+        stack = Some(new BlockScopeElement(stackTop.subScopeCounter.toString, scopeNode, surroundingScope = stack))
         stackTop.subScopeCounter += 1
       case None =>
         stack = Some(new BlockScopeElement("0", scopeNode, surroundingScope = stack))
@@ -67,9 +53,7 @@ class Scope {
     pendingReferences prepend PendingReference(variableName, referenceNode, stack)
   }
 
-  def resolve[A](
-    unresolvedHandler: (NewNode, String) => (NewNode, ScopeType)
-  ): Iterator[ResolvedReference] = {
+  def resolve[A](unresolvedHandler: (NewNode, String) => (NewNode, ScopeType)): Iterator[ResolvedReference] = {
     pendingReferences.iterator.map { pendingReference =>
       val resolvedReferenceOption = pendingReference.tryResolve()
 
@@ -77,12 +61,7 @@ class Scope {
         val methodScopeNodeId = Scope.getEnclosingMethodScope(pendingReference.stack)
         val (newVariableNode, scopeType) =
           unresolvedHandler(methodScopeNodeId, pendingReference.variableName)
-        addVariable(
-          pendingReference.stack,
-          pendingReference.variableName,
-          newVariableNode,
-          scopeType
-        )
+        addVariable(pendingReference.stack, pendingReference.variableName, newVariableNode, scopeType)
         pendingReference.tryResolve().get
       }
     }

@@ -15,19 +15,13 @@ object ExternalCommand {
 
   def toOSCommand(command: String): String = if (IS_WIN) command + ".cmd" else command
 
-  def run(
-    command: String,
-    inDir: String = ".",
-    extraEnv: Map[String, String] = Map.empty
-  ): Try[String] = {
+  def run(command: String, inDir: String = ".", extraEnv: Map[String, String] = Map.empty): Try[String] = {
     val result                      = mutable.ArrayBuffer.empty[String]
     val lineHandler: String => Unit = line => result += line
     val logger                      = ProcessLogger(lineHandler, lineHandler)
     val commands                    = command.split(COMMAND_AND).toSeq
     commands
-      .map(cmd =>
-        Try(Process(cmd, new io.File(inDir), extraEnv.toList: _*).!(logger)).toOption.getOrElse(1)
-      )
+      .map(cmd => Try(Process(cmd, new io.File(inDir), extraEnv.toList: _*).!(logger)).toOption.getOrElse(1))
       .sum match {
       case 0 =>
         Success(result.mkString(System.lineSeparator()))

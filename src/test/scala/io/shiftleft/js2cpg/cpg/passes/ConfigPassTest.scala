@@ -59,11 +59,8 @@ class ConfigPassTest extends AnyWordSpec with Matchers {
 
         val cpg     = Cpg.emptyCpg
         val keyPool = new IntervalKeyPool(1001, 2000)
-        val filenames = List(
-          (fileA.path, fileA.parent.path),
-          (fileB.path, fileB.parent.path),
-          (fileC.path, fileC.parent.path)
-        )
+        val filenames =
+          List((fileA.path, fileA.parent.path), (fileB.path, fileB.parent.path), (fileC.path, fileC.parent.path))
         new ConfigPass(filenames, cpg, keyPool, new Report()).createAndApply()
 
         val allConfigFiles = configFiles(cpg)

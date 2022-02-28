@@ -4,8 +4,8 @@ import io.shiftleft.js2cpg.io.FileDefaults.{EMSCRIPTEN_END_FUNCS, EMSCRIPTEN_STA
 
 object EmScriptenCleaner {
 
-  /** If code contains emscripten code (marked with start funcs and end funcs comments) we simply
-    * replace it with empty lines.
+  /** If code contains emscripten code (marked with start funcs and end funcs comments) we simply replace it with empty
+    * lines.
     */
   def clean(code: Seq[String]): Seq[String] = {
     val startIndex = code.indexWhere(EMSCRIPTEN_START_FUNCS.matches)
