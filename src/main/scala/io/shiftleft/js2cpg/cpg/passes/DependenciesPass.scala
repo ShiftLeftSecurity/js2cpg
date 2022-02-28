@@ -9,8 +9,7 @@ import io.shiftleft.js2cpg.parser.PackageJsonParser
 
 import java.nio.file.Paths
 
-class DependenciesPass(cpg: Cpg, config: Config, keyPool: KeyPool)
-    extends CpgPass(cpg, keyPool = Some(keyPool)) {
+class DependenciesPass(cpg: Cpg, config: Config, keyPool: KeyPool) extends CpgPass(cpg, keyPool = Some(keyPool)) {
 
   override def run(): Iterator[DiffGraph] = {
     val diffGraph = DiffGraph.newBuilder

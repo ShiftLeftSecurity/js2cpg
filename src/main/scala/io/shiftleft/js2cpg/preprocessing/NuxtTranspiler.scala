@@ -29,18 +29,13 @@ object NuxtTranspiler {
       val nuxtFolder     = dir.resolve(NUXT_FOLDER)
       val nuxtDistFolder = nuxtFolder.resolve("dist")
       FileUtils
-        .getFileTree(
-          nuxtFolder,
-          config.copy(ignoredFiles = config.ignoredFiles :+ nuxtDistFolder),
-          List(JS_SUFFIX)
-        )
+        .getFileTree(nuxtFolder, config.copy(ignoredFiles = config.ignoredFiles :+ nuxtDistFolder), List(JS_SUFFIX))
         .map(f => (f, dir))
     } else { Nil }
   }
 }
 
-class NuxtTranspiler(override val config: Config, override val projectPath: Path)
-    extends Transpiler {
+class NuxtTranspiler(override val config: Config, override val projectPath: Path) extends Transpiler {
 
   import NuxtTranspiler._
 

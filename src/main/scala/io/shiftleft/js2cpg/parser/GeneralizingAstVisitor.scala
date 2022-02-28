@@ -3,13 +3,12 @@ package io.shiftleft.js2cpg.parser
 import com.oracle.js.parser.ir._
 import com.oracle.js.parser.ir.visitor.TranslatorNodeVisitor
 
-/** This visitor mapped the enterXXX methods to the visit() to provide an interface which is closer
-  * to the original pattern. Furthermore, a not overridden visit() implementation calls the visit()
-  * method for the next type in the class hierarchy to allow using code to handle certain AST parts
-  * in a generalized way on any part of the class hierarchy.
+/** This visitor mapped the enterXXX methods to the visit() to provide an interface which is closer to the original
+  * pattern. Furthermore, a not overridden visit() implementation calls the visit() method for the next type in the
+  * class hierarchy to allow using code to handle certain AST parts in a generalized way on any part of the class
+  * hierarchy.
   */
-class GeneralizingAstVisitor[T]
-    extends TranslatorNodeVisitor[LexicalContext, T](new LexicalContext()) {
+class GeneralizingAstVisitor[T] extends TranslatorNodeVisitor[LexicalContext, T](new LexicalContext()) {
 
   protected val globalBuiltins =
     Set(
@@ -82,9 +81,7 @@ class GeneralizingAstVisitor[T]
     )
 
   def visit(node: Node): T = {
-    throw new AssertionError(
-      String.format("should not reach here. %s(%s)", node.getClass.getSimpleName, node)
-    )
+    throw new AssertionError(String.format("should not reach here. %s(%s)", node.getClass.getSimpleName, node))
   }
 
   def visit(node: AccessNode): T = {

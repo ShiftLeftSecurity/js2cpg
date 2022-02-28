@@ -10,8 +10,8 @@ import overflowdb.traversal.toNodeTraversal
 
 import scala.collection.mutable
 
-/** The Javascript specific call linker links static call sites (by full name) and call sites to
-  * methods in the same file (by name).
+/** The Javascript specific call linker links static call sites (by full name) and call sites to methods in the same
+  * file (by name).
   */
 class CallLinkerPass(cpg: Cpg) extends CpgPass(cpg) {
 
@@ -65,7 +65,7 @@ class CallLinkerPass(cpg: Cpg) extends CpgPass(cpg) {
 
   override def run(): Iterator[DiffGraph] = {
     val (methodsByNameAndFileType, methodsByFullName) = createMethodsByNameAndFile()
-    val diffGraph = linkCallsites(methodsByNameAndFileType, methodsByFullName)
+    val diffGraph                                     = linkCallsites(methodsByNameAndFileType, methodsByFullName)
     Iterator(diffGraph)
   }
 

@@ -11,7 +11,7 @@ import io.shiftleft.js2cpg.preprocessing.NuxtTranspiler
 import io.shiftleft.js2cpg.preprocessing.TranspilationRunner
 import io.shiftleft.js2cpg.util.MemoryMetrics
 import io.shiftleft.passes.{IntervalKeyPool, KeyPoolCreator}
-import io.shiftleft.x2cpg.X2Cpg.newEmptyCpg
+import io.joern.x2cpg.X2Cpg.newEmptyCpg
 import org.slf4j.LoggerFactory
 
 import scala.util.{Failure, Success, Try}
@@ -45,9 +45,7 @@ class Js2Cpg {
   }
 
   private def handleVsixProject(project: File, tmpProjectDir: File): File = {
-    logger.debug(
-      s"Project is a VS code extension file (*$VSIX_SUFFIX). Unpacking it to '$tmpProjectDir'."
-    )
+    logger.debug(s"Project is a VS code extension file (*$VSIX_SUFFIX). Unpacking it to '$tmpProjectDir'.")
     project.streamedUnzip(tmpProjectDir) / "extension"
   }
 
@@ -62,9 +60,7 @@ class Js2Cpg {
           logger.debug(
             s"Unable to copy project to temporary workspace '$tmpProjectDir'. Does it contain broken symlinks?"
           )
-          logger.debug(
-            s"Retrying to copy '$realProjectPath' to temporary workspace '$tmpProjectDir' without symlinks."
-          )
+          logger.debug(s"Retrying to copy '$realProjectPath' to temporary workspace '$tmpProjectDir' without symlinks.")
           FileUtils.copyToDirectory(realProjectPath, tmpProjectDir, config)(copyOptions =
             Seq(StandardCopyOption.REPLACE_EXISTING) ++ LinkOptions.noFollow
           )
@@ -97,11 +93,7 @@ class Js2Cpg {
 
   private def isInCi: Boolean = sys.env.get("CI").contains("true")
 
-  private def collectJsFiles(
-    jsFiles: List[(Path, Path)],
-    dir: Path,
-    config: Config
-  ): List[(Path, Path)] = {
+  private def collectJsFiles(jsFiles: List[(Path, Path)], dir: Path, config: Config): List[(Path, Path)] = {
     val transpiledJsFiles = FileUtils
       .getFileTree(dir, config, List(JS_SUFFIX, MJS_SUFFIX))
       .map(f => (f, dir))
@@ -214,12 +206,7 @@ class Js2Cpg {
       .createAndApply()
     new ConfigPass(configFiles(config, List(VUE_SUFFIX)), cpg, vueAsConfigPassPool, report)
       .createAndApply()
-    new PrivateKeyFilePass(
-      configFiles(config, List(KEY_SUFFIX)),
-      cpg,
-      privateKeyFilePassPool,
-      report
-    )
+    new PrivateKeyFilePass(configFiles(config, List(KEY_SUFFIX)), cpg, privateKeyFilePassPool, report)
       .createAndApply()
 
     if (config.includeHtml) {

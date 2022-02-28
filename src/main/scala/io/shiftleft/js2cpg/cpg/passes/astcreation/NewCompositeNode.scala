@@ -4,8 +4,7 @@ import io.shiftleft.codepropertygraph.generated.nodes.NewNode
 
 import scala.collection.mutable.ListBuffer
 
-class NewCompositeNode(underlying: ListBuffer[NewNode] = ListBuffer.empty[NewNode])
-    extends NewNode {
+class NewCompositeNode(underlying: ListBuffer[NewNode] = ListBuffer.empty[NewNode]) extends NewNode {
   override def label: String = "COMPOSITE"
 
   override def properties: Map[String, Any] = ??? // we do not need this

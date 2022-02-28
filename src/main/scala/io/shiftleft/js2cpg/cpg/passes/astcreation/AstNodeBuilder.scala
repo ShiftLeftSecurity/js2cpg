@@ -145,11 +145,7 @@ class AstNodeBuilder[NodeBuilderType](
     fieldIdentifier
   }
 
-  def createFieldAccessNode(
-    baseId: NewNode,
-    partId: NewNode,
-    lineAndColumn: LineAndColumn
-  ): NewCall = {
+  def createFieldAccessNode(baseId: NewNode, partId: NewNode, lineAndColumn: LineAndColumn): NewCall = {
     val call = createCallNode(
       codeOf(baseId) + "." + codeOf(partId),
       Operators.fieldAccess,
@@ -188,11 +184,7 @@ class AstNodeBuilder[NodeBuilderType](
     call
   }
 
-  def createEqualsCallNode(
-    lhsId: NewNode,
-    rhsId: NewNode,
-    lineAndColumn: LineAndColumn
-  ): NewCall = {
+  def createEqualsCallNode(lhsId: NewNode, rhsId: NewNode, lineAndColumn: LineAndColumn): NewCall = {
     val call = createCallNode(
       codeOf(lhsId) + " === " + codeOf(rhsId),
       Operators.equals,
@@ -209,11 +201,7 @@ class AstNodeBuilder[NodeBuilderType](
     call
   }
 
-  def createIndexAccessNode(
-    baseId: NewNode,
-    indexId: NewNode,
-    lineAndColumn: LineAndColumn
-  ): NewCall = {
+  def createIndexAccessNode(baseId: NewNode, indexId: NewNode, lineAndColumn: LineAndColumn): NewCall = {
     val call = createCallNode(
       codeOf(baseId) + "[" + codeOf(indexId) + "]",
       Operators.indexAccess,
@@ -258,11 +246,7 @@ class AstNodeBuilder[NodeBuilderType](
     call
   }
 
-  def createLiteralNode(
-    code: String,
-    lineAndColumn: LineAndColumn,
-    dynamicTypeOption: Option[String]
-  ): NewLiteral = {
+  def createLiteralNode(code: String, lineAndColumn: LineAndColumn, dynamicTypeOption: Option[String]): NewLiteral = {
     val line   = lineAndColumn.line
     val column = lineAndColumn.column
     val literal = NewLiteral()
@@ -292,12 +276,7 @@ class AstNodeBuilder[NodeBuilderType](
     }
   }
 
-  def createTernaryNode(
-    testId: NewNode,
-    trueId: NewNode,
-    falseId: NewNode,
-    lineAndColumn: LineAndColumn
-  ): NewCall = {
+  def createTernaryNode(testId: NewNode, trueId: NewNode, falseId: NewNode, lineAndColumn: LineAndColumn): NewCall = {
     val code = codeOf(testId) + " ? " + codeOf(trueId) + " : " + codeOf(falseId)
     val callId =
       createCallNode(code, Operators.conditional, DispatchTypes.STATIC_DISPATCH, lineAndColumn)
@@ -312,12 +291,7 @@ class AstNodeBuilder[NodeBuilderType](
     callId
   }
 
-  def createCallNode(
-    code: String,
-    callName: String,
-    dispatchType: String,
-    lineAndColumn: LineAndColumn
-  ): NewCall = {
+  def createCallNode(code: String, callName: String, dispatchType: String, lineAndColumn: LineAndColumn): NewCall = {
     val line   = lineAndColumn.line
     val column = lineAndColumn.column
     val call = NewCall()
@@ -350,10 +324,7 @@ class AstNodeBuilder[NodeBuilderType](
     namespaceBlock
   }
 
-  def createClosureBindingNode(
-    closureBindingId: String,
-    closureOriginalName: String
-  ): NewClosureBinding = {
+  def createClosureBindingNode(closureBindingId: String, closureOriginalName: String): NewClosureBinding = {
     val closureBinding = NewClosureBinding()
       .closureBindingId(Some(closureBindingId))
       .evaluationStrategy(EvaluationStrategies.BY_REFERENCE)
@@ -363,11 +334,7 @@ class AstNodeBuilder[NodeBuilderType](
     closureBinding
   }
 
-  def createMethodRefNode(
-    code: String,
-    methodFullName: String,
-    functionNode: FunctionNode
-  ): NewMethodRef = {
+  def createMethodRefNode(code: String, methodFullName: String, functionNode: FunctionNode): NewMethodRef = {
     val lineColumn = lineAndColumn(functionNode)
     val line       = lineColumn.line
     val column     = lineColumn.column
@@ -394,11 +361,7 @@ class AstNodeBuilder[NodeBuilderType](
     typeRef
   }
 
-  def createMethodNode(
-    methodName: String,
-    methodFullName: String,
-    functionNode: FunctionNode
-  ): NewMethod = {
+  def createMethodNode(methodName: String, methodFullName: String, functionNode: FunctionNode): NewMethod = {
     val lineColumn = lineAndColumn(functionNode)
     val line       = lineColumn.line
     val column     = lineColumn.column
@@ -423,11 +386,7 @@ class AstNodeBuilder[NodeBuilderType](
     modifier
   }
 
-  def createBlockNode(
-    node: Node,
-    keepWholeCode: Boolean = false,
-    customCode: Option[String] = None
-  ): NewBlock = {
+  def createBlockNode(node: Node, keepWholeCode: Boolean = false, customCode: Option[String] = None): NewBlock = {
     val lineColumn = lineAndColumn(node)
     val line       = lineColumn.line
     val column     = lineColumn.column
@@ -504,11 +463,7 @@ class AstNodeBuilder[NodeBuilderType](
     member
   }
 
-  def createLocalNode(
-    name: String,
-    typeFullName: String,
-    closureBindingId: Option[String] = None
-  ): NewLocal = {
+  def createLocalNode(name: String, typeFullName: String, closureBindingId: Option[String] = None): NewLocal = {
     val code = "N/A"
     val local = NewLocal()
       .code(shortenCode(code))

@@ -8,12 +8,8 @@ import io.shiftleft.passes.IntervalKeyPool
 import java.nio.file.Path
 import scala.util.matching.Regex
 
-class PrivateKeyFilePass(
-  filenames: List[(Path, Path)],
-  cpg: Cpg,
-  keyPool: IntervalKeyPool,
-  report: Report
-) extends ConfigPass(filenames, cpg, keyPool, report) {
+class PrivateKeyFilePass(filenames: List[(Path, Path)], cpg: Cpg, keyPool: IntervalKeyPool, report: Report)
+    extends ConfigPass(filenames, cpg, keyPool, report) {
 
   private val PRIVATE_KEY: Regex = """.*RSA\sPRIVATE\sKEY.*""".r
 

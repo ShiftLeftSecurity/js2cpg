@@ -7,10 +7,7 @@ import scala.util.Using
 
 object MemoryMetrics {
 
-  private class JmxRunnable(var port: Int, var sleep: Int)
-      extends JmxClient
-      with Runnable
-      with AutoCloseable {
+  private class JmxRunnable(var port: Int, var sleep: Int) extends JmxClient with Runnable with AutoCloseable {
 
     private val logger  = LoggerFactory.getLogger(classOf[JmxRunnable])
     private val MB      = 1024 * 1024

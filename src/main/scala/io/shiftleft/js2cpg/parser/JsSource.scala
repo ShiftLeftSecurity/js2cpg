@@ -45,36 +45,34 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
   )
 
   /** @return
-    *   the file path of the parsed file. If this file is the result of transpilation the original
-    *   source file path is calculated from the corresponding sourcemap.
+    *   the file path of the parsed file. If this file is the result of transpilation the original source file path is
+    *   calculated from the corresponding sourcemap.
     */
   def filePath: String = filePathFromSourceMap
 
   /** @return
-    *   the line number of a node in the parsed file. If this file is the result of transpilation
-    *   the original line number is calculated from the corresponding sourcemap.
+    *   the line number of a node in the parsed file. If this file is the result of transpilation the original line
+    *   number is calculated from the corresponding sourcemap.
     */
   def getLine(node: Node): Option[Int] = lineFromSourceMap(node)
 
   /** @return
-    *   the column number of a node in the parsed file. If this file is the result of transpilation
-    *   the original column number is calculated from the corresponding sourcemap.
+    *   the column number of a node in the parsed file. If this file is the result of transpilation the original column
+    *   number is calculated from the corresponding sourcemap.
     */
   def getColumn(node: Node): Option[Int] = columnFromSourceMap(node)
 
   /** @return
-    *   the code of a node in the parsed file. If this file is the result of transpilation the
-    *   original code is calculated from the corresponding sourcemap. Note: in this case, only the
-    *   re-mapped starting line/column number are available. Hence, we extract only a fixed number
-    *   of characters (max. until the end of the file).
+    *   the code of a node in the parsed file. If this file is the result of transpilation the original code is
+    *   calculated from the corresponding sourcemap. Note: in this case, only the re-mapped starting line/column number
+    *   are available. Hence, we extract only a fixed number of characters (max. until the end of the file).
     */
   def getCode(node: Node): String = codeFromSourceMap(node)
 
   def getString(node: Node): String = source.getString(node.getToken)
 
   /** @return
-    *   always the original file that was parsed. Might be a file that is the result of
-    *   transpilation
+    *   always the original file that was parsed. Might be a file that is the result of transpilation
     */
   def originalFilePath: String = {
     Option(source.getURL) match {
@@ -97,9 +95,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
       val cleanedPath = FileUtils.cleanPath(sourceFileName)
       // having "/" here is fine as JS source maps always have platform independent path separators
       val lookupPath = if (cleanedPath.contains("/" + srcDir.name + "/")) {
-        cleanedPath.substring(
-          cleanedPath.lastIndexOf("/" + srcDir.name + "/") + srcDir.name.length + 2
-        )
+        cleanedPath.substring(cleanedPath.lastIndexOf("/" + srcDir.name + "/") + srcDir.name.length + 2)
       } else {
         cleanedPath
       }
@@ -182,9 +178,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
                 // That can happen e.g., for synthetic return statements.
                 // Hence, we back up 1 char.
                 val startingCode =
-                  startingCodeLine.substring(
-                    math.min(math.max(startingCodeLine.length - 1, 0), originColumn)
-                  )
+                  startingCodeLine.substring(math.min(math.max(startingCodeLine.length - 1, 0), originColumn))
                 calculateCode(sourceWithLineNumbers, startingCode, originLine, maxCodeLength)
               case None =>
                 // It has an actual mapping, but it is synthetic code not found in the source file.
@@ -200,8 +194,8 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
 
   /** Code field calculation:
     *   - We start with the re-mapped line/column number.
-    *   - We always read at the length of the transpiled node (except if the original file ends
-    *     earlier) capped at MAX_CODE_LENGTH.
+    *   - We always read at the length of the transpiled node (except if the original file ends earlier) capped at
+    *     MAX_CODE_LENGTH.
     *   - If there would be more content we append ' [...]'.
     */
   @scala.annotation.tailrec
@@ -214,10 +208,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
     currentLine match {
       case line if line.length >= transpiledCodeLength =>
         shortenCode(line, transpiledCodeLength - 1)
-      case line
-          if line.length < transpiledCodeLength && sourceWithLineNumbers.contains(
-            currentLineNumber + 1
-          ) =>
+      case line if line.length < transpiledCodeLength && sourceWithLineNumbers.contains(currentLineNumber + 1) =>
         calculateCode(
           sourceWithLineNumbers,
           line + System.lineSeparator() + sourceWithLineNumbers(currentLineNumber + 1),
@@ -252,8 +243,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
 
   private def filePathFromSourceMap: String = {
     sourceMap match {
-      case Some(SourceMapOrigin(sourceFilePath, _, _))
-          if absoluteFilePath.contains(NuxtTranspiler.NUXT_FOLDER) =>
+      case Some(SourceMapOrigin(sourceFilePath, _, _)) if absoluteFilePath.contains(NuxtTranspiler.NUXT_FOLDER) =>
         srcDir.relativize(File(NuxtTranspiler.remapPath(sourceFilePath.toString))).toString
       case Some(SourceMapOrigin(sourceFilePath, _, _)) =>
         srcDir.relativize(File(sourceFilePath)).toString

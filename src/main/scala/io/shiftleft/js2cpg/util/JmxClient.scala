@@ -35,15 +35,10 @@ abstract class JmxClient {
     try {
       jmxc flatMap { jmxc =>
         val memoryMbean =
-          jmxc.getMBeanServerConnection.getAttribute(
-            new ObjectName("java.lang:type=Memory"),
-            "HeapMemoryUsage"
-          )
+          jmxc.getMBeanServerConnection.getAttribute(new ObjectName("java.lang:type=Memory"), "HeapMemoryUsage")
         val cd = memoryMbean.asInstanceOf[CompositeData]
 
-        Some(
-          JmxMemoryMetric(cd.get("used").asInstanceOf[Long], cd.get("committed").asInstanceOf[Long])
-        )
+        Some(JmxMemoryMetric(cd.get("used").asInstanceOf[Long], cd.get("committed").asInstanceOf[Long]))
       }
     } catch {
       case _: Throwable =>
@@ -82,41 +77,22 @@ abstract class JmxClient {
         val connection = jmxc.getMBeanServerConnection
         val gcParCollectionCount =
           connection
-            .getAttribute(
-              new ObjectName("java.lang:type=GarbageCollector,name=ParNew"),
-              "CollectionCount"
-            )
+            .getAttribute(new ObjectName("java.lang:type=GarbageCollector,name=ParNew"), "CollectionCount")
             .asInstanceOf[Long]
         val gcParCollectionTime =
           connection
-            .getAttribute(
-              new ObjectName("java.lang:type=GarbageCollector,name=ParNew"),
-              "CollectionTime"
-            )
+            .getAttribute(new ObjectName("java.lang:type=GarbageCollector,name=ParNew"), "CollectionTime")
             .asInstanceOf[Long]
         val gcConCollectionCount =
           connection
-            .getAttribute(
-              new ObjectName("java.lang:type=GarbageCollector,name=ConcurrentMarkSweep"),
-              "CollectionCount"
-            )
+            .getAttribute(new ObjectName("java.lang:type=GarbageCollector,name=ConcurrentMarkSweep"), "CollectionCount")
             .asInstanceOf[Long]
         val gcConCollectionTime =
           connection
-            .getAttribute(
-              new ObjectName("java.lang:type=GarbageCollector,name=ConcurrentMarkSweep"),
-              "CollectionTime"
-            )
+            .getAttribute(new ObjectName("java.lang:type=GarbageCollector,name=ConcurrentMarkSweep"), "CollectionTime")
             .asInstanceOf[Long]
 
-        Some(
-          JmxGCMetric(
-            gcParCollectionCount,
-            gcParCollectionTime,
-            gcConCollectionCount,
-            gcConCollectionTime
-          )
-        )
+        Some(JmxGCMetric(gcParCollectionCount, gcParCollectionTime, gcConCollectionCount, gcConCollectionTime))
       }
     } catch {
       case _: Throwable =>

@@ -25,8 +25,7 @@ object VueTranspiler {
   }
 }
 
-class VueTranspiler(override val config: Config, override val projectPath: Path)
-    extends Transpiler {
+class VueTranspiler(override val config: Config, override val projectPath: Path) extends Transpiler {
 
   import VueTranspiler.isVueProject
 
