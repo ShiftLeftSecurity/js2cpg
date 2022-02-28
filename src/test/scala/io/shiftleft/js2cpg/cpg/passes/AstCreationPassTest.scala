@@ -39,46 +39,45 @@ class AstCreationPassTest extends AbstractPassTest {
       typeDecls.checkProperty(PropertyNames.FILENAME, "test.js")
     }
 
-    "have correct structure for block expression" in AstFixture("let x = (class Foo {}, bar())") {
-      cpg =>
-        def program = cpg.method.nameExact(":program")
-        program.checkNodeCount(1)
+    "have correct structure for block expression" in AstFixture("let x = (class Foo {}, bar())") { cpg =>
+      def program = cpg.method.nameExact(":program")
+      program.checkNodeCount(1)
 
-        def classFooMetaTypeDecl =
-          cpg.typeDecl
-            .nameExact("Foo<meta>")
-            .filter(PropertyNames.FULL_NAME, "test.js::program:Foo<meta>")
-        classFooMetaTypeDecl.checkNodeCount(1)
+      def classFooMetaTypeDecl =
+        cpg.typeDecl
+          .nameExact("Foo<meta>")
+          .filter(PropertyNames.FULL_NAME, "test.js::program:Foo<meta>")
+      classFooMetaTypeDecl.checkNodeCount(1)
 
-        def classFooTypeDecl =
-          cpg.typeDecl.nameExact("Foo").filter(PropertyNames.FULL_NAME, "test.js::program:Foo")
-        classFooTypeDecl.checkNodeCount(1)
+      def classFooTypeDecl =
+        cpg.typeDecl.nameExact("Foo").filter(PropertyNames.FULL_NAME, "test.js::program:Foo")
+      classFooTypeDecl.checkNodeCount(1)
 
-        // constructor
-        def classFooMethod =
-          classFooTypeDecl
-            .expandAst(NodeTypes.METHOD)
-            .filter(PropertyNames.NAME, "Foo<constructor>")
-        classFooMethod.checkNodeCount(1)
+      // constructor
+      def classFooMethod =
+        classFooTypeDecl
+          .expandAst(NodeTypes.METHOD)
+          .filter(PropertyNames.NAME, "Foo<constructor>")
+      classFooMethod.checkNodeCount(1)
 
-        def programBlock = program.expandAst(NodeTypes.BLOCK)
-        programBlock.checkNodeCount(1)
+      def programBlock = program.expandAst(NodeTypes.BLOCK)
+      programBlock.checkNodeCount(1)
 
-        def assignment = programBlock.expandAst(NodeTypes.CALL)
-        assignment.checkNodeCount(1)
-        assignment.checkProperty(PropertyNames.NAME, Operators.assignment)
+      def assignment = programBlock.expandAst(NodeTypes.CALL)
+      assignment.checkNodeCount(1)
+      assignment.checkProperty(PropertyNames.NAME, Operators.assignment)
 
-        def commaRight = assignment.expandAst(NodeTypes.BLOCK)
-        commaRight.checkNodeCount(1)
-        commaRight.expandAst().checkNodeCount(2)
+      def commaRight = assignment.expandAst(NodeTypes.BLOCK)
+      commaRight.checkNodeCount(1)
+      commaRight.expandAst().checkNodeCount(2)
 
-        def refForConstructor = commaRight.expandAst(NodeTypes.TYPE_REF)
-        refForConstructor.checkNodeCount(1)
-        refForConstructor.checkProperty(PropertyNames.CODE, "class Foo")
+      def refForConstructor = commaRight.expandAst(NodeTypes.TYPE_REF)
+      refForConstructor.checkNodeCount(1)
+      refForConstructor.checkProperty(PropertyNames.CODE, "class Foo")
 
-        def barCall = commaRight.expandAst(NodeTypes.CALL)
-        barCall.checkNodeCount(1)
-        barCall.checkProperty(PropertyNames.CODE, "bar()")
+      def barCall = commaRight.expandAst(NodeTypes.CALL)
+      barCall.checkNodeCount(1)
+      barCall.checkProperty(PropertyNames.CODE, "bar()")
     }
 
     "have correct structure for empty array literal" in AstFixture("var x = []") { cpg =>
@@ -138,9 +137,7 @@ class AstCreationPassTest extends AbstractPassTest {
       tmpReturn.checkProperty(PropertyNames.NAME, "_tmp_0")
     }
 
-    "have correct structure for untagged runtime node in call" in AstFixture(
-      s"foo(`Hello $${world}!`)"
-    ) { cpg =>
+    "have correct structure for untagged runtime node in call" in AstFixture(s"foo(`Hello $${world}!`)") { cpg =>
       def method = cpg.method.nameExact(":program")
       method.checkNodeCount(1)
 
@@ -200,45 +197,41 @@ class AstCreationPassTest extends AbstractPassTest {
       argument3.checkProperty(PropertyNames.CODE, "\"\"")
     }
 
-    "have correct structure for tagged runtime node" in AstFixture(s"String.raw`../$${42}\\..`") {
-      cpg =>
-        def method = cpg.method.nameExact(":program")
-        method.checkNodeCount(1)
+    "have correct structure for tagged runtime node" in AstFixture(s"String.raw`../$${42}\\..`") { cpg =>
+      def method = cpg.method.nameExact(":program")
+      method.checkNodeCount(1)
 
-        def methodBlock = method.expandAst(NodeTypes.BLOCK)
-        methodBlock.checkNodeCount(1)
+      def methodBlock = method.expandAst(NodeTypes.BLOCK)
+      methodBlock.checkNodeCount(1)
 
-        def rawCall = methodBlock.expandAst(NodeTypes.CALL)
-        rawCall.checkNodeCount(1)
-        rawCall.checkProperty(
-          PropertyNames.CODE,
-          """String.raw(__Runtime.TO_STRING("../","\.."), 42)"""
-        )
+      def rawCall = methodBlock.expandAst(NodeTypes.CALL)
+      rawCall.checkNodeCount(1)
+      rawCall.checkProperty(PropertyNames.CODE, """String.raw(__Runtime.TO_STRING("../","\.."), 42)""")
 
-        def rawCallArg = rawCall.expandAst(NodeTypes.LITERAL)
-        rawCallArg.checkNodeCount(1)
-        rawCallArg.checkProperty(PropertyNames.ORDER, 3)
-        rawCallArg.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
-        rawCallArg.checkProperty(PropertyNames.CODE, "42")
+      def rawCallArg = rawCall.expandAst(NodeTypes.LITERAL)
+      rawCallArg.checkNodeCount(1)
+      rawCallArg.checkProperty(PropertyNames.ORDER, 3)
+      rawCallArg.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
+      rawCallArg.checkProperty(PropertyNames.CODE, "42")
 
-        def runtimeCall =
-          rawCall.expandAst(NodeTypes.CALL).filter(PropertyNames.NAME, "__Runtime.TO_STRING")
-        runtimeCall.checkNodeCount(1)
-        runtimeCall.checkProperty(PropertyNames.ORDER, 2)
-        runtimeCall.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
-        runtimeCall.checkProperty(PropertyNames.CODE, """__Runtime.TO_STRING("../","\..")""")
+      def runtimeCall =
+        rawCall.expandAst(NodeTypes.CALL).filter(PropertyNames.NAME, "__Runtime.TO_STRING")
+      runtimeCall.checkNodeCount(1)
+      runtimeCall.checkProperty(PropertyNames.ORDER, 2)
+      runtimeCall.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
+      runtimeCall.checkProperty(PropertyNames.CODE, """__Runtime.TO_STRING("../","\..")""")
 
-        def argument1 =
-          runtimeCall.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "\"../\"")
-        argument1.checkNodeCount(1)
-        argument1.checkProperty(PropertyNames.ORDER, 1)
-        argument1.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
+      def argument1 =
+        runtimeCall.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "\"../\"")
+      argument1.checkNodeCount(1)
+      argument1.checkProperty(PropertyNames.ORDER, 1)
+      argument1.checkProperty(PropertyNames.ARGUMENT_INDEX, 1)
 
-        def argument2 =
-          runtimeCall.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "\"\\..\"")
-        argument2.checkNodeCount(1)
-        argument2.checkProperty(PropertyNames.ORDER, 2)
-        argument2.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
+      def argument2 =
+        runtimeCall.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "\"\\..\"")
+      argument2.checkNodeCount(1)
+      argument2.checkProperty(PropertyNames.ORDER, 2)
+      argument2.checkProperty(PropertyNames.ARGUMENT_INDEX, 2)
     }
 
     "have correct structure for try" in AstFixture("""
@@ -291,29 +284,28 @@ class AstCreationPassTest extends AbstractPassTest {
                                                                              | key1: "value",
                                                                              | key2: 2
                                                                              |}
-                                                                             |""".stripMargin) {
-      cpg =>
-        def method = cpg.method.nameExact(":program")
-        method.checkNodeCount(1)
+                                                                             |""".stripMargin) { cpg =>
+      def method = cpg.method.nameExact(":program")
+      method.checkNodeCount(1)
 
-        def methodBlock = method.expandAst(NodeTypes.BLOCK)
-        methodBlock.checkNodeCount(1)
+      def methodBlock = method.expandAst(NodeTypes.BLOCK)
+      methodBlock.checkNodeCount(1)
 
-        def localX = methodBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "x")
-        localX.checkNodeCount(1)
+      def localX = methodBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "x")
+      localX.checkNodeCount(1)
 
-        def assignment = methodBlock.expandAst(NodeTypes.CALL)
-        assignment.checkNodeCount(1)
+      def assignment = methodBlock.expandAst(NodeTypes.CALL)
+      assignment.checkNodeCount(1)
 
-        def identifierX = assignment.expandAst(NodeTypes.IDENTIFIER)
-        identifierX.checkNodeCount(1)
+      def identifierX = assignment.expandAst(NodeTypes.IDENTIFIER)
+      identifierX.checkNodeCount(1)
 
-        def localXViaRef = identifierX.expandRef(NodeTypes.LOCAL)
-        localXViaRef.head shouldBe localX.head
+      def localXViaRef = identifierX.expandRef(NodeTypes.LOCAL)
+      localXViaRef.head shouldBe localX.head
 
-        def block = assignment.expandAst(NodeTypes.BLOCK)
-        checkObjectInitialization(block.head, ("key1", "\"value\""))
-        checkObjectInitialization(block.head, ("key2", "2"))
+      def block = assignment.expandAst(NodeTypes.BLOCK)
+      checkObjectInitialization(block.head, ("key1", "\"value\""))
+      checkObjectInitialization(block.head, ("key2", "2"))
     }
 
     "have correct structure for 1 object with computed values" in AstFixture("""
@@ -321,29 +313,28 @@ class AstCreationPassTest extends AbstractPassTest {
                                                                                | key1: value(),
                                                                                | key2: foo.compute()
                                                                                |}
-                                                                               |""".stripMargin) {
-      cpg =>
-        def method = cpg.method.nameExact(":program")
-        method.checkNodeCount(1)
+                                                                               |""".stripMargin) { cpg =>
+      def method = cpg.method.nameExact(":program")
+      method.checkNodeCount(1)
 
-        def methodBlock = method.expandAst(NodeTypes.BLOCK)
-        methodBlock.checkNodeCount(1)
+      def methodBlock = method.expandAst(NodeTypes.BLOCK)
+      methodBlock.checkNodeCount(1)
 
-        def localX = methodBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "x")
-        localX.checkNodeCount(1)
+      def localX = methodBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "x")
+      localX.checkNodeCount(1)
 
-        def assignment = methodBlock.expandAst(NodeTypes.CALL)
-        assignment.checkNodeCount(1)
+      def assignment = methodBlock.expandAst(NodeTypes.CALL)
+      assignment.checkNodeCount(1)
 
-        def identifierX = assignment.expandAst(NodeTypes.IDENTIFIER)
-        identifierX.checkNodeCount(1)
+      def identifierX = assignment.expandAst(NodeTypes.IDENTIFIER)
+      identifierX.checkNodeCount(1)
 
-        def localXViaRef = identifierX.expandRef(NodeTypes.LOCAL)
-        localXViaRef.head shouldBe localX.head
+      def localXViaRef = identifierX.expandRef(NodeTypes.LOCAL)
+      localXViaRef.head shouldBe localX.head
 
-        def block = assignment.expandAst(NodeTypes.BLOCK)
-        checkObjectInitialization(block.head, ("key1", "value()"))
-        checkObjectInitialization(block.head, ("key2", "foo.compute()"))
+      def block = assignment.expandAst(NodeTypes.BLOCK)
+      checkObjectInitialization(block.head, ("key1", "value()"))
+      checkObjectInitialization(block.head, ("key2", "foo.compute()"))
     }
 
     "have correct structure for object with computed property name" ignore AstFixture("""
@@ -420,9 +411,7 @@ class AstCreationPassTest extends AbstractPassTest {
       method.checkProperty(PropertyNames.NAME, ":program")
     }
 
-    "have correct structure for empty method nested in top level method" in AstFixture(
-      "function method(x) {}"
-    ) { cpg =>
+    "have correct structure for empty method nested in top level method" in AstFixture("function method(x) {}") { cpg =>
       def method = cpg.method.nameExact(":program")
       method.checkNodeCount(1)
 
@@ -452,22 +441,21 @@ class AstCreationPassTest extends AbstractPassTest {
       methodIdentifier.expandRef().head shouldBe localForMethod.head
     }
 
-    "have correct parameter order in lambda function with ignored param" in AstFixture(
-      "var x = ([, param]) => param"
-    ) { cpg =>
-      // happened in: https://github.com/ShiftLeftSecurity/js2cpg/issues/232
-      // with the latest oracle js parser, anonymous function get an actual name
-      def lambdaFullName = "test.js::program:anonymous"
-      def lambda         = cpg.method.fullNameExact(lambdaFullName)
-      lambda.checkNodeCount(1)
-      def parameters = lambda.expandAst(NodeTypes.METHOD_PARAMETER_IN)
-      parameters.checkNodeCount(2)
+    "have correct parameter order in lambda function with ignored param" in AstFixture("var x = ([, param]) => param") {
+      cpg =>
+        // happened in: https://github.com/ShiftLeftSecurity/js2cpg/issues/232
+        // with the latest oracle js parser, anonymous function get an actual name
+        def lambdaFullName = "test.js::program:anonymous"
+        def lambda         = cpg.method.fullNameExact(lambdaFullName)
+        lambda.checkNodeCount(1)
+        def parameters = lambda.expandAst(NodeTypes.METHOD_PARAMETER_IN)
+        parameters.checkNodeCount(2)
 
-      def param = parameters.filter(PropertyNames.ORDER, 1)
-      param.checkNodeCount(1)
-      param.checkProperty(PropertyNames.ORDER, 1)
-      param.checkProperty(PropertyNames.NAME, "param1_0")
-      param.checkProperty(PropertyNames.CODE, "{param}")
+        def param = parameters.filter(PropertyNames.ORDER, 1)
+        param.checkNodeCount(1)
+        param.checkProperty(PropertyNames.ORDER, 1)
+        param.checkProperty(PropertyNames.NAME, "param1_0")
+        param.checkProperty(PropertyNames.CODE, "{param}")
     }
 
     "have two lambda functions in same scope level with different full names" in AstFixture("""
@@ -626,9 +614,7 @@ class AstCreationPassTest extends AbstractPassTest {
       accessElement.checkProperty(PropertyNames.CANONICAL_NAME, "foo")
     }
 
-    "have block for while body for while statement with brackets" in AstFixture(
-      "while (x < 0) {}"
-    ) { cpg =>
+    "have block for while body for while statement with brackets" in AstFixture("while (x < 0) {}") { cpg =>
       def method = cpg.method.nameExact(":program")
       method.checkNodeCount(1)
 
@@ -661,9 +647,7 @@ class AstCreationPassTest extends AbstractPassTest {
       whileBlock.checkNodeCount(0)
     }
 
-    "have local variable for function with correct type full name" in AstFixture(
-      "function method(x) {}"
-    ) { cpg =>
+    "have local variable for function with correct type full name" in AstFixture("function method(x) {}") { cpg =>
       def method = cpg.method.nameExact(":program")
       method.checkNodeCount(1)
 
@@ -677,9 +661,7 @@ class AstCreationPassTest extends AbstractPassTest {
       localFoo.checkProperty(PropertyNames.TYPE_FULL_NAME, "test.js::program:method")
     }
 
-    "have corresponding type decl with correct bindings for function" in AstFixture(
-      "function method(x) {}"
-    ) { cpg =>
+    "have corresponding type decl with correct bindings for function" in AstFixture("function method(x) {}") { cpg =>
       def typeDecl = cpg.typeDecl.nameExact("method")
       typeDecl.checkNodeCount(1)
       typeDecl.checkProperty(PropertyNames.FULL_NAME, "test.js::program:method")
@@ -720,9 +702,7 @@ class AstCreationPassTest extends AbstractPassTest {
         .checkProperty(PropertyNames.TYPE_FULL_NAME, "ANY")
     }
 
-    "have correct structure for decl assignment" in AstFixture(
-      "function foo(x) { var local = 1; }"
-    ) { cpg =>
+    "have correct structure for decl assignment" in AstFixture("function foo(x) { var local = 1; }") { cpg =>
       def method = cpg.method.nameExact("foo")
       method.checkNodeCount(1)
 
@@ -853,9 +833,7 @@ class AstCreationPassTest extends AbstractPassTest {
       outRight2.checkNodeCount(1)
     }
 
-    "be correct for nested expression" in AstFixture(
-      "function method() { var x; var y; var z; x = y + z; }"
-    ) { cpg =>
+    "be correct for nested expression" in AstFixture("function method() { var x; var y; var z; x = y + z; }") { cpg =>
       def method = cpg.method.nameExact("method")
       method.checkNodeCount(1)
 
@@ -1204,9 +1182,7 @@ class AstCreationPassTest extends AbstractPassTest {
         identifierY.checkProperty(PropertyNames.ORDER, 3)
       }
 
-      "be correct for switch with multiple cases" in AstFixture(
-        "switch (x) { case 1: y; case 2: z; }"
-      ) { cpg =>
+      "be correct for switch with multiple cases" in AstFixture("switch (x) { case 1: y; case 2: z; }") { cpg =>
         def program = cpg.method.nameExact(":program")
         program.checkNodeCount(1)
 
@@ -1255,50 +1231,49 @@ class AstCreationPassTest extends AbstractPassTest {
         identifierZ.checkProperty(PropertyNames.ORDER, 6)
       }
 
-      "be correct for switch with multiple cases on same spot" in AstFixture(
-        "switch (x) { case 1: case 2: y; }"
-      ) { cpg =>
-        def program = cpg.method.nameExact(":program")
-        program.checkNodeCount(1)
+      "be correct for switch with multiple cases on same spot" in AstFixture("switch (x) { case 1: case 2: y; }") {
+        cpg =>
+          def program = cpg.method.nameExact(":program")
+          program.checkNodeCount(1)
 
-        def programBlock = program.expandAst(NodeTypes.BLOCK)
-        programBlock.checkNodeCount(1)
+          def programBlock = program.expandAst(NodeTypes.BLOCK)
+          programBlock.checkNodeCount(1)
 
-        def switch = programBlock.expandAst(NodeTypes.CONTROL_STRUCTURE)
-        switch.checkNodeCount(1)
-        switch.checkProperty(PropertyNames.CONTROL_STRUCTURE_TYPE, ControlStructureTypes.SWITCH)
+          def switch = programBlock.expandAst(NodeTypes.CONTROL_STRUCTURE)
+          switch.checkNodeCount(1)
+          switch.checkProperty(PropertyNames.CONTROL_STRUCTURE_TYPE, ControlStructureTypes.SWITCH)
 
-        def switchExpr =
-          switch.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "x")
-        switchExpr.checkNodeCount(1)
-        switchExpr.checkProperty(PropertyNames.ORDER, 1)
-        switchExpr.checkProperty(PropertyNames.CODE, "x")
+          def switchExpr =
+            switch.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "x")
+          switchExpr.checkNodeCount(1)
+          switchExpr.checkProperty(PropertyNames.ORDER, 1)
+          switchExpr.checkProperty(PropertyNames.CODE, "x")
 
-        def switchBlock = switch.expandAst(NodeTypes.BLOCK)
-        switchBlock.checkNodeCount(1)
+          def switchBlock = switch.expandAst(NodeTypes.BLOCK)
+          switchBlock.checkNodeCount(1)
 
-        def caseLabel1 =
-          switchBlock.expandAst(NodeTypes.JUMP_TARGET).filter(PropertyNames.CODE, "case 1:")
-        caseLabel1.checkNodeCount(1)
-        caseLabel1.checkProperty(PropertyNames.ORDER, 1)
+          def caseLabel1 =
+            switchBlock.expandAst(NodeTypes.JUMP_TARGET).filter(PropertyNames.CODE, "case 1:")
+          caseLabel1.checkNodeCount(1)
+          caseLabel1.checkProperty(PropertyNames.ORDER, 1)
 
-        def caseExpr1 = switchBlock.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "1")
-        caseExpr1.checkNodeCount(1)
-        caseExpr1.checkProperty(PropertyNames.ORDER, 2)
+          def caseExpr1 = switchBlock.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "1")
+          caseExpr1.checkNodeCount(1)
+          caseExpr1.checkProperty(PropertyNames.ORDER, 2)
 
-        def caseLabel2 =
-          switchBlock.expandAst(NodeTypes.JUMP_TARGET).filter(PropertyNames.CODE, "case 2:")
-        caseLabel2.checkNodeCount(1)
-        caseLabel2.checkProperty(PropertyNames.ORDER, 3)
+          def caseLabel2 =
+            switchBlock.expandAst(NodeTypes.JUMP_TARGET).filter(PropertyNames.CODE, "case 2:")
+          caseLabel2.checkNodeCount(1)
+          caseLabel2.checkProperty(PropertyNames.ORDER, 3)
 
-        def caseExpr2 = switchBlock.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "2")
-        caseExpr2.checkNodeCount(1)
-        caseExpr2.checkProperty(PropertyNames.ORDER, 4)
+          def caseExpr2 = switchBlock.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "2")
+          caseExpr2.checkNodeCount(1)
+          caseExpr2.checkProperty(PropertyNames.ORDER, 4)
 
-        def identifierY =
-          switchBlock.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.CODE, "y")
-        identifierY.checkNodeCount(1)
-        identifierY.checkProperty(PropertyNames.ORDER, 5)
+          def identifierY =
+            switchBlock.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.CODE, "y")
+          identifierY.checkNodeCount(1)
+          identifierY.checkProperty(PropertyNames.ORDER, 5)
       }
 
       "be correct for switch with multiple cases and multiple cases on same spot" in AstFixture(
@@ -1448,63 +1423,56 @@ class AstCreationPassTest extends AbstractPassTest {
         identifierZ.checkProperty(PropertyNames.ORDER, 6)
       }
 
-      "be correct for switch with nested switch" in AstFixture(
-        "switch (x) { default: switch(y) { default: z; } }"
-      ) { cpg =>
-        def program = cpg.method.nameExact(":program")
-        program.checkNodeCount(1)
+      "be correct for switch with nested switch" in AstFixture("switch (x) { default: switch(y) { default: z; } }") {
+        cpg =>
+          def program = cpg.method.nameExact(":program")
+          program.checkNodeCount(1)
 
-        def programBlock = program.expandAst(NodeTypes.BLOCK)
-        programBlock.checkNodeCount(1)
+          def programBlock = program.expandAst(NodeTypes.BLOCK)
+          programBlock.checkNodeCount(1)
 
-        def topLevelSwitch = programBlock.expandAst(NodeTypes.CONTROL_STRUCTURE)
-        topLevelSwitch.checkNodeCount(1)
-        topLevelSwitch.checkProperty(
-          PropertyNames.CONTROL_STRUCTURE_TYPE,
-          ControlStructureTypes.SWITCH
-        )
+          def topLevelSwitch = programBlock.expandAst(NodeTypes.CONTROL_STRUCTURE)
+          topLevelSwitch.checkNodeCount(1)
+          topLevelSwitch.checkProperty(PropertyNames.CONTROL_STRUCTURE_TYPE, ControlStructureTypes.SWITCH)
 
-        def topLevelSwitchExpr =
-          topLevelSwitch.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "x")
-        topLevelSwitchExpr.checkNodeCount(1)
-        topLevelSwitchExpr.checkProperty(PropertyNames.ORDER, 1)
-        topLevelSwitchExpr.checkProperty(PropertyNames.CODE, "x")
+          def topLevelSwitchExpr =
+            topLevelSwitch.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "x")
+          topLevelSwitchExpr.checkNodeCount(1)
+          topLevelSwitchExpr.checkProperty(PropertyNames.ORDER, 1)
+          topLevelSwitchExpr.checkProperty(PropertyNames.CODE, "x")
 
-        def topLevelSwitchBlock = topLevelSwitch.expandAst(NodeTypes.BLOCK)
-        topLevelSwitchBlock.checkNodeCount(1)
+          def topLevelSwitchBlock = topLevelSwitch.expandAst(NodeTypes.BLOCK)
+          topLevelSwitchBlock.checkNodeCount(1)
 
-        def topLevelCaseLabel =
-          topLevelSwitchBlock
-            .expandAst(NodeTypes.JUMP_TARGET)
-            .filter(PropertyNames.CODE, "default:")
-        topLevelCaseLabel.checkNodeCount(1)
-        topLevelCaseLabel.checkProperty(PropertyNames.ORDER, 1)
+          def topLevelCaseLabel =
+            topLevelSwitchBlock
+              .expandAst(NodeTypes.JUMP_TARGET)
+              .filter(PropertyNames.CODE, "default:")
+          topLevelCaseLabel.checkNodeCount(1)
+          topLevelCaseLabel.checkProperty(PropertyNames.ORDER, 1)
 
-        def nestedSwitch = topLevelSwitchBlock.expandAst(NodeTypes.CONTROL_STRUCTURE)
-        nestedSwitch.checkNodeCount(1)
-        nestedSwitch.checkProperty(
-          PropertyNames.CONTROL_STRUCTURE_TYPE,
-          ControlStructureTypes.SWITCH
-        )
+          def nestedSwitch = topLevelSwitchBlock.expandAst(NodeTypes.CONTROL_STRUCTURE)
+          nestedSwitch.checkNodeCount(1)
+          nestedSwitch.checkProperty(PropertyNames.CONTROL_STRUCTURE_TYPE, ControlStructureTypes.SWITCH)
 
-        def nestedSwitchExpr =
-          nestedSwitch.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "y")
-        nestedSwitchExpr.checkNodeCount(1)
-        nestedSwitchExpr.checkProperty(PropertyNames.ORDER, 1)
-        nestedSwitchExpr.checkProperty(PropertyNames.CODE, "y")
+          def nestedSwitchExpr =
+            nestedSwitch.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "y")
+          nestedSwitchExpr.checkNodeCount(1)
+          nestedSwitchExpr.checkProperty(PropertyNames.ORDER, 1)
+          nestedSwitchExpr.checkProperty(PropertyNames.CODE, "y")
 
-        def nestedSwitchBlock = nestedSwitch.expandAst(NodeTypes.BLOCK)
-        nestedSwitchBlock.checkNodeCount(1)
+          def nestedSwitchBlock = nestedSwitch.expandAst(NodeTypes.BLOCK)
+          nestedSwitchBlock.checkNodeCount(1)
 
-        def nestedCaseLabel =
-          nestedSwitchBlock.expandAst(NodeTypes.JUMP_TARGET).filter(PropertyNames.CODE, "default:")
-        nestedCaseLabel.checkNodeCount(1)
-        nestedCaseLabel.checkProperty(PropertyNames.ORDER, 1)
+          def nestedCaseLabel =
+            nestedSwitchBlock.expandAst(NodeTypes.JUMP_TARGET).filter(PropertyNames.CODE, "default:")
+          nestedCaseLabel.checkNodeCount(1)
+          nestedCaseLabel.checkProperty(PropertyNames.ORDER, 1)
 
-        def identifierZ =
-          nestedSwitchBlock.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "z")
-        identifierZ.checkNodeCount(1)
-        identifierZ.checkProperty(PropertyNames.ORDER, 2)
+          def identifierZ =
+            nestedSwitchBlock.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "z")
+          identifierZ.checkNodeCount(1)
+          identifierZ.checkProperty(PropertyNames.ORDER, 2)
       }
     }
 
@@ -1615,13 +1583,11 @@ class AstCreationPassTest extends AbstractPassTest {
       identifierA.checkProperty(PropertyNames.CANONICAL_NAME, "a")
     }
 
-    "be correct for member access used in an assignment (chained with method call)" in AstFixture(
-      """
+    "be correct for member access used in an assignment (chained with method call)" in AstFixture("""
           |function method(x) {
           |  z = x.a.b.c();
           |}
-        """.stripMargin
-    ) { cpg =>
+        """.stripMargin) { cpg =>
       def method = cpg.method.nameExact("method")
       method.checkNodeCount(1)
 
@@ -1751,13 +1717,11 @@ class AstCreationPassTest extends AbstractPassTest {
     "anonymous arrow function full name 2" in AstFixture("this.func = (x) => x") { cpg =>
       cpg.method.fullName.toSetMutable should contain("test.js::program:anonymous")
     }
-    "anonymous function expression full name 1" in AstFixture("var func = function (x) {x}") {
-      cpg =>
-        cpg.method.fullName.toSetMutable should contain("test.js::program:anonymous")
+    "anonymous function expression full name 1" in AstFixture("var func = function (x) {x}") { cpg =>
+      cpg.method.fullName.toSetMutable should contain("test.js::program:anonymous")
     }
-    "anonymous function expression full name 2" in AstFixture("this.func = function (x) {x}") {
-      cpg =>
-        cpg.method.fullName.toSetMutable should contain("test.js::program:anonymous")
+    "anonymous function expression full name 2" in AstFixture("this.func = function (x) {x}") { cpg =>
+      cpg.method.fullName.toSetMutable should contain("test.js::program:anonymous")
     }
     "anonymous constructor full name 1" in AstFixture("class X { constructor(){} }") { cpg =>
       cpg.method.fullName.toSetMutable should contain("test.js::program:X<constructor>")
@@ -1766,9 +1730,8 @@ class AstCreationPassTest extends AbstractPassTest {
                                                                           |var x = class {
                                                                           |  constructor(y) {
                                                                           |  }
-                                                                          |}""".stripMargin) {
-      cpg =>
-        cpg.method.fullName.toSetMutable should contain("test.js::program:anonClass<constructor>")
+                                                                          |}""".stripMargin) { cpg =>
+      cpg.method.fullName.toSetMutable should contain("test.js::program:anonClass<constructor>")
     }
   }
 
@@ -2072,10 +2035,7 @@ class AstCreationPassTest extends AbstractPassTest {
       closureBinding.checkNodeCount(1)
       closureBinding.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "test.js::program:foo:bar:x")
       closureBinding.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBinding.checkProperty(
-        PropertyNames.EVALUATION_STRATEGY,
-        EvaluationStrategies.BY_REFERENCE
-      )
+      closureBinding.checkProperty(PropertyNames.EVALUATION_STRATEGY, EvaluationStrategies.BY_REFERENCE)
 
       closureBinding.expandRef().head shouldBe fooLocalX.head
 
@@ -2132,20 +2092,14 @@ class AstCreationPassTest extends AbstractPassTest {
       def closureBindForX = closureBinding.filter(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
       closureBindForX.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "test.js::program:foo:bar:x")
       closureBindForX.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindForX.checkProperty(
-        PropertyNames.EVALUATION_STRATEGY,
-        EvaluationStrategies.BY_REFERENCE
-      )
+      closureBindForX.checkProperty(PropertyNames.EVALUATION_STRATEGY, EvaluationStrategies.BY_REFERENCE)
 
       closureBindForX.expandRef().head shouldBe fooLocalX.head
 
       def closureBindForY = closureBinding.filter(PropertyNames.CLOSURE_ORIGINAL_NAME, "y")
       closureBindForY.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "test.js::program:foo:bar:y")
       closureBindForY.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "y")
-      closureBindForY.checkProperty(
-        PropertyNames.EVALUATION_STRATEGY,
-        EvaluationStrategies.BY_REFERENCE
-      )
+      closureBindForY.checkProperty(PropertyNames.EVALUATION_STRATEGY, EvaluationStrategies.BY_REFERENCE)
 
       closureBindForY.expandRef().head shouldBe fooLocalY.head
 
@@ -2209,15 +2163,9 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def closureBindingXInFoo = barRef.expandCapture(NodeTypes.CLOSURE_BINDING)
       closureBindingXInFoo.checkNodeCount(1)
-      closureBindingXInFoo.checkProperty(
-        PropertyNames.CLOSURE_BINDING_ID,
-        "test.js::program:foo:bar:x"
-      )
+      closureBindingXInFoo.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "test.js::program:foo:bar:x")
       closureBindingXInFoo.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindingXInFoo.checkProperty(
-        PropertyNames.EVALUATION_STRATEGY,
-        EvaluationStrategies.BY_REFERENCE
-      )
+      closureBindingXInFoo.checkProperty(PropertyNames.EVALUATION_STRATEGY, EvaluationStrategies.BY_REFERENCE)
 
       closureBindingXInFoo.expandRef().head shouldBe fooLocalX.head
 
@@ -2246,15 +2194,9 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def closureBindingXInBar = bazRef.expandCapture(NodeTypes.CLOSURE_BINDING)
       closureBindingXInBar.checkNodeCount(1)
-      closureBindingXInBar.checkProperty(
-        PropertyNames.CLOSURE_BINDING_ID,
-        "test.js::program:foo:bar:baz:x"
-      )
+      closureBindingXInBar.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "test.js::program:foo:bar:baz:x")
       closureBindingXInBar.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindingXInBar.checkProperty(
-        PropertyNames.EVALUATION_STRATEGY,
-        EvaluationStrategies.BY_REFERENCE
-      )
+      closureBindingXInBar.checkProperty(PropertyNames.EVALUATION_STRATEGY, EvaluationStrategies.BY_REFERENCE)
 
       closureBindingXInBar.expandRef().head shouldBe barLocalX.head
 
@@ -2309,15 +2251,9 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def closureBindingXInFoo = barRef.expandCapture(NodeTypes.CLOSURE_BINDING)
       closureBindingXInFoo.checkNodeCount(1)
-      closureBindingXInFoo.checkProperty(
-        PropertyNames.CLOSURE_BINDING_ID,
-        "test.js::program:foo:bar:x"
-      )
+      closureBindingXInFoo.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "test.js::program:foo:bar:x")
       closureBindingXInFoo.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindingXInFoo.checkProperty(
-        PropertyNames.EVALUATION_STRATEGY,
-        EvaluationStrategies.BY_REFERENCE
-      )
+      closureBindingXInFoo.checkProperty(PropertyNames.EVALUATION_STRATEGY, EvaluationStrategies.BY_REFERENCE)
 
       closureBindingXInFoo.expandRef().head shouldBe fooLocalX.head
 
@@ -2349,15 +2285,9 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def closureBindingXInBar = bazRef.expandCapture(NodeTypes.CLOSURE_BINDING)
       closureBindingXInBar.checkNodeCount(1)
-      closureBindingXInBar.checkProperty(
-        PropertyNames.CLOSURE_BINDING_ID,
-        "test.js::program:foo:bar:baz:x"
-      )
+      closureBindingXInBar.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "test.js::program:foo:bar:baz:x")
       closureBindingXInBar.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindingXInBar.checkProperty(
-        PropertyNames.EVALUATION_STRATEGY,
-        EvaluationStrategies.BY_REFERENCE
-      )
+      closureBindingXInBar.checkProperty(PropertyNames.EVALUATION_STRATEGY, EvaluationStrategies.BY_REFERENCE)
 
       closureBindingXInBar.expandRef().head shouldBe barLocalX.head
 
@@ -2385,8 +2315,7 @@ class AstCreationPassTest extends AbstractPassTest {
       bazIdentifierX.expandRef().head shouldBe bazLocalX.head
     }
 
-    "have correct closure binding for capturing over 2 levels with no intermediate use" in AstFixture(
-      """
+    "have correct closure binding for capturing over 2 levels with no intermediate use" in AstFixture("""
           | function foo()
           | {
           |   x = 1
@@ -2396,8 +2325,7 @@ class AstCreationPassTest extends AbstractPassTest {
           |     }
           |   }
           | }
-        """.stripMargin
-    ) { cpg =>
+        """.stripMargin) { cpg =>
       def fooMethod = cpg.method.nameExact("foo")
       fooMethod.checkNodeCount(1)
 
@@ -2412,15 +2340,9 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def closureBindingXInFoo = barRef.expandCapture(NodeTypes.CLOSURE_BINDING)
       closureBindingXInFoo.checkNodeCount(1)
-      closureBindingXInFoo.checkProperty(
-        PropertyNames.CLOSURE_BINDING_ID,
-        "test.js::program:foo:bar:x"
-      )
+      closureBindingXInFoo.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "test.js::program:foo:bar:x")
       closureBindingXInFoo.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindingXInFoo.checkProperty(
-        PropertyNames.EVALUATION_STRATEGY,
-        EvaluationStrategies.BY_REFERENCE
-      )
+      closureBindingXInFoo.checkProperty(PropertyNames.EVALUATION_STRATEGY, EvaluationStrategies.BY_REFERENCE)
 
       closureBindingXInFoo.expandRef().head shouldBe fooLocalX.head
 
@@ -2440,15 +2362,9 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def closureBindingXInBar = bazRef.expandCapture(NodeTypes.CLOSURE_BINDING)
       closureBindingXInBar.checkNodeCount(1)
-      closureBindingXInBar.checkProperty(
-        PropertyNames.CLOSURE_BINDING_ID,
-        "test.js::program:foo:bar:baz:x"
-      )
+      closureBindingXInBar.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "test.js::program:foo:bar:baz:x")
       closureBindingXInBar.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindingXInBar.checkProperty(
-        PropertyNames.EVALUATION_STRATEGY,
-        EvaluationStrategies.BY_REFERENCE
-      )
+      closureBindingXInBar.checkProperty(PropertyNames.EVALUATION_STRATEGY, EvaluationStrategies.BY_REFERENCE)
 
       closureBindingXInBar.expandRef().head shouldBe barLocalX.head
 
@@ -2473,16 +2389,14 @@ class AstCreationPassTest extends AbstractPassTest {
       bazIdentifierX.expandRef().head shouldBe bazLocalX.head
     }
 
-    "have correct closure binding for capturing the same variable into 2 different anonymous methods" in AstFixture(
-      """
+    "have correct closure binding for capturing the same variable into 2 different anonymous methods" in AstFixture("""
           | function foo()
           | {
           |   var x = 1
           |   var anon1 = y => 2*x
           |   var anon2 = y => 2*x
           | }
-        """.stripMargin
-    ) { cpg =>
+        """.stripMargin) { cpg =>
       def fooMethod = cpg.method.nameExact("foo")
       fooMethod.checkNodeCount(1)
 
@@ -2501,15 +2415,9 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def closureBindingXAnon1 = anon1Ref.expandCapture(NodeTypes.CLOSURE_BINDING)
       closureBindingXAnon1.checkNodeCount(1)
-      closureBindingXAnon1.checkProperty(
-        PropertyNames.CLOSURE_BINDING_ID,
-        "test.js::program:foo:anonymous:x"
-      )
+      closureBindingXAnon1.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "test.js::program:foo:anonymous:x")
       closureBindingXAnon1.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindingXAnon1.checkProperty(
-        PropertyNames.EVALUATION_STRATEGY,
-        EvaluationStrategies.BY_REFERENCE
-      )
+      closureBindingXAnon1.checkProperty(PropertyNames.EVALUATION_STRATEGY, EvaluationStrategies.BY_REFERENCE)
 
       closureBindingXAnon1.expandRef().head shouldBe fooLocalX.head
 
@@ -2522,15 +2430,9 @@ class AstCreationPassTest extends AbstractPassTest {
 
       def closureBindingXAnon2 = anon2Ref.expandCapture(NodeTypes.CLOSURE_BINDING)
       closureBindingXAnon2.checkNodeCount(1)
-      closureBindingXAnon2.checkProperty(
-        PropertyNames.CLOSURE_BINDING_ID,
-        "test.js::program:foo:anonymous1:x"
-      )
+      closureBindingXAnon2.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "test.js::program:foo:anonymous1:x")
       closureBindingXAnon2.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBindingXAnon2.checkProperty(
-        PropertyNames.EVALUATION_STRATEGY,
-        EvaluationStrategies.BY_REFERENCE
-      )
+      closureBindingXAnon2.checkProperty(PropertyNames.EVALUATION_STRATEGY, EvaluationStrategies.BY_REFERENCE)
 
       closureBindingXAnon2.expandRef().head shouldBe fooLocalX.head
     }
@@ -2554,10 +2456,7 @@ class AstCreationPassTest extends AbstractPassTest {
       closureBinding.checkNodeCount(1)
       closureBinding.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "foobar.js::program:foo:bar:x")
       closureBinding.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBinding.checkProperty(
-        PropertyNames.EVALUATION_STRATEGY,
-        EvaluationStrategies.BY_REFERENCE
-      )
+      closureBinding.checkProperty(PropertyNames.EVALUATION_STRATEGY, EvaluationStrategies.BY_REFERENCE)
 
       closureBinding.expandRef().head shouldBe fooLocalX.head
 
@@ -2600,10 +2499,7 @@ class AstCreationPassTest extends AbstractPassTest {
       closureBinding.checkNodeCount(1)
       closureBinding.checkProperty(PropertyNames.CLOSURE_BINDING_ID, "a.js::program:a1:a2:x")
       closureBinding.checkProperty(PropertyNames.CLOSURE_ORIGINAL_NAME, "x")
-      closureBinding.checkProperty(
-        PropertyNames.EVALUATION_STRATEGY,
-        EvaluationStrategies.BY_REFERENCE
-      )
+      closureBinding.checkProperty(PropertyNames.EVALUATION_STRATEGY, EvaluationStrategies.BY_REFERENCE)
 
       closureBinding.expandRef().head shouldBe a1LocalX.head
 
@@ -2748,9 +2644,7 @@ class AstCreationPassTest extends AbstractPassTest {
   }
 
   "AST generation for destructing assignment" should {
-    "have correct structure for object destruction assignment with declaration" in AstFixture(
-      "var {a, b} = x"
-    ) { cpg =>
+    "have correct structure for object destruction assignment with declaration" in AstFixture("var {a, b} = x") { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -2880,251 +2774,248 @@ class AstCreationPassTest extends AbstractPassTest {
       tmpReturnIdentifier.checkProperty(PropertyNames.NAME, "_tmp_0")
     }
 
-    "have correct structure for object destruction assignment without declaration" in AstFixture(
-      "({a, b} = x)"
-    ) { cpg =>
-      def program = cpg.method.nameExact(":program")
-      program.checkNodeCount(1)
+    "have correct structure for object destruction assignment without declaration" in AstFixture("({a, b} = x)") {
+      cpg =>
+        def program = cpg.method.nameExact(":program")
+        program.checkNodeCount(1)
 
-      def programBlock = program.expandAst(NodeTypes.BLOCK)
-      programBlock.checkNodeCount(1)
+        def programBlock = program.expandAst(NodeTypes.BLOCK)
+        programBlock.checkNodeCount(1)
 
-      def localA = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "a")
-      localA.checkNodeCount(1)
+        def localA = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "a")
+        localA.checkNodeCount(1)
 
-      def localB = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "b")
-      localB.checkNodeCount(1)
+        def localB = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "b")
+        localB.checkNodeCount(1)
 
-      def destructionBlock = programBlock.expandAst(NodeTypes.BLOCK)
-      destructionBlock.checkNodeCount(1)
+        def destructionBlock = programBlock.expandAst(NodeTypes.BLOCK)
+        destructionBlock.checkNodeCount(1)
 
-      def localTmp =
-        destructionBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "_tmp_0")
-      localTmp.checkNodeCount(1)
+        def localTmp =
+          destructionBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "_tmp_0")
+        localTmp.checkNodeCount(1)
 
-      def assignmentToTmp =
-        destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0 = x")
-      assignmentToTmp.checkNodeCount(1)
+        def assignmentToTmp =
+          destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0 = x")
+        assignmentToTmp.checkNodeCount(1)
 
-      def assignmentToA =
-        destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "a = _tmp_0.a")
-      assignmentToA.checkNodeCount(1)
-      def a = assignmentToA.expandAst(NodeTypes.IDENTIFIER)
-      a.checkNodeCount(1)
+        def assignmentToA =
+          destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "a = _tmp_0.a")
+        assignmentToA.checkNodeCount(1)
+        def a = assignmentToA.expandAst(NodeTypes.IDENTIFIER)
+        a.checkNodeCount(1)
 
-      def fieldAccessA =
-        assignmentToA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.a")
-      fieldAccessA.checkNodeCount(1)
-      fieldAccessA.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
+        def fieldAccessA =
+          assignmentToA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.a")
+        fieldAccessA.checkNodeCount(1)
+        fieldAccessA.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
 
-      def leftA = fieldAccessA.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "_tmp_0")
-      leftA.checkNodeCount(1)
-      def rightA =
-        fieldAccessA
-          .expandAst(NodeTypes.FIELD_IDENTIFIER)
-          .filter(PropertyNames.CANONICAL_NAME, "a")
-      rightA.checkNodeCount(1)
+        def leftA = fieldAccessA.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "_tmp_0")
+        leftA.checkNodeCount(1)
+        def rightA =
+          fieldAccessA
+            .expandAst(NodeTypes.FIELD_IDENTIFIER)
+            .filter(PropertyNames.CANONICAL_NAME, "a")
+        rightA.checkNodeCount(1)
 
-      def assignmentToB =
-        destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "b = _tmp_0.b")
-      assignmentToB.checkNodeCount(1)
-      def b = assignmentToB.expandAst(NodeTypes.IDENTIFIER)
-      b.checkNodeCount(1)
+        def assignmentToB =
+          destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "b = _tmp_0.b")
+        assignmentToB.checkNodeCount(1)
+        def b = assignmentToB.expandAst(NodeTypes.IDENTIFIER)
+        b.checkNodeCount(1)
 
-      def fieldAccessB =
-        assignmentToB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.b")
-      fieldAccessB.checkNodeCount(1)
-      fieldAccessB.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
+        def fieldAccessB =
+          assignmentToB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.b")
+        fieldAccessB.checkNodeCount(1)
+        fieldAccessB.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
 
-      def leftB = fieldAccessB.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "_tmp_0")
-      leftB.checkNodeCount(1)
-      def rightB =
-        fieldAccessB
-          .expandAst(NodeTypes.FIELD_IDENTIFIER)
-          .filter(PropertyNames.CANONICAL_NAME, "b")
-      rightB.checkNodeCount(1)
+        def leftB = fieldAccessB.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "_tmp_0")
+        leftB.checkNodeCount(1)
+        def rightB =
+          fieldAccessB
+            .expandAst(NodeTypes.FIELD_IDENTIFIER)
+            .filter(PropertyNames.CANONICAL_NAME, "b")
+        rightB.checkNodeCount(1)
 
-      def tmpReturnIdentifier = destructionBlock.expandAst(NodeTypes.IDENTIFIER)
-      tmpReturnIdentifier.checkNodeCount(1)
-      tmpReturnIdentifier.checkProperty(PropertyNames.NAME, "_tmp_0")
+        def tmpReturnIdentifier = destructionBlock.expandAst(NodeTypes.IDENTIFIER)
+        tmpReturnIdentifier.checkNodeCount(1)
+        tmpReturnIdentifier.checkProperty(PropertyNames.NAME, "_tmp_0")
     }
 
-    "have correct structure for object destruction assignment with defaults" in AstFixture(
-      "var {a = 1, b = 2} = x"
-    ) { cpg =>
-      def program = cpg.method.nameExact(":program")
-      program.checkNodeCount(1)
+    "have correct structure for object destruction assignment with defaults" in AstFixture("var {a = 1, b = 2} = x") {
+      cpg =>
+        def program = cpg.method.nameExact(":program")
+        program.checkNodeCount(1)
 
-      def programBlock = program.expandAst(NodeTypes.BLOCK)
-      programBlock.checkNodeCount(1)
+        def programBlock = program.expandAst(NodeTypes.BLOCK)
+        programBlock.checkNodeCount(1)
 
-      def localA = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "a")
-      localA.checkNodeCount(1)
+        def localA = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "a")
+        localA.checkNodeCount(1)
 
-      def localB = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "b")
-      localB.checkNodeCount(1)
+        def localB = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "b")
+        localB.checkNodeCount(1)
 
-      def destructionBlock = programBlock.expandAst(NodeTypes.BLOCK)
-      destructionBlock.checkNodeCount(1)
+        def destructionBlock = programBlock.expandAst(NodeTypes.BLOCK)
+        destructionBlock.checkNodeCount(1)
 
-      def localTmp =
-        destructionBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "_tmp_0")
-      localTmp.checkNodeCount(1)
+        def localTmp =
+          destructionBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "_tmp_0")
+        localTmp.checkNodeCount(1)
 
-      def assignmentToTmp =
-        destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0 = x")
-      assignmentToTmp.checkNodeCount(1)
+        def assignmentToTmp =
+          destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0 = x")
+        assignmentToTmp.checkNodeCount(1)
 
-      def assignmentToA =
-        destructionBlock
-          .expandAst(NodeTypes.CALL)
-          .filter(PropertyNames.NAME, Operators.assignment)
-          .filter(PropertyNames.CODE, "a = _tmp_0.a === void 0 ? 1 : _tmp_0.a")
-      assignmentToA.checkNodeCount(1)
+        def assignmentToA =
+          destructionBlock
+            .expandAst(NodeTypes.CALL)
+            .filter(PropertyNames.NAME, Operators.assignment)
+            .filter(PropertyNames.CODE, "a = _tmp_0.a === void 0 ? 1 : _tmp_0.a")
+        assignmentToA.checkNodeCount(1)
 
-      def a = assignmentToA.expandAst(NodeTypes.IDENTIFIER)
-      a.checkNodeCount(1)
+        def a = assignmentToA.expandAst(NodeTypes.IDENTIFIER)
+        a.checkNodeCount(1)
 
-      def ifA =
-        assignmentToA
-          .expandAst(NodeTypes.CALL)
-          .filter(PropertyNames.CODE, "_tmp_0.a === void 0 ? 1 : _tmp_0.a")
-      ifA.checkNodeCount(1)
-      ifA.checkProperty(PropertyNames.NAME, Operators.conditional)
+        def ifA =
+          assignmentToA
+            .expandAst(NodeTypes.CALL)
+            .filter(PropertyNames.CODE, "_tmp_0.a === void 0 ? 1 : _tmp_0.a")
+        ifA.checkNodeCount(1)
+        ifA.checkProperty(PropertyNames.NAME, Operators.conditional)
 
-      def testA = ifA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.a === void 0")
-      testA.checkNodeCount(1)
-      testA.checkProperty(PropertyNames.NAME, Operators.equals)
+        def testA = ifA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.a === void 0")
+        testA.checkNodeCount(1)
+        testA.checkProperty(PropertyNames.NAME, Operators.equals)
 
-      def testAFieldAccess =
-        testA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.a")
-      testAFieldAccess.checkNodeCount(1)
-      testAFieldAccess.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
+        def testAFieldAccess =
+          testA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.a")
+        testAFieldAccess.checkNodeCount(1)
+        testAFieldAccess.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
 
-      def voidCallA = testA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "void 0")
-      voidCallA.checkNodeCount(1)
+        def voidCallA = testA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "void 0")
+        voidCallA.checkNodeCount(1)
 
-      def trueBranchA = ifA.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "1")
-      trueBranchA.checkNodeCount(1)
+        def trueBranchA = ifA.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "1")
+        trueBranchA.checkNodeCount(1)
 
-      def falseBranchA =
-        ifA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.a")
-      falseBranchA.checkNodeCount(1)
-      falseBranchA.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
+        def falseBranchA =
+          ifA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.a")
+        falseBranchA.checkNodeCount(1)
+        falseBranchA.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
 
-      def assignmentToB =
-        destructionBlock
-          .expandAst(NodeTypes.CALL)
-          .filter(PropertyNames.NAME, Operators.assignment)
-          .filter(PropertyNames.CODE, "b = _tmp_0.b === void 0 ? 2 : _tmp_0.b")
-      assignmentToB.checkNodeCount(1)
+        def assignmentToB =
+          destructionBlock
+            .expandAst(NodeTypes.CALL)
+            .filter(PropertyNames.NAME, Operators.assignment)
+            .filter(PropertyNames.CODE, "b = _tmp_0.b === void 0 ? 2 : _tmp_0.b")
+        assignmentToB.checkNodeCount(1)
 
-      def b = assignmentToB.expandAst(NodeTypes.IDENTIFIER)
-      b.checkNodeCount(1)
+        def b = assignmentToB.expandAst(NodeTypes.IDENTIFIER)
+        b.checkNodeCount(1)
 
-      def ifB =
-        assignmentToB
-          .expandAst(NodeTypes.CALL)
-          .filter(PropertyNames.CODE, "_tmp_0.b === void 0 ? 2 : _tmp_0.b")
-      ifB.checkNodeCount(1)
-      ifB.checkProperty(PropertyNames.NAME, Operators.conditional)
+        def ifB =
+          assignmentToB
+            .expandAst(NodeTypes.CALL)
+            .filter(PropertyNames.CODE, "_tmp_0.b === void 0 ? 2 : _tmp_0.b")
+        ifB.checkNodeCount(1)
+        ifB.checkProperty(PropertyNames.NAME, Operators.conditional)
 
-      def testB = ifB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.b === void 0")
-      testB.checkNodeCount(1)
-      testB.checkProperty(PropertyNames.NAME, Operators.equals)
+        def testB = ifB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.b === void 0")
+        testB.checkNodeCount(1)
+        testB.checkProperty(PropertyNames.NAME, Operators.equals)
 
-      def testBFieldAccess =
-        testB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.b")
-      testBFieldAccess.checkNodeCount(1)
-      testBFieldAccess.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
+        def testBFieldAccess =
+          testB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.b")
+        testBFieldAccess.checkNodeCount(1)
+        testBFieldAccess.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
 
-      def voidCallB = testB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "void 0")
-      voidCallB.checkNodeCount(1)
+        def voidCallB = testB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "void 0")
+        voidCallB.checkNodeCount(1)
 
-      def trueBranchB = ifB.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "2")
-      trueBranchB.checkNodeCount(1)
+        def trueBranchB = ifB.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "2")
+        trueBranchB.checkNodeCount(1)
 
-      def falseBranchB =
-        ifB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.b")
-      falseBranchB.checkNodeCount(1)
-      falseBranchB.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
+        def falseBranchB =
+          ifB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.b")
+        falseBranchB.checkNodeCount(1)
+        falseBranchB.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
 
-      def tmpReturnIdentifier = destructionBlock.expandAst(NodeTypes.IDENTIFIER)
-      tmpReturnIdentifier.checkNodeCount(1)
-      tmpReturnIdentifier.checkProperty(PropertyNames.NAME, "_tmp_0")
+        def tmpReturnIdentifier = destructionBlock.expandAst(NodeTypes.IDENTIFIER)
+        tmpReturnIdentifier.checkNodeCount(1)
+        tmpReturnIdentifier.checkProperty(PropertyNames.NAME, "_tmp_0")
     }
 
-    "have correct structure for object destruction assignment with reassignment" in AstFixture(
-      "var {a: n, b: m} = x"
-    ) { cpg =>
-      def program = cpg.method.nameExact(":program")
-      program.checkNodeCount(1)
+    "have correct structure for object destruction assignment with reassignment" in AstFixture("var {a: n, b: m} = x") {
+      cpg =>
+        def program = cpg.method.nameExact(":program")
+        program.checkNodeCount(1)
 
-      def programBlock = program.expandAst(NodeTypes.BLOCK)
-      programBlock.checkNodeCount(1)
+        def programBlock = program.expandAst(NodeTypes.BLOCK)
+        programBlock.checkNodeCount(1)
 
-      def localN = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "n")
-      localN.checkNodeCount(1)
+        def localN = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "n")
+        localN.checkNodeCount(1)
 
-      def localM = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "m")
-      localM.checkNodeCount(1)
+        def localM = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "m")
+        localM.checkNodeCount(1)
 
-      def destructionBlock = programBlock.expandAst(NodeTypes.BLOCK)
-      destructionBlock.checkNodeCount(1)
+        def destructionBlock = programBlock.expandAst(NodeTypes.BLOCK)
+        destructionBlock.checkNodeCount(1)
 
-      def localTmp =
-        destructionBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "_tmp_0")
-      localTmp.checkNodeCount(1)
+        def localTmp =
+          destructionBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "_tmp_0")
+        localTmp.checkNodeCount(1)
 
-      def assignmentToTmp =
-        destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0 = x")
-      assignmentToTmp.checkNodeCount(1)
+        def assignmentToTmp =
+          destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0 = x")
+        assignmentToTmp.checkNodeCount(1)
 
-      def assignmentToN =
-        destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "n = _tmp_0.a")
-      assignmentToN.checkNodeCount(1)
+        def assignmentToN =
+          destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "n = _tmp_0.a")
+        assignmentToN.checkNodeCount(1)
 
-      def n = assignmentToN.expandAst(NodeTypes.IDENTIFIER)
-      n.checkNodeCount(1)
+        def n = assignmentToN.expandAst(NodeTypes.IDENTIFIER)
+        n.checkNodeCount(1)
 
-      def fieldAccessN =
-        assignmentToN.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.a")
-      fieldAccessN.checkNodeCount(1)
-      fieldAccessN.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
+        def fieldAccessN =
+          assignmentToN.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.a")
+        fieldAccessN.checkNodeCount(1)
+        fieldAccessN.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
 
-      def leftN = fieldAccessN.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "_tmp_0")
-      leftN.checkNodeCount(1)
+        def leftN = fieldAccessN.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "_tmp_0")
+        leftN.checkNodeCount(1)
 
-      def rightN =
-        fieldAccessN
-          .expandAst(NodeTypes.FIELD_IDENTIFIER)
-          .filter(PropertyNames.CANONICAL_NAME, "a")
-      rightN.checkNodeCount(1)
+        def rightN =
+          fieldAccessN
+            .expandAst(NodeTypes.FIELD_IDENTIFIER)
+            .filter(PropertyNames.CANONICAL_NAME, "a")
+        rightN.checkNodeCount(1)
 
-      def assignmentToM =
-        destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "m = _tmp_0.b")
-      assignmentToM.checkNodeCount(1)
+        def assignmentToM =
+          destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "m = _tmp_0.b")
+        assignmentToM.checkNodeCount(1)
 
-      def m = assignmentToM.expandAst(NodeTypes.IDENTIFIER)
-      m.checkNodeCount(1)
+        def m = assignmentToM.expandAst(NodeTypes.IDENTIFIER)
+        m.checkNodeCount(1)
 
-      def fieldAccessM =
-        assignmentToM.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.b")
-      fieldAccessM.checkNodeCount(1)
-      fieldAccessM.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
+        def fieldAccessM =
+          assignmentToM.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.b")
+        fieldAccessM.checkNodeCount(1)
+        fieldAccessM.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
 
-      def leftM = fieldAccessM.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "_tmp_0")
-      leftM.checkNodeCount(1)
+        def leftM = fieldAccessM.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "_tmp_0")
+        leftM.checkNodeCount(1)
 
-      def rightM =
-        fieldAccessM
-          .expandAst(NodeTypes.FIELD_IDENTIFIER)
-          .filter(PropertyNames.CANONICAL_NAME, "b")
-      rightM.checkNodeCount(1)
+        def rightM =
+          fieldAccessM
+            .expandAst(NodeTypes.FIELD_IDENTIFIER)
+            .filter(PropertyNames.CANONICAL_NAME, "b")
+        rightM.checkNodeCount(1)
 
-      def tmpReturnIdentifier = destructionBlock.expandAst(NodeTypes.IDENTIFIER)
-      tmpReturnIdentifier.checkNodeCount(1)
-      tmpReturnIdentifier.checkProperty(PropertyNames.NAME, "_tmp_0")
+        def tmpReturnIdentifier = destructionBlock.expandAst(NodeTypes.IDENTIFIER)
+        tmpReturnIdentifier.checkNodeCount(1)
+        tmpReturnIdentifier.checkProperty(PropertyNames.NAME, "_tmp_0")
     }
 
     "have correct structure for object destruction assignment with reassignment and defaults" in AstFixture(
@@ -3253,81 +3144,78 @@ class AstCreationPassTest extends AbstractPassTest {
       b.checkProperty(PropertyNames.ORDER, 2)
     }
 
-    "have correct structure for object destruction assignment in call argument" in AstFixture(
-      "foo({a, b} = x)"
-    ) { cpg =>
-      def program = cpg.method.nameExact(":program")
-      program.checkNodeCount(1)
+    "have correct structure for object destruction assignment in call argument" in AstFixture("foo({a, b} = x)") {
+      cpg =>
+        def program = cpg.method.nameExact(":program")
+        program.checkNodeCount(1)
 
-      def programBlock = program.expandAst(NodeTypes.BLOCK)
-      programBlock.checkNodeCount(1)
+        def programBlock = program.expandAst(NodeTypes.BLOCK)
+        programBlock.checkNodeCount(1)
 
-      def localA = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "a")
-      localA.checkNodeCount(1)
+        def localA = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "a")
+        localA.checkNodeCount(1)
 
-      def localB = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "b")
-      localB.checkNodeCount(1)
+        def localB = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "b")
+        localB.checkNodeCount(1)
 
-      def fooCall = programBlock.expandAst(NodeTypes.CALL)
-      fooCall.checkNodeCount(1)
+        def fooCall = programBlock.expandAst(NodeTypes.CALL)
+        fooCall.checkNodeCount(1)
 
-      def destructionBlock = fooCall.expandAst(NodeTypes.BLOCK)
-      destructionBlock.checkNodeCount(1)
+        def destructionBlock = fooCall.expandAst(NodeTypes.BLOCK)
+        destructionBlock.checkNodeCount(1)
 
-      def localTmp =
-        destructionBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "_tmp_0")
-      localTmp.checkNodeCount(1)
+        def localTmp =
+          destructionBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "_tmp_0")
+        localTmp.checkNodeCount(1)
 
-      def assignmentToTmp =
-        destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0 = x")
-      assignmentToTmp.checkNodeCount(1)
+        def assignmentToTmp =
+          destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0 = x")
+        assignmentToTmp.checkNodeCount(1)
 
-      def assignmentToA =
-        destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "a = _tmp_0.a")
-      assignmentToA.checkNodeCount(1)
-      def a = assignmentToA.expandAst(NodeTypes.IDENTIFIER)
-      a.checkNodeCount(1)
+        def assignmentToA =
+          destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "a = _tmp_0.a")
+        assignmentToA.checkNodeCount(1)
+        def a = assignmentToA.expandAst(NodeTypes.IDENTIFIER)
+        a.checkNodeCount(1)
 
-      def fieldAccessA =
-        assignmentToA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.a")
-      fieldAccessA.checkNodeCount(1)
-      fieldAccessA.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
+        def fieldAccessA =
+          assignmentToA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.a")
+        fieldAccessA.checkNodeCount(1)
+        fieldAccessA.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
 
-      def leftA = fieldAccessA.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "_tmp_0")
-      leftA.checkNodeCount(1)
-      def rightA =
-        fieldAccessA
-          .expandAst(NodeTypes.FIELD_IDENTIFIER)
-          .filter(PropertyNames.CANONICAL_NAME, "a")
-      rightA.checkNodeCount(1)
+        def leftA = fieldAccessA.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "_tmp_0")
+        leftA.checkNodeCount(1)
+        def rightA =
+          fieldAccessA
+            .expandAst(NodeTypes.FIELD_IDENTIFIER)
+            .filter(PropertyNames.CANONICAL_NAME, "a")
+        rightA.checkNodeCount(1)
 
-      def assignmentToB =
-        destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "b = _tmp_0.b")
-      assignmentToB.checkNodeCount(1)
-      def b = assignmentToB.expandAst(NodeTypes.IDENTIFIER)
-      b.checkNodeCount(1)
+        def assignmentToB =
+          destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "b = _tmp_0.b")
+        assignmentToB.checkNodeCount(1)
+        def b = assignmentToB.expandAst(NodeTypes.IDENTIFIER)
+        b.checkNodeCount(1)
 
-      def fieldAccessB =
-        assignmentToB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.b")
-      fieldAccessB.checkNodeCount(1)
-      fieldAccessB.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
+        def fieldAccessB =
+          assignmentToB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0.b")
+        fieldAccessB.checkNodeCount(1)
+        fieldAccessB.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
 
-      def leftB = fieldAccessB.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "_tmp_0")
-      leftB.checkNodeCount(1)
-      def rightB =
-        fieldAccessB
-          .expandAst(NodeTypes.FIELD_IDENTIFIER)
-          .filter(PropertyNames.CANONICAL_NAME, "b")
-      rightB.checkNodeCount(1)
+        def leftB = fieldAccessB.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "_tmp_0")
+        leftB.checkNodeCount(1)
+        def rightB =
+          fieldAccessB
+            .expandAst(NodeTypes.FIELD_IDENTIFIER)
+            .filter(PropertyNames.CANONICAL_NAME, "b")
+        rightB.checkNodeCount(1)
 
-      def tmpReturnIdentifier = destructionBlock.expandAst(NodeTypes.IDENTIFIER)
-      tmpReturnIdentifier.checkNodeCount(1)
-      tmpReturnIdentifier.checkProperty(PropertyNames.NAME, "_tmp_0")
+        def tmpReturnIdentifier = destructionBlock.expandAst(NodeTypes.IDENTIFIER)
+        tmpReturnIdentifier.checkNodeCount(1)
+        tmpReturnIdentifier.checkProperty(PropertyNames.NAME, "_tmp_0")
     }
 
-    "have correct structure for object destruction assignment with rest" in AstFixture(
-      "var {a, ...rest} = x"
-    ) { cpg =>
+    "have correct structure for object destruction assignment with rest" in AstFixture("var {a, ...rest} = x") { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -3378,13 +3266,11 @@ class AstCreationPassTest extends AbstractPassTest {
       "var {[propName]: n} = x"
     ) { _ => }
 
-    "have correct structure for nested object destruction assignment with defaults as parameter" in AstFixture(
-      """
+    "have correct structure for nested object destruction assignment with defaults as parameter" in AstFixture("""
         |function userId({id = {}, b} = {}) {
         |  return id
         |}
-        |""".stripMargin
-    ) { cpg =>
+        |""".stripMargin) { cpg =>
       def userId = cpg.method.nameExact("userId")
       userId.checkNodeCount(1)
 
@@ -3482,9 +3368,7 @@ class AstCreationPassTest extends AbstractPassTest {
       rightId.checkNodeCount(1)
     }
 
-    "have correct structure for array destruction assignment with declaration" in AstFixture(
-      "var [a, b] = x"
-    ) { cpg =>
+    "have correct structure for array destruction assignment with declaration" in AstFixture("var [a, b] = x") { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -3547,9 +3431,7 @@ class AstCreationPassTest extends AbstractPassTest {
       tmpReturnIdentifier.checkProperty(PropertyNames.NAME, "_tmp_0")
     }
 
-    "have correct structure for array destruction assignment without declaration" in AstFixture(
-      "[a, b] = x"
-    ) { cpg =>
+    "have correct structure for array destruction assignment without declaration" in AstFixture("[a, b] = x") { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -3612,114 +3494,111 @@ class AstCreationPassTest extends AbstractPassTest {
       tmpReturnIdentifier.checkProperty(PropertyNames.NAME, "_tmp_0")
     }
 
-    "have correct structure for array destruction assignment with defaults" in AstFixture(
-      "var [a = 1, b = 2] = x"
-    ) { cpg =>
-      def program = cpg.method.nameExact(":program")
-      program.checkNodeCount(1)
+    "have correct structure for array destruction assignment with defaults" in AstFixture("var [a = 1, b = 2] = x") {
+      cpg =>
+        def program = cpg.method.nameExact(":program")
+        program.checkNodeCount(1)
 
-      def programBlock = program.expandAst(NodeTypes.BLOCK)
-      programBlock.checkNodeCount(1)
+        def programBlock = program.expandAst(NodeTypes.BLOCK)
+        programBlock.checkNodeCount(1)
 
-      def localA = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "a")
-      localA.checkNodeCount(1)
+        def localA = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "a")
+        localA.checkNodeCount(1)
 
-      def localB = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "b")
-      localB.checkNodeCount(1)
+        def localB = programBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "b")
+        localB.checkNodeCount(1)
 
-      def destructionBlock = programBlock.expandAst(NodeTypes.BLOCK)
-      destructionBlock.checkNodeCount(1)
+        def destructionBlock = programBlock.expandAst(NodeTypes.BLOCK)
+        destructionBlock.checkNodeCount(1)
 
-      def localTmp =
-        destructionBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "_tmp_0")
-      localTmp.checkNodeCount(1)
+        def localTmp =
+          destructionBlock.expandAst(NodeTypes.LOCAL).filter(PropertyNames.NAME, "_tmp_0")
+        localTmp.checkNodeCount(1)
 
-      def assignmentToTmp =
-        destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0 = x")
-      assignmentToTmp.checkNodeCount(1)
+        def assignmentToTmp =
+          destructionBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0 = x")
+        assignmentToTmp.checkNodeCount(1)
 
-      def assignmentToA =
-        destructionBlock
-          .expandAst(NodeTypes.CALL)
-          .filter(PropertyNames.NAME, Operators.assignment)
-          .filter(PropertyNames.CODE, "a = _tmp_0[0] === void 0 ? 1 : _tmp_0[0]")
-      assignmentToA.checkNodeCount(1)
+        def assignmentToA =
+          destructionBlock
+            .expandAst(NodeTypes.CALL)
+            .filter(PropertyNames.NAME, Operators.assignment)
+            .filter(PropertyNames.CODE, "a = _tmp_0[0] === void 0 ? 1 : _tmp_0[0]")
+        assignmentToA.checkNodeCount(1)
 
-      def a = assignmentToA.expandAst(NodeTypes.IDENTIFIER)
-      a.checkNodeCount(1)
+        def a = assignmentToA.expandAst(NodeTypes.IDENTIFIER)
+        a.checkNodeCount(1)
 
-      def ifA =
-        assignmentToA
-          .expandAst(NodeTypes.CALL)
-          .filter(PropertyNames.CODE, "_tmp_0[0] === void 0 ? 1 : _tmp_0[0]")
-      ifA.checkNodeCount(1)
-      ifA.checkProperty(PropertyNames.NAME, Operators.conditional)
+        def ifA =
+          assignmentToA
+            .expandAst(NodeTypes.CALL)
+            .filter(PropertyNames.CODE, "_tmp_0[0] === void 0 ? 1 : _tmp_0[0]")
+        ifA.checkNodeCount(1)
+        ifA.checkProperty(PropertyNames.NAME, Operators.conditional)
 
-      def testA = ifA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0[0] === void 0")
-      testA.checkNodeCount(1)
-      testA.checkProperty(PropertyNames.NAME, Operators.equals)
+        def testA = ifA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0[0] === void 0")
+        testA.checkNodeCount(1)
+        testA.checkProperty(PropertyNames.NAME, Operators.equals)
 
-      def testAIndexAccess =
-        testA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0[0]")
-      testAIndexAccess.checkNodeCount(1)
-      testAIndexAccess.checkProperty(PropertyNames.NAME, Operators.indexAccess)
+        def testAIndexAccess =
+          testA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0[0]")
+        testAIndexAccess.checkNodeCount(1)
+        testAIndexAccess.checkProperty(PropertyNames.NAME, Operators.indexAccess)
 
-      def voidCallA = testA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "void 0")
-      voidCallA.checkNodeCount(1)
+        def voidCallA = testA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "void 0")
+        voidCallA.checkNodeCount(1)
 
-      def trueBranchA = ifA.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "1")
-      trueBranchA.checkNodeCount(1)
+        def trueBranchA = ifA.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "1")
+        trueBranchA.checkNodeCount(1)
 
-      def falseBranchA =
-        ifA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0[0]")
-      falseBranchA.checkNodeCount(1)
-      falseBranchA.checkProperty(PropertyNames.NAME, Operators.indexAccess)
+        def falseBranchA =
+          ifA.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0[0]")
+        falseBranchA.checkNodeCount(1)
+        falseBranchA.checkProperty(PropertyNames.NAME, Operators.indexAccess)
 
-      def assignmentToB =
-        destructionBlock
-          .expandAst(NodeTypes.CALL)
-          .filter(PropertyNames.NAME, Operators.assignment)
-          .filter(PropertyNames.CODE, "b = _tmp_0[1] === void 0 ? 2 : _tmp_0[1]")
-      assignmentToB.checkNodeCount(1)
+        def assignmentToB =
+          destructionBlock
+            .expandAst(NodeTypes.CALL)
+            .filter(PropertyNames.NAME, Operators.assignment)
+            .filter(PropertyNames.CODE, "b = _tmp_0[1] === void 0 ? 2 : _tmp_0[1]")
+        assignmentToB.checkNodeCount(1)
 
-      def b = assignmentToB.expandAst(NodeTypes.IDENTIFIER)
-      b.checkNodeCount(1)
+        def b = assignmentToB.expandAst(NodeTypes.IDENTIFIER)
+        b.checkNodeCount(1)
 
-      def ifB =
-        assignmentToB
-          .expandAst(NodeTypes.CALL)
-          .filter(PropertyNames.CODE, "_tmp_0[1] === void 0 ? 2 : _tmp_0[1]")
-      ifB.checkNodeCount(1)
-      ifB.checkProperty(PropertyNames.NAME, Operators.conditional)
+        def ifB =
+          assignmentToB
+            .expandAst(NodeTypes.CALL)
+            .filter(PropertyNames.CODE, "_tmp_0[1] === void 0 ? 2 : _tmp_0[1]")
+        ifB.checkNodeCount(1)
+        ifB.checkProperty(PropertyNames.NAME, Operators.conditional)
 
-      def testB = ifB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0[1] === void 0")
-      testB.checkNodeCount(1)
-      testB.checkProperty(PropertyNames.NAME, Operators.equals)
+        def testB = ifB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0[1] === void 0")
+        testB.checkNodeCount(1)
+        testB.checkProperty(PropertyNames.NAME, Operators.equals)
 
-      def testBIndexAccess =
-        testB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0[1]")
-      testBIndexAccess.checkNodeCount(1)
-      testBIndexAccess.checkProperty(PropertyNames.NAME, Operators.indexAccess)
+        def testBIndexAccess =
+          testB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0[1]")
+        testBIndexAccess.checkNodeCount(1)
+        testBIndexAccess.checkProperty(PropertyNames.NAME, Operators.indexAccess)
 
-      def voidCallB = testB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "void 0")
-      voidCallB.checkNodeCount(1)
+        def voidCallB = testB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "void 0")
+        voidCallB.checkNodeCount(1)
 
-      def trueBranchB = ifB.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "2")
-      trueBranchB.checkNodeCount(1)
+        def trueBranchB = ifB.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "2")
+        trueBranchB.checkNodeCount(1)
 
-      def falseBranchB =
-        ifB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0[1]")
-      falseBranchB.checkNodeCount(1)
-      falseBranchB.checkProperty(PropertyNames.NAME, Operators.indexAccess)
+        def falseBranchB =
+          ifB.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "_tmp_0[1]")
+        falseBranchB.checkNodeCount(1)
+        falseBranchB.checkProperty(PropertyNames.NAME, Operators.indexAccess)
 
-      def returnIdentifier = destructionBlock.expandAst(NodeTypes.IDENTIFIER)
-      returnIdentifier.checkNodeCount(1)
-      returnIdentifier.checkProperty(PropertyNames.NAME, "_tmp_0")
+        def returnIdentifier = destructionBlock.expandAst(NodeTypes.IDENTIFIER)
+        returnIdentifier.checkNodeCount(1)
+        returnIdentifier.checkProperty(PropertyNames.NAME, "_tmp_0")
     }
 
-    "have correct structure for array destruction assignment with ignores" in AstFixture(
-      "var [a, , b] = x"
-    ) { cpg =>
+    "have correct structure for array destruction assignment with ignores" in AstFixture("var [a, , b] = x") { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -3782,9 +3661,8 @@ class AstCreationPassTest extends AbstractPassTest {
       tmpReturnIdentifier.checkProperty(PropertyNames.NAME, "_tmp_0")
     }
 
-    "have correct structure for array destruction assignment with rest" ignore AstFixture(
-      "var [a, ...rest] = x"
-    ) { _ => }
+    "have correct structure for array destruction assignment with rest" ignore AstFixture("var [a, ...rest] = x") { _ =>
+    }
 
     "have correct structure for array destruction assignment as parameter" in AstFixture("""
        |function userId([id]) {
@@ -3815,19 +3693,18 @@ class AstCreationPassTest extends AbstractPassTest {
   }
 
   "AST generation for classes" should {
-    "have a TYPE_DECL and <meta> TYPE_DECL for ClassA" in AstFixture("var x = class ClassA {}") {
-      cpg =>
-        def classAMetaTypeDecl =
-          cpg.typeDecl
-            .nameExact("ClassA<meta>")
-            .filter(PropertyNames.FULL_NAME, "test.js::program:ClassA<meta>")
-        classAMetaTypeDecl.checkNodeCount(1)
+    "have a TYPE_DECL and <meta> TYPE_DECL for ClassA" in AstFixture("var x = class ClassA {}") { cpg =>
+      def classAMetaTypeDecl =
+        cpg.typeDecl
+          .nameExact("ClassA<meta>")
+          .filter(PropertyNames.FULL_NAME, "test.js::program:ClassA<meta>")
+      classAMetaTypeDecl.checkNodeCount(1)
 
-        def classATypeDecl =
-          cpg.typeDecl
-            .nameExact("ClassA")
-            .filter(PropertyNames.FULL_NAME, "test.js::program:ClassA")
-        classATypeDecl.checkNodeCount(1)
+      def classATypeDecl =
+        cpg.typeDecl
+          .nameExact("ClassA")
+          .filter(PropertyNames.FULL_NAME, "test.js::program:ClassA")
+      classATypeDecl.checkNodeCount(1)
     }
 
     "have constructor binding in <meta> TYPE_DECL for ClassA" in AstFixture("""
@@ -3863,10 +3740,7 @@ class AstCreationPassTest extends AbstractPassTest {
       def memberFoo = classAMetaTypeDecl.expandAst(NodeTypes.MEMBER)
       memberFoo.checkNodeCount(1)
       pendingUntilFixed {
-        memberFoo.checkProperty(
-          PropertyNames.DYNAMIC_TYPE_HINT_FULL_NAME,
-          "test.js::program:ClassA:staticFoo"
-        )
+        memberFoo.checkProperty(PropertyNames.DYNAMIC_TYPE_HINT_FULL_NAME, "test.js::program:ClassA:staticFoo")
       }
     }
 
@@ -3897,10 +3771,7 @@ class AstCreationPassTest extends AbstractPassTest {
       def memberFoo = classATypeDecl.expandAst(NodeTypes.MEMBER)
       memberFoo.checkNodeCount(1)
       pendingUntilFixed {
-        memberFoo.checkProperty(
-          PropertyNames.DYNAMIC_TYPE_HINT_FULL_NAME,
-          "test.js::program:ClassA:foo"
-        )
+        memberFoo.checkProperty(PropertyNames.DYNAMIC_TYPE_HINT_FULL_NAME, "test.js::program:ClassA:foo")
       }
     }
 
@@ -3935,14 +3806,13 @@ class AstCreationPassTest extends AbstractPassTest {
       rhs.checkProperty(PropertyNames.TYPE_FULL_NAME, "test.js::program:ClassA<meta>")
     }
 
-    "have correct structure for type decls for classes with extends" in AstFixture(
-      "class ClassA extends Base {}"
-    ) { cpg =>
-      def classATypeDecl =
-        cpg.typeDecl.nameExact("ClassA").filter(PropertyNames.FULL_NAME, "ClassA")
-      classATypeDecl.checkProperty(PropertyNames.INHERITS_FROM_TYPE_FULL_NAME, "Base")
-      // Currently we do not handle class inheritance. Thus we expect 0.
-      classATypeDecl.checkNodeCount(0)
+    "have correct structure for type decls for classes with extends" in AstFixture("class ClassA extends Base {}") {
+      cpg =>
+        def classATypeDecl =
+          cpg.typeDecl.nameExact("ClassA").filter(PropertyNames.FULL_NAME, "ClassA")
+        classATypeDecl.checkProperty(PropertyNames.INHERITS_FROM_TYPE_FULL_NAME, "Base")
+        // Currently we do not handle class inheritance. Thus we expect 0.
+        classATypeDecl.checkNodeCount(0)
     }
   }
 
@@ -4009,9 +3879,7 @@ class AstCreationPassTest extends AbstractPassTest {
       returnTmp.checkProperty(PropertyNames.NAME, tmpName)
     }
 
-    "have correct structure for simple new with arguments" in AstFixture(
-      "new MyClass(arg1, arg2)"
-    ) { cpg =>
+    "have correct structure for simple new with arguments" in AstFixture("new MyClass(arg1, arg2)") { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
       def newCall =
@@ -4097,76 +3965,73 @@ class AstCreationPassTest extends AbstractPassTest {
       returnTmp.checkProperty(PropertyNames.NAME, tmpName)
     }
 
-    "have correct structure for new with access path" in AstFixture("new foo.bar.MyClass()") {
-      cpg =>
-        def program = cpg.method.nameExact(":program")
-        program.checkNodeCount(1)
-        def newCall =
-          program
-            .expandAst(NodeTypes.BLOCK)
-            .filter(PropertyNames.CODE, "new foo.bar.MyClass()")
-        newCall.checkNodeCount(1)
+    "have correct structure for new with access path" in AstFixture("new foo.bar.MyClass()") { cpg =>
+      def program = cpg.method.nameExact(":program")
+      program.checkNodeCount(1)
+      def newCall =
+        program
+          .expandAst(NodeTypes.BLOCK)
+          .filter(PropertyNames.CODE, "new foo.bar.MyClass()")
+      newCall.checkNodeCount(1)
 
-        def block = newCall.expandAst(NodeTypes.BLOCK)
-        block.checkNodeCount(1)
+      def block = newCall.expandAst(NodeTypes.BLOCK)
+      block.checkNodeCount(1)
 
-        def tmpName = "_tmp_0"
+      def tmpName = "_tmp_0"
 
-        def localTmp = block.expandAst(NodeTypes.LOCAL)
-        localTmp.checkNodeCount(1)
-        localTmp.checkProperty(PropertyNames.NAME, tmpName)
+      def localTmp = block.expandAst(NodeTypes.LOCAL)
+      localTmp.checkNodeCount(1)
+      localTmp.checkProperty(PropertyNames.NAME, tmpName)
 
-        def tmpAssignment =
-          block.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, tmpName + " = .alloc")
-        tmpAssignment.checkNodeCount(1)
-        tmpAssignment.checkProperty(PropertyNames.NAME, Operators.assignment)
+      def tmpAssignment =
+        block.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, tmpName + " = .alloc")
+      tmpAssignment.checkNodeCount(1)
+      tmpAssignment.checkProperty(PropertyNames.NAME, Operators.assignment)
 
-        def tmp = tmpAssignment.expandAst(NodeTypes.IDENTIFIER)
-        tmp.checkNodeCount(1)
-        tmp.checkProperty(PropertyNames.CODE, tmpName)
-        tmp.checkProperty(PropertyNames.NAME, tmpName)
+      def tmp = tmpAssignment.expandAst(NodeTypes.IDENTIFIER)
+      tmp.checkNodeCount(1)
+      tmp.checkProperty(PropertyNames.CODE, tmpName)
+      tmp.checkProperty(PropertyNames.NAME, tmpName)
 
-        def allocCall = tmpAssignment.expandAst(NodeTypes.CALL)
-        allocCall.checkNodeCount(1)
-        allocCall.checkProperty(PropertyNames.NAME, ".alloc")
-        allocCall.checkProperty(PropertyNames.CODE, ".alloc")
+      def allocCall = tmpAssignment.expandAst(NodeTypes.CALL)
+      allocCall.checkNodeCount(1)
+      allocCall.checkProperty(PropertyNames.NAME, ".alloc")
+      allocCall.checkProperty(PropertyNames.CODE, ".alloc")
 
-        def constructorCall =
-          block.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "foo.bar.MyClass()")
-        constructorCall.checkNodeCount(1)
+      def constructorCall =
+        block.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "foo.bar.MyClass()")
+      constructorCall.checkNodeCount(1)
 
-        def path =
-          constructorCall.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "foo.bar.MyClass")
-        path.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
-        path.checkNodeCount(1)
+      def path =
+        constructorCall.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "foo.bar.MyClass")
+      path.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
+      path.checkNodeCount(1)
 
-        def receiver =
-          constructorCall
-            .expandReceiver(NodeTypes.CALL)
-            .filter(PropertyNames.CODE, "foo.bar.MyClass")
-        receiver.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
-        receiver.checkNodeCount(1)
+      def receiver =
+        constructorCall
+          .expandReceiver(NodeTypes.CALL)
+          .filter(PropertyNames.CODE, "foo.bar.MyClass")
+      receiver.checkProperty(PropertyNames.NAME, Operators.fieldAccess)
+      receiver.checkNodeCount(1)
 
-        def tmpArg0 =
-          constructorCall.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, tmpName)
-        tmpArg0.checkNodeCount(1)
-        tmpArg0.checkProperty(PropertyNames.ARGUMENT_INDEX, 0)
+      def tmpArg0 =
+        constructorCall.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, tmpName)
+      tmpArg0.checkNodeCount(1)
+      tmpArg0.checkProperty(PropertyNames.ARGUMENT_INDEX, 0)
 
-        def tmpArg0Argument =
-          constructorCall
-            .expand(EdgeTypes.ARGUMENT, NodeTypes.IDENTIFIER)
-            .filter(PropertyNames.NAME, tmpName)
-        tmpArg0Argument.checkNodeCount(1)
-        tmpArg0Argument.checkProperty(PropertyNames.ARGUMENT_INDEX, 0)
+      def tmpArg0Argument =
+        constructorCall
+          .expand(EdgeTypes.ARGUMENT, NodeTypes.IDENTIFIER)
+          .filter(PropertyNames.NAME, tmpName)
+      tmpArg0Argument.checkNodeCount(1)
+      tmpArg0Argument.checkProperty(PropertyNames.ARGUMENT_INDEX, 0)
 
-        def returnTmp = block.expandAst(NodeTypes.IDENTIFIER)
-        returnTmp.checkNodeCount(1)
-        returnTmp.checkProperty(PropertyNames.NAME, tmpName)
+      def returnTmp = block.expandAst(NodeTypes.IDENTIFIER)
+      returnTmp.checkNodeCount(1)
+      returnTmp.checkProperty(PropertyNames.NAME, tmpName)
     }
 
-    "have correct structure for throw new exceptions" in AstFixture(
-      "function() { throw new Foo() }"
-    ) { cpg =>
+    "have correct structure for throw new exceptions" in AstFixture("function() { throw new Foo() }") { cpg =>
       def program = cpg.method.nameExact(":program")
       program.checkNodeCount(1)
 
@@ -4233,20 +4098,19 @@ class AstCreationPassTest extends AbstractPassTest {
   }
 
   "AST generation for await/async" should {
-    "have correct structure for await/async" in AstFixture("async function(foo) { await foo() }") {
-      cpg =>
-        def awaitCall =
-          cpg.method
-            .nameExact("anonymous")
-            .expandAst(NodeTypes.BLOCK)
-            .expandAst(NodeTypes.CALL)
-        awaitCall.checkNodeCount(1)
-        awaitCall.checkProperty(PropertyNames.CODE, "await foo()")
-        awaitCall.checkProperty(PropertyNames.DISPATCH_TYPE, DispatchTypes.STATIC_DISPATCH)
-        awaitCall.checkProperty(PropertyNames.METHOD_FULL_NAME, "<operator>.await")
+    "have correct structure for await/async" in AstFixture("async function(foo) { await foo() }") { cpg =>
+      def awaitCall =
+        cpg.method
+          .nameExact("anonymous")
+          .expandAst(NodeTypes.BLOCK)
+          .expandAst(NodeTypes.CALL)
+      awaitCall.checkNodeCount(1)
+      awaitCall.checkProperty(PropertyNames.CODE, "await foo()")
+      awaitCall.checkProperty(PropertyNames.DISPATCH_TYPE, DispatchTypes.STATIC_DISPATCH)
+      awaitCall.checkProperty(PropertyNames.METHOD_FULL_NAME, "<operator>.await")
 
-        def fooCall = awaitCall.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "foo()")
-        fooCall.checkNodeCount(1)
+      def fooCall = awaitCall.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "foo()")
+      fooCall.checkNodeCount(1)
     }
   }
 
@@ -4301,9 +4165,7 @@ class AstCreationPassTest extends AbstractPassTest {
   }
 
   "AST generation for default parameters" should {
-    "have correct structure for method parameter with default" in AstFixture(
-      "function foo(a = 1) {}"
-    ) { cpg =>
+    "have correct structure for method parameter with default" in AstFixture("function foo(a = 1) {}") { cpg =>
       def foo = cpg.method.nameExact("foo")
       foo.checkNodeCount(1)
 
@@ -4416,50 +4278,49 @@ class AstCreationPassTest extends AbstractPassTest {
       falseCaseB.checkNodeCount(1)
     }
 
-    "have correct structure for method mixed parameters with default" in AstFixture(
-      "function foo(a, b = 1) {}"
-    ) { cpg =>
-      def foo = cpg.method.nameExact("foo")
-      foo.checkNodeCount(1)
+    "have correct structure for method mixed parameters with default" in AstFixture("function foo(a, b = 1) {}") {
+      cpg =>
+        def foo = cpg.method.nameExact("foo")
+        foo.checkNodeCount(1)
 
-      def paramA = foo.expandAst(NodeTypes.METHOD_PARAMETER_IN).filter(PropertyNames.NAME, "a")
-      paramA.checkNodeCount(1)
-      paramA.checkProperty(PropertyNames.ORDER, 1)
+        def paramA = foo.expandAst(NodeTypes.METHOD_PARAMETER_IN).filter(PropertyNames.NAME, "a")
+        paramA.checkNodeCount(1)
+        paramA.checkProperty(PropertyNames.ORDER, 1)
 
-      def paramB = foo.expandAst(NodeTypes.METHOD_PARAMETER_IN).filter(PropertyNames.NAME, "b")
-      paramB.checkNodeCount(1)
-      paramB.checkProperty(PropertyNames.ORDER, 2)
+        def paramB = foo.expandAst(NodeTypes.METHOD_PARAMETER_IN).filter(PropertyNames.NAME, "b")
+        paramB.checkNodeCount(1)
+        paramB.checkProperty(PropertyNames.ORDER, 2)
 
-      def block = foo.expandAst(NodeTypes.BLOCK)
-      block.checkNodeCount(1)
+        def block = foo.expandAst(NodeTypes.BLOCK)
+        block.checkNodeCount(1)
 
-      def assignmentB =
-        block.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "b = b === void 0 ? 1 : b")
-      assignmentB.checkNodeCount(1)
+        def assignmentB =
+          block.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, "b = b === void 0 ? 1 : b")
+        assignmentB.checkNodeCount(1)
 
-      def b = assignmentB.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "b")
-      b.checkNodeCount(1)
+        def b = assignmentB.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "b")
+        b.checkNodeCount(1)
 
-      def ternaryCallB =
-        assignmentB.expandAst(NodeTypes.CALL).filter(PropertyNames.NAME, "<operator>.conditional")
-      ternaryCallB.checkNodeCount(1)
+        def ternaryCallB =
+          assignmentB.expandAst(NodeTypes.CALL).filter(PropertyNames.NAME, "<operator>.conditional")
+        ternaryCallB.checkNodeCount(1)
 
-      def testCallB =
-        ternaryCallB.expandAst(NodeTypes.CALL).filter(PropertyNames.NAME, "<operator>.equals")
-      testCallB.checkNodeCount(1)
+        def testCallB =
+          ternaryCallB.expandAst(NodeTypes.CALL).filter(PropertyNames.NAME, "<operator>.equals")
+        testCallB.checkNodeCount(1)
 
-      def testCallBLhs = testCallB.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "b")
-      testCallBLhs.checkNodeCount(1)
+        def testCallBLhs = testCallB.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "b")
+        testCallBLhs.checkNodeCount(1)
 
-      def testCallBRhs =
-        testCallB.expandAst(NodeTypes.CALL).filter(PropertyNames.NAME, "<operator>.void")
-      testCallBRhs.checkNodeCount(1)
+        def testCallBRhs =
+          testCallB.expandAst(NodeTypes.CALL).filter(PropertyNames.NAME, "<operator>.void")
+        testCallBRhs.checkNodeCount(1)
 
-      def trueCaseB = ternaryCallB.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "1")
-      trueCaseB.checkNodeCount(1)
+        def trueCaseB = ternaryCallB.expandAst(NodeTypes.LITERAL).filter(PropertyNames.CODE, "1")
+        trueCaseB.checkNodeCount(1)
 
-      def falseCaseB = ternaryCallB.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "b")
-      falseCaseB.checkNodeCount(1)
+        def falseCaseB = ternaryCallB.expandAst(NodeTypes.IDENTIFIER).filter(PropertyNames.NAME, "b")
+        falseCaseB.checkNodeCount(1)
     }
 
     "have correct structure for multiple method mixed parameters with default" in AstFixture(
