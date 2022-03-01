@@ -1,5 +1,5 @@
 val cpgVersion   = "1.3.504"
-val joernVersion = "1.1.579"
+val joernVersion = "1.1.580"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
@@ -116,20 +116,12 @@ lazy val js2cpg = (project in file(".")).settings(
   publishTo             := sonatypePublishToBundle.value,
   sonatypeTimeoutMillis := 7200000,
   scmInfo := Some(
-    ScmInfo(
-      url("https://github.com/ShiftLeftSecurity/js2cpg"),
-      "scm:git@github.com:ShiftLeftSecurity/js2cpg.git"
-    )
+    ScmInfo(url("https://github.com/ShiftLeftSecurity/js2cpg"), "scm:git@github.com:ShiftLeftSecurity/js2cpg.git")
   ),
   homepage := Some(url("https://github.com/ShiftLeftSecurity/js2cpg/")),
   licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
   developers := List(
-    Developer(
-      "max-leuthaeuser",
-      "Max Leuthäuser",
-      "max@shiftleft.io",
-      url("https://github.com/max-leuthaeuser")
-    )
+    Developer("max-leuthaeuser", "Max Leuthäuser", "max@shiftleft.io", url("https://github.com/max-leuthaeuser"))
   ),
   publishMavenStyle := true,
   gitCommitString   := git.gitHeadCommit.value.getOrElse("n/a"),
