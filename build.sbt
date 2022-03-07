@@ -95,7 +95,7 @@ lazy val commonSettings = Seq(
     ("com.github.pathikrit"     %% "better-files"      % "3.9.1").cross(CrossVersion.for3Use2_13),
     "com.github.scopt"          %% "scopt"             % "4.0.1",
     "org.graalvm.js"             % "js"                % "22.0.0.2",
-    "com.fasterxml.jackson.core" % "jackson-databind"  % "2.13.1",
+    "com.fasterxml.jackson.core" % "jackson-databind"  % "2.13.2",
     "com.atlassian.sourcemap"    % "sourcemap"         % "2.0.0",
     "commons-io"                 % "commons-io"        % "2.11.0",
     "org.slf4j"                  % "slf4j-api"         % "1.7.36",
@@ -116,20 +116,12 @@ lazy val js2cpg = (project in file(".")).settings(
   publishTo             := sonatypePublishToBundle.value,
   sonatypeTimeoutMillis := 7200000,
   scmInfo := Some(
-    ScmInfo(
-      url("https://github.com/ShiftLeftSecurity/js2cpg"),
-      "scm:git@github.com:ShiftLeftSecurity/js2cpg.git"
-    )
+    ScmInfo(url("https://github.com/ShiftLeftSecurity/js2cpg"), "scm:git@github.com:ShiftLeftSecurity/js2cpg.git")
   ),
   homepage := Some(url("https://github.com/ShiftLeftSecurity/js2cpg/")),
   licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
   developers := List(
-    Developer(
-      "max-leuthaeuser",
-      "Max Leuthäuser",
-      "max@shiftleft.io",
-      url("https://github.com/max-leuthaeuser")
-    )
+    Developer("max-leuthaeuser", "Max Leuthäuser", "max@shiftleft.io", url("https://github.com/max-leuthaeuser"))
   ),
   publishMavenStyle := true,
   gitCommitString   := git.gitHeadCommit.value.getOrElse("n/a"),
