@@ -14,8 +14,6 @@ class BuiltinTypesPass(cpg: Cpg, keyPool: KeyPool) extends SimpleCpgPass(cpg, ke
   override def run(diffGraph: DiffGraphBuilder): Unit = {
     logger.debug("Generating builtin types.")
 
-    val diffGraph = DiffGraph.newBuilder
-
     val namespaceBlock = NewNamespaceBlock()
       .name(Defines.GLOBAL_NAMESPACE)
       .fullName(Defines.GLOBAL_NAMESPACE)
