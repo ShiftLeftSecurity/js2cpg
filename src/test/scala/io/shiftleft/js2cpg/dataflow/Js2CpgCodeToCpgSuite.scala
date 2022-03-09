@@ -4,9 +4,10 @@ import better.files.File
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.codepropertygraph.cpgloading.{CpgLoader, CpgLoaderConfig}
 import io.shiftleft.js2cpg.core.{Config, Js2Cpg}
-import io.shiftleft.semanticcpg.testfixtures.{CodeToCpgFixture, LanguageFrontend}
+import io.joern.x2cpg.testfixtures.{CodeToCpgFixture, LanguageFrontend}
 
 class Js2CpgFrontend(override val fileSuffix: String = ".js") extends LanguageFrontend() {
+
   override def execute(sourceCodePath: java.io.File): Cpg = {
     var cpg = Cpg.emptyCpg
     File.usingTemporaryFile("js2cpg", ".bin") { cpgFile =>

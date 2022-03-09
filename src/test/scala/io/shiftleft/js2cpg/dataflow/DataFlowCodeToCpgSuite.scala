@@ -7,7 +7,8 @@ import io.joern.dataflowengineoss.semanticsloader.{Parser, Semantics}
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.codepropertygraph.generated.nodes._
 import io.shiftleft.semanticcpg.language._
-import io.shiftleft.semanticcpg.layers._
+import io.joern.x2cpg.layers._
+import io.shiftleft.semanticcpg.layers.LayerCreatorContext
 
 class DataFlowCodeToCpgSuite extends Js2CpgCodeToCpgSuite {
 

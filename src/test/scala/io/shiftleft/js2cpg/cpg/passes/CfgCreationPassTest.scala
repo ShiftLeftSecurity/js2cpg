@@ -6,8 +6,8 @@ import io.shiftleft.codepropertygraph.generated._
 import io.shiftleft.js2cpg.core.Report
 import io.shiftleft.passes.IntervalKeyPool
 import io.shiftleft.semanticcpg.language._
-import io.shiftleft.semanticcpg.passes.controlflow.CfgCreationPass
-import io.shiftleft.semanticcpg.passes.controlflow.cfgcreation.Cfg._
+import io.joern.x2cpg.passes.controlflow.CfgCreationPass
+import io.joern.x2cpg.passes.controlflow.cfgcreation.Cfg._
 import overflowdb.traversal._
 import overflowdb._
 

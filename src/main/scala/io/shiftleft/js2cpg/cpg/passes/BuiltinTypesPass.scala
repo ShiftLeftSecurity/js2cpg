@@ -1,20 +1,18 @@
 package io.shiftleft.js2cpg.cpg.passes
 
 import io.shiftleft.codepropertygraph.Cpg
-import io.shiftleft.codepropertygraph.generated.{EdgeTypes, NodeTypes}
-import io.shiftleft.passes.{CpgPass, DiffGraph, KeyPool}
 import io.shiftleft.codepropertygraph.generated.nodes.{NewNamespaceBlock, NewType, NewTypeDecl}
+import io.shiftleft.codepropertygraph.generated.{EdgeTypes, NodeTypes}
 import io.shiftleft.js2cpg.cpg.datastructures.OrderTracker
+import io.shiftleft.passes.{DiffGraph, KeyPool, SimpleCpgPass}
 import org.slf4j.LoggerFactory
 
-class BuiltinTypesPass(cpg: Cpg, keyPool: KeyPool) extends CpgPass(cpg, keyPool = Some(keyPool)) {
+class BuiltinTypesPass(cpg: Cpg, keyPool: KeyPool) extends SimpleCpgPass(cpg, keyPool = Some(keyPool)) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  override def run(): Iterator[DiffGraph] = {
+  override def run(diffGraph: DiffGraphBuilder): Unit = {
     logger.debug("Generating builtin types.")
-
-    val diffGraph = DiffGraph.newBuilder
 
     val namespaceBlock = NewNamespaceBlock()
       .name(Defines.GLOBAL_NAMESPACE)
@@ -45,8 +43,6 @@ class BuiltinTypesPass(cpg: Cpg, keyPool: KeyPool) extends CpgPass(cpg, keyPool 
       orderTracker.inc()
       diffGraph.addEdge(namespaceBlock, typeDecl, EdgeTypes.AST)
     }
-
-    Iterator(diffGraph.build())
   }
 
 }
