@@ -11,7 +11,7 @@ import java.nio.file.Paths
 
 class DependenciesPass(cpg: Cpg, config: Config, keyPool: KeyPool) extends SimpleCpgPass(cpg, keyPool = Some(keyPool)) {
 
-  override def run(diffGraph:  DiffGraphBuilder): Unit = {
+  override def run(diffGraph: DiffGraphBuilder): Unit = {
     val packagesJsons =
       (FileUtils
         .getFileTree(Paths.get(config.srcDir), config, List(".json"))
