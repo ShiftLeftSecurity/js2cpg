@@ -102,6 +102,7 @@ lazy val commonSettings = Seq(
     "org.apache.logging.log4j"   % "log4j-slf4j-impl"  % "2.17.2"     % Runtime,
     "io.joern"                  %% "dataflowengineoss" % joernVersion % Test,
     "io.shiftleft"              %% "semanticcpg"       % cpgVersion   % Test classifier "tests",
+    "io.joern"                  %% "x2cpg"             % joernVersion % Test classifier "tests",
     "org.scalatest"             %% "scalatest"         % "3.2.11"     % Test
   ),
   Test / fork := true

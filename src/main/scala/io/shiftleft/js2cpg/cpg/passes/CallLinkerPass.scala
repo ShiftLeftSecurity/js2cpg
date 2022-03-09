@@ -1,19 +1,17 @@
 package io.shiftleft.js2cpg.cpg.passes
 
 import io.shiftleft.codepropertygraph.Cpg
-import io.shiftleft.codepropertygraph.generated.{nodes, DispatchTypes, EdgeTypes, Operators}
-import io.shiftleft.passes.{CpgPass, DiffGraph}
+import io.shiftleft.codepropertygraph.generated.{DispatchTypes, EdgeTypes, Operators, nodes}
+import io.shiftleft.passes.SimpleCpgPass
 import io.shiftleft.semanticcpg.language._
-import overflowdb.traversal.NodeOps
-import overflowdb.traversal.jIteratortoTraversal
-import overflowdb.traversal.toNodeTraversal
+import overflowdb.traversal.{NodeOps, jIteratortoTraversal, toNodeTraversal}
 
 import scala.collection.mutable
 
 /** The Javascript specific call linker links static call sites (by full name) and call sites to methods in the same
   * file (by name).
   */
-class CallLinkerPass(cpg: Cpg) extends CpgPass(cpg) {
+class CallLinkerPass(cpg: Cpg) extends SimpleCpgPass(cpg) {
 
   private type MethodsByNameAndFileType = mutable.HashMap[(String, String), nodes.Method]
   private type MethodsByFullNameType    = mutable.HashMap[String, nodes.Method]
@@ -63,35 +61,32 @@ class CallLinkerPass(cpg: Cpg) extends CpgPass(cpg) {
     (methodsByNameAndFile, methodsByFullName)
   }
 
-  override def run(): Iterator[DiffGraph] = {
+  override def run(diffGraph: DiffGraphBuilder): Unit = {
     val (methodsByNameAndFileType, methodsByFullName) = createMethodsByNameAndFile()
-    val diffGraph                                     = linkCallsites(methodsByNameAndFileType, methodsByFullName)
-    Iterator(diffGraph)
+    linkCallsites(diffGraph, methodsByNameAndFileType, methodsByFullName)
   }
 
   private def linkCallsites(
+    diffGraph: DiffGraphBuilder,
     methodsByNameAndFile: MethodsByNameAndFileType,
     methodsByFullName: MethodsByFullNameType
-  ): DiffGraph = {
-    val diffGraph = DiffGraph.newBuilder
-
+  ): Unit = {
     cpg.call.foreach { call =>
       if (call.dispatchType == DispatchTypes.STATIC_DISPATCH) {
         methodsByFullName
           .get(call.methodFullName)
-          .foreach(diffGraph.addEdgeInOriginal(call, _, EdgeTypes.CALL))
+          .foreach(diffGraph.addEdge(call, _, EdgeTypes.CALL))
       } else {
         getReceiverIdentifierName(call).foreach { name =>
           for (
             file   <- call.file.headOption;
             method <- methodsByNameAndFile.get((file.name, name))
-          ) { diffGraph.addEdgeInOriginal(call, method, EdgeTypes.CALL) }
+          ) { diffGraph.addEdge(call, method, EdgeTypes.CALL) }
         }
       }
     }
-
-    diffGraph.build()
   }
+
   private def callReceiverOption(callNode: nodes.Call): Option[nodes.Expression] =
     callNode._receiverOut.nextOption().map(_.asInstanceOf[nodes.Expression])
 
