@@ -4,8 +4,7 @@ import better.files.File
 import io.shiftleft.codepropertygraph.cpgloading.CpgLoader
 import io.shiftleft.codepropertygraph.cpgloading.CpgLoaderConfig
 import io.shiftleft.js2cpg.core.Js2CpgMain
-import io.shiftleft.semanticcpg.language.toMethodForCallGraph
-import io.shiftleft.semanticcpg.language.toNodeTypeStarters
+import io.shiftleft.semanticcpg.language._
 import io.shiftleft.semanticcpg.language.NoResolve
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
