@@ -103,7 +103,7 @@ lazy val commonSettings = Seq(
     "io.joern"                  %% "dataflowengineoss" % joernVersion % Test,
     "io.shiftleft"              %% "semanticcpg"       % cpgVersion   % Test classifier "tests",
     "io.joern"                  %% "x2cpg"             % joernVersion % Test classifier "tests",
-    "org.scalatest"             %% "scalatest"         % "3.2.11"     % Test
+    "org.scalatest"             %% "scalatest"         % "3.2.12"     % Test
   ),
   Test / fork := true
 )
