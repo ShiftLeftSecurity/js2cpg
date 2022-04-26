@@ -3,6 +3,7 @@ package io.shiftleft.js2cpg.cpg.passes
 import java.nio.file.{Path, Paths}
 import better.files.File
 import io.shiftleft.codepropertygraph.Cpg
+import io.shiftleft.codepropertygraph.generated.nodes.{Import, NamespaceBlock}
 import io.shiftleft.codepropertygraph.generated.{
   ControlStructureTypes,
   DispatchTypes,
@@ -19,7 +20,7 @@ import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.passes.IntervalKeyPool
 import io.shiftleft.semanticcpg.language._
 import overflowdb.Node
-import overflowdb.traversal.Traversal
+import overflowdb.traversal._
 
 class AstCreationPassTest extends AbstractPassTest {
 
@@ -4478,6 +4479,20 @@ class AstCreationPassTest extends AbstractPassTest {
       def depB = getDependencies(cpg).filter(PropertyNames.NAME, "b")
       depB.checkNodeCount(1)
       depB.checkProperty(PropertyNames.DEPENDENCY_GROUP_ID, "depB")
+    }
+
+    "have correct import nodes" in AstFixture("""
+        |import {a} from "depA";
+        |import {b} from "depB";
+        |""".stripMargin) { cpg =>
+      val List(x: Import, y: Import) = cpg.graph.V.label(NodeTypes.IMPORT).l
+      x.code shouldBe "import {a} from \"depA\""
+      y.code shouldBe "import {b} from \"depB\""
+      x.astIn.l match {
+        case List(n: NamespaceBlock) =>
+          n.fullName shouldBe "test.js:<global>"
+        case _ => fail()
+      }
     }
 
     "have correct dependencies (require)" in AstFixture("""

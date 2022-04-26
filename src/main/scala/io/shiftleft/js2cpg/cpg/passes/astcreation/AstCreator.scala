@@ -21,6 +21,7 @@ import com.oracle.js.parser.ir.{
   FunctionNode,
   IdentNode,
   IfNode,
+  ImportNode,
   IndexNode,
   JoinPredecessorExpression,
   LabelNode,
@@ -48,6 +49,7 @@ import io.shiftleft.codepropertygraph.generated.nodes.{
   NewCall,
   NewControlStructure,
   NewIdentifier,
+  NewImport,
   NewLocal,
   NewMethod,
   NewMethodRef,
@@ -138,39 +140,52 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     */
   def convert(programFunction: FunctionNode): Unit = {
     methodAstParentStack.push(prepareFileWrapperFunction())
+    createImportsAndDependencies(programFunction.getModule)
     programFunction.accept(this)
-
-    createDependencies(programFunction.getModule)
     createVariableReferenceLinks()
   }
 
-  private def createDependencies(module: Module): Unit = {
-    if (module != null) {
-      module.getImports.forEach { importNode =>
-        val groupId = importNode.getFrom match {
-          case null => importNode.getModuleSpecifier.getValue
-          case from => from.getModuleSpecifier.getValue
-        }
-        importNode.getModuleSpecifier match {
-          case null =>
-            val defaultBinding = importNode.getImportClause.getDefaultBinding
-            if (defaultBinding != null) {
-              astNodeBuilder.createDependencyNode(defaultBinding.getName, groupId, VERSION_IMPORT)
-            }
+  private def createImportsAndDependencies(module: Module): Unit = {
 
-            val nameSpaceImport = importNode.getImportClause.getNameSpaceImport
-            val namedImports    = importNode.getImportClause.getNamedImports
-            if (nameSpaceImport != null) {
-              astNodeBuilder.createDependencyNode(nameSpaceImport.getBindingIdentifier.getName, groupId, VERSION_IMPORT)
-            } else if (namedImports != null) {
-              namedImports.getImportSpecifiers.forEach { namedImport =>
-                astNodeBuilder.createDependencyNode(namedImport.getBindingIdentifier.getName, groupId, VERSION_IMPORT)
-              }
-            }
-          case module =>
-            astNodeBuilder.createDependencyNode(module.getValue, groupId, VERSION_IMPORT)
-        }
+    if (module == null) {
+      return
+    }
+
+    module.getImports.forEach { importNode =>
+      val groupId = importNode.getFrom match {
+        case null => importNode.getModuleSpecifier.getValue
+        case from => from.getModuleSpecifier.getValue
       }
+      importNode.getModuleSpecifier match {
+        case null =>
+          val defaultBinding = importNode.getImportClause.getDefaultBinding
+          if (defaultBinding != null) {
+            astNodeBuilder.createDependencyNode(defaultBinding.getName, groupId, VERSION_IMPORT)
+            createImportNodeAndAttachToAst(importNode)
+          }
+
+          val nameSpaceImport = importNode.getImportClause.getNameSpaceImport
+          val namedImports    = importNode.getImportClause.getNamedImports
+          if (nameSpaceImport != null) {
+            astNodeBuilder.createDependencyNode(nameSpaceImport.getBindingIdentifier.getName, groupId, VERSION_IMPORT)
+            createImportNodeAndAttachToAst(importNode)
+          } else if (namedImports != null) {
+            namedImports.getImportSpecifiers.forEach { namedImport =>
+              astNodeBuilder.createDependencyNode(namedImport.getBindingIdentifier.getName, groupId, VERSION_IMPORT)
+              createImportNodeAndAttachToAst(importNode)
+            }
+          }
+        case module =>
+          astNodeBuilder.createDependencyNode(module.getValue, groupId, VERSION_IMPORT)
+          createImportNodeAndAttachToAst(importNode)
+      }
+    }
+  }
+
+  private def createImportNodeAndAttachToAst(importNode: ImportNode) = {
+    val impNode = astNodeBuilder.createImportNode(importNode.toString)
+    methodAstParentStack.headOption.collect { case namespaceBlockNode: NewNamespaceBlock =>
+      astEdgeBuilder.addAstEdge(impNode, namespaceBlockNode)
     }
   }
 

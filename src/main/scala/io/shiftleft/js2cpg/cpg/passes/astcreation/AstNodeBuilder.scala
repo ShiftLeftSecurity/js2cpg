@@ -64,6 +64,12 @@ class AstNodeBuilder[NodeBuilderType](
     param
   }
 
+  def createImportNode(code: String): NewImport = {
+    val node = NewImport().code(code.stripSuffix(";"))
+    diffGraph.addNode(node)
+    node
+  }
+
   private def sanitizeCode(node: Node): String = node match {
     case _: ReturnNode =>
       source.getCode(node).stripSuffix(";")
