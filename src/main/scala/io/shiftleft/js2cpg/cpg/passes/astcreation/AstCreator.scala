@@ -140,8 +140,8 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     */
   def convert(programFunction: FunctionNode): Unit = {
     methodAstParentStack.push(prepareFileWrapperFunction())
-    programFunction.accept(this)
     createImportsAndDependencies(programFunction.getModule)
+    programFunction.accept(this)
     createVariableReferenceLinks()
   }
 
