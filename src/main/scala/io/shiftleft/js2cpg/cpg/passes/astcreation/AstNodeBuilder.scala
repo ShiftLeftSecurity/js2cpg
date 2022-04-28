@@ -64,8 +64,16 @@ class AstNodeBuilder[NodeBuilderType](
     param
   }
 
-  def createImportNode(code: String): NewImport = {
-    val node = NewImport().code(code.stripSuffix(";"))
+  def createImportNode(code: String, lineAndColumnProvider: Node): NewImport = {
+    val lineColumn = lineAndColumn(lineAndColumnProvider)
+    val line       = lineColumn.line
+    val column     = lineColumn.column
+
+    val node = NewImport()
+      .code(code.stripSuffix(";"))
+      .lineNumber(line)
+      .columnNumber(column)
+
     diffGraph.addNode(node)
     node
   }

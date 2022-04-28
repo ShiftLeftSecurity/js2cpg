@@ -183,7 +183,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   }
 
   private def createImportNodeAndAttachToAst(importNode: ImportNode) = {
-    val impNode = astNodeBuilder.createImportNode(importNode.toString)
+    val impNode = astNodeBuilder.createImportNode(importNode.toString, importNode)
     methodAstParentStack.headOption.collect { case namespaceBlockNode: NewNamespaceBlock =>
       astEdgeBuilder.addAstEdge(impNode, namespaceBlockNode)
     }
