@@ -38,6 +38,13 @@ class AstNodeBuilder[NodeBuilderType](
     dependency
   }
 
+  def groupIdFromImportNode(importNode: ImportNode): String = {
+    importNode.getFrom match {
+      case null => importNode.getModuleSpecifier.getValue
+      case from => from.getModuleSpecifier.getValue
+    }
+  }
+
   def createParameterInNode(
     name: String,
     code: String,
@@ -64,8 +71,22 @@ class AstNodeBuilder[NodeBuilderType](
     param
   }
 
-  def createImportNode(code: String): NewImport = {
-    val node = NewImport().code(code.stripSuffix(";"))
+  def createImportNode(importNode: ImportNode): NewImport = {
+    val lineColumn = lineAndColumn(importNode)
+    val line       = lineColumn.line
+    val column     = lineColumn.column
+
+    val importedEntity = groupIdFromImportNode(importNode) match {
+      case "" => None
+      case x  => Some(x)
+    }
+
+    val node = NewImport()
+      .importedEntity(importedEntity)
+      .code(importNode.toString().stripSuffix(";"))
+      .lineNumber(line)
+      .columnNumber(column)
+
     diffGraph.addNode(node)
     node
   }

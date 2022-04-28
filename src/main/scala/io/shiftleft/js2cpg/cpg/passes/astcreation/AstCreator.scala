@@ -152,10 +152,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     }
 
     module.getImports.forEach { importNode =>
-      val groupId = importNode.getFrom match {
-        case null => importNode.getModuleSpecifier.getValue
-        case from => from.getModuleSpecifier.getValue
-      }
+      val groupId = astNodeBuilder.groupIdFromImportNode(importNode)
       importNode.getModuleSpecifier match {
         case null =>
           val defaultBinding = importNode.getImportClause.getDefaultBinding
@@ -183,7 +180,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   }
 
   private def createImportNodeAndAttachToAst(importNode: ImportNode) = {
-    val impNode = astNodeBuilder.createImportNode(importNode.toString)
+    val impNode = astNodeBuilder.createImportNode(importNode)
     methodAstParentStack.headOption.collect { case namespaceBlockNode: NewNamespaceBlock =>
       astEdgeBuilder.addAstEdge(impNode, namespaceBlockNode)
     }
