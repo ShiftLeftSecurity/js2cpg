@@ -45,7 +45,9 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
   }
 
   private def installVuePlugins(): Boolean = {
-    val command = if (yarnAvailable()) {
+    val command = if (pnpmAvailable()) {
+      s"${TranspilingEnvironment.PNPM_ADD} @vue/cli-service-global && ${TranspilingEnvironment.PNPM_INSTALL}"
+    } else if (yarnAvailable()) {
       s"${TranspilingEnvironment.YARN_ADD} @vue/cli-service-global && ${TranspilingEnvironment.YARN_INSTALL}"
     } else {
       s"${TranspilingEnvironment.NPM_INSTALL} @vue/cli-service-global && ${TranspilingEnvironment.NPM_INSTALL}"

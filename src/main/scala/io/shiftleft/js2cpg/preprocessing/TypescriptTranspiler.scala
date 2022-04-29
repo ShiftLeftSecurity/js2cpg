@@ -87,7 +87,9 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
   }
 
   private def installTsPlugins(): Boolean = {
-    val command = if (yarnAvailable()) {
+    val command = if (pnpmAvailable()) {
+      s"${TranspilingEnvironment.PNPM_ADD} typescript"
+    } else if (yarnAvailable()) {
       s"${TranspilingEnvironment.YARN_ADD} typescript"
     } else {
       s"${TranspilingEnvironment.NPM_INSTALL} typescript"
