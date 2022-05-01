@@ -133,11 +133,9 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   }
 
   private def createImportsAndDependencies(module: Module): Unit = {
-
     if (module == null) {
       return
     }
-
     module.getImports.forEach { importNode =>
       val groupId = astNodeBuilder.groupIdFromImportNode(importNode)
       importNode.getModuleSpecifier match {
