@@ -10,7 +10,7 @@ import io.shiftleft.js2cpg.parser.JsSource
 import io.shiftleft.js2cpg.parser.JsSource.shortenCode
 import overflowdb.BatchedUpdate.DiffGraphBuilder
 
-class AstNodeBuilder[NodeBuilderType](
+class AstNodeBuilder(
   private val diffGraph: DiffGraphBuilder,
   private val astEdgeBuilder: AstEdgeBuilder,
   private val source: JsSource,
@@ -273,7 +273,7 @@ class AstNodeBuilder[NodeBuilderType](
   def createPropertyKeyNode(propertyNode: PropertyNode): NewFieldIdentifier = {
     propertyNode.getKey match {
       case identNode: IdentNode =>
-        createFieldIdentifierNode(identNode.getName, propertyNode.getKey)
+        createFieldIdentifierNode(identNode.getName.toJavaStringUncached, propertyNode.getKey)
       case literalNode: LiteralNode[_] =>
         createFieldIdentifierNode(literalNode.getValue.toString, propertyNode.getKey)
       case _ =>

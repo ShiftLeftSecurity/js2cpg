@@ -44,20 +44,7 @@ import com.oracle.js.parser.ir.{
   WithNode
 }
 import com.oracle.js.parser.ir.LiteralNode.ArrayLiteralNode
-import io.shiftleft.codepropertygraph.generated.nodes.{
-  NewBlock,
-  NewCall,
-  NewControlStructure,
-  NewIdentifier,
-  NewImport,
-  NewLocal,
-  NewMethod,
-  NewMethodRef,
-  NewNamespaceBlock,
-  NewNode,
-  NewTypeDecl,
-  NewTypeRef
-}
+import io.shiftleft.codepropertygraph.generated.nodes._
 import io.shiftleft.codepropertygraph.generated.{ControlStructureTypes, DispatchTypes, ModifierTypes, Operators}
 import io.shiftleft.js2cpg.cpg.datastructures.Stack._
 import io.shiftleft.js2cpg.cpg.datastructures._
@@ -153,30 +140,38 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
     module.getImports.forEach { importNode =>
       val groupId = importNode.getFrom match {
-        case null => importNode.getModuleSpecifier.getValue
-        case from => from.getModuleSpecifier.getValue
+        case null => importNode.getModuleSpecifier.getValue.toJavaStringUncached
+        case from => from.getModuleSpecifier.getValue.toJavaStringUncached
       }
       importNode.getModuleSpecifier match {
         case null =>
           val defaultBinding = importNode.getImportClause.getDefaultBinding
           if (defaultBinding != null) {
-            astNodeBuilder.createDependencyNode(defaultBinding.getName, groupId, VERSION_IMPORT)
+            astNodeBuilder.createDependencyNode(defaultBinding.getName.toJavaStringUncached, groupId, VERSION_IMPORT)
             createImportNodeAndAttachToAst(importNode)
           }
 
           val nameSpaceImport = importNode.getImportClause.getNameSpaceImport
           val namedImports    = importNode.getImportClause.getNamedImports
           if (nameSpaceImport != null) {
-            astNodeBuilder.createDependencyNode(nameSpaceImport.getBindingIdentifier.getName, groupId, VERSION_IMPORT)
+            astNodeBuilder.createDependencyNode(
+              nameSpaceImport.getBindingIdentifier.getName.toJavaStringUncached,
+              groupId,
+              VERSION_IMPORT
+            )
             createImportNodeAndAttachToAst(importNode)
           } else if (namedImports != null) {
             namedImports.getImportSpecifiers.forEach { namedImport =>
-              astNodeBuilder.createDependencyNode(namedImport.getBindingIdentifier.getName, groupId, VERSION_IMPORT)
+              astNodeBuilder.createDependencyNode(
+                namedImport.getBindingIdentifier.getName.toJavaStringUncached,
+                groupId,
+                VERSION_IMPORT
+              )
               createImportNodeAndAttachToAst(importNode)
             }
           }
         case module =>
-          astNodeBuilder.createDependencyNode(module.getValue, groupId, VERSION_IMPORT)
+          astNodeBuilder.createDependencyNode(module.getValue.toJavaStringUncached, groupId, VERSION_IMPORT)
           createImportNodeAndAttachToAst(importNode)
       }
     }
@@ -232,9 +227,9 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
       case None =>
         paramComponents.foreach { param =>
           val paramName    = param.getName
-          val localParamId = createIdentifierNode(paramName, param)
+          val localParamId = createIdentifierNode(paramName.toJavaStringUncached, param)
           val paramId      = createIdentifierNode(name, param)
-          val keyId        = astNodeBuilder.createFieldIdentifierNode(paramName, param)
+          val keyId        = astNodeBuilder.createFieldIdentifierNode(paramName.toJavaStringUncached, param)
           val accessId     = astNodeBuilder.createFieldAccessNode(paramId, keyId, astNodeBuilder.lineAndColumn(param))
           val assignmentCallId =
             astNodeBuilder.createAssignmentNode(localParamId, accessId, astNodeBuilder.lineAndColumn(param))
@@ -260,7 +255,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
       case Some(initExpr: VarNode) =>
         val paramName = initExpr.getName.getName
 
-        val localParamId = createIdentifierNode(paramName, initExpr)
+        val localParamId = createIdentifierNode(paramName.toJavaStringUncached, initExpr)
 
         val rhs =
           createRhsForConditionalParameterInit(initExpr.getAssignmentSource, name, initExpr)
@@ -341,7 +336,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     astNodeBuilder.createParameterInNode("this", "this", methodId, functionNode, parameterOrderTracker)
     functionNode.getParameters.forEach { parameter =>
       astNodeBuilder.createParameterInNode(
-        parameter.getName,
+        parameter.getName.toJavaStringUncached,
         source.getString(parameter),
         methodId,
         parameter,
@@ -516,9 +511,9 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
             // identical.
             val functionFullName        = calcMethodNameAndFullName(function)._2
             val dynamicTypeHintFullName = Some(functionFullName)
-            astNodeBuilder.createMemberNode(memberName, classElement, dynamicTypeHintFullName)
+            astNodeBuilder.createMemberNode(memberName.toJavaStringUncached, classElement, dynamicTypeHintFullName)
           case _ =>
-            astNodeBuilder.createMemberNode(memberName, classElement, dynamicTypeOption = None)
+            astNodeBuilder.createMemberNode(memberName.toJavaStringUncached, classElement, dynamicTypeOption = None)
         }
 
         if (classElement.isStatic) {
@@ -602,9 +597,9 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     val methodName =
       callNode.getFunction match {
         case accessNode: AccessNode =>
-          accessNode.getProperty
+          accessNode.getProperty.toJavaStringUncached
         case identNode: IdentNode =>
-          identNode.getName
+          identNode.getName.toJavaStringUncached
       }
     val callId = astNodeBuilder.createStaticCallNode(
       callNode.toString(),
@@ -641,11 +636,12 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
               // of tmp variables(aliases). E.g.: a.b.c() get an intermediate tmp variable which is
               // unnecessary.
 
+              val name = baseIdentNode.getName.toJavaStringUncached
               // The base is an identifier so we do not need to create a tmp variable.
               val receiverId = functionAccessNode.accept(this)
 
-              val baseId = createIdentifierNode(baseIdentNode.getName, baseIdentNode)
-              scope.addVariableReference(baseIdentNode.getName, baseId)
+              val baseId = createIdentifierNode(name, baseIdentNode)
+              scope.addVariableReference(name, baseId)
 
               (receiverId, None, receiverId, baseId)
             case base =>
@@ -666,7 +662,10 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
               )
 
               val memberId =
-                astNodeBuilder.createFieldIdentifierNode(functionAccessNode.getProperty, functionAccessNode)
+                astNodeBuilder.createFieldIdentifierNode(
+                  functionAccessNode.getProperty.toJavaStringUncached,
+                  functionAccessNode
+                )
 
               val fieldAccessId = astNodeBuilder.createFieldAccessNode(
                 tmpAssignmentId,
@@ -1014,7 +1013,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     } else {
       if (block.getStatementCount != 0) {
         block.getStatements.get(0) match {
-          case varNode: VarNode if varNode.isLet && varNode.getName.getName == ":switch" =>
+          case varNode: VarNode if varNode.isLet && varNode.getName.getName.toJavaStringUncached == ":switch" =>
             // For switch statements the JS parser generates a synthetic let: let :switch = expr
             // The following statement is then the SwitchNode:
             switchExpressionStack.push(varNode.getAssignmentSource)
@@ -1136,6 +1135,12 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     literalNode match {
       case arrayLiteralNode: ArrayLiteralNode =>
         createArrayLiteralNode(arrayLiteralNode)
+      case stringLiteralNode if stringLiteralNode.isString =>
+        // Some string values are artificially created and thus source.getCode() would
+        // result in misleading code fields.
+        val code              = "\"" + stringLiteralNode.getString.toJavaStringUncached + "\""
+        val dynamicTypeOption = Some(Defines.STRING.label)
+        astNodeBuilder.createLiteralNode(code, astNodeBuilder.lineAndColumn(literalNode), dynamicTypeOption)
       case _ =>
         val (code, dynamicTypeOption) = literalNode.getObject match {
           case bool: java.lang.Boolean =>
@@ -1143,10 +1148,6 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
             // This is required because source.getCode(literalNode) can be an empty string
             // for constructs like: for(;;)
             (bool.toString, Some(Defines.BOOLEAN.label))
-          case stringValue: String =>
-            // Some string values are artificially created and thus source.getCode() would
-            // result in misleading code fields.
-            ("\"" + stringValue + "\"", Some(Defines.STRING.label))
           case null =>
             ("null", Some(Defines.NULL.label))
           case obj =>
@@ -1157,14 +1158,15 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   }
 
   override def visit(identNode: IdentNode): NewNode = {
-    val identId = createIdentifierNode(identNode.getName, identNode)
-    scope.addVariableReference(identNode.getName, identId)
+    val identName = identNode.getName.toJavaStringUncached
+    val identId   = createIdentifierNode(identName, identNode)
+    scope.addVariableReference(identName, identId)
     identId
   }
 
   override def visit(accessNode: AccessNode): NewNode = {
     val baseId   = accessNode.getBase.accept(this)
-    val memberId = astNodeBuilder.createFieldIdentifierNode(accessNode.getProperty, accessNode)
+    val memberId = astNodeBuilder.createFieldIdentifierNode(accessNode.getProperty.toJavaStringUncached, accessNode)
     val accessId = astNodeBuilder.createFieldAccessNode(baseId, memberId, astNodeBuilder.lineAndColumn(accessNode))
     accessId
   }
@@ -1230,7 +1232,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   }
 
   private def createRhsForConditionalParameterInit(initExpression: Expression, varNode: VarNode): NewCall = {
-    createRhsForConditionalParameterInit(initExpression, varNode.getName.getName, varNode)
+    createRhsForConditionalParameterInit(initExpression, varNode.getName.getName.toJavaStringUncached, varNode)
   }
 
   private def createRhsForConditionalParameterInit(
@@ -1238,7 +1240,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     propertyNode: PropertyNode,
     name: Option[String]
   ): NewCall = {
-    val keyName = name.getOrElse(Option(propertyNode.getKeyName) match {
+    val keyName = name.getOrElse(Option(propertyNode.getKeyName.toJavaStringUncached) match {
       case Some(name) => name
       case None =>
         PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, "_anon_member")
@@ -1293,14 +1295,15 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
         (Defines.ANY.label, "")
       }
 
-    val varId = astNodeBuilder.createLocalNode(varNode.getName.getName, typeFullName)
+    val varName = varNode.getName.getName.toJavaStringUncached
+    val varId   = astNodeBuilder.createLocalNode(varName, typeFullName)
     addLocalToAst(varId)
     val scopeType = if (varNode.isLet) {
       BlockScope
     } else {
       MethodScope
     }
-    scope.addVariable(varNode.getName.getName, varId, scopeType)
+    scope.addVariable(varName, varId, scopeType)
 
     if (varNode.isAssignment) {
       val destId   = varNode.getAssignmentDest.accept(this)
@@ -1545,11 +1548,14 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
           case (element: PropertyNode, index: Int) if element.getValue.isInstanceOf[BinaryNode] =>
             val subTreeId = convertDestructingElementWithDefault(element, index)
             astEdgeBuilder.addAstEdge(subTreeId, blockId, blockOrder)
-            createDependencyNodeForRequire(element.getKeyName, assignment.getRhs)
+            createDependencyNodeForRequire(element.getKeyName.toJavaStringUncached, assignment.getRhs)
+          case (element: PropertyNode, index: Int) if !element.isRest =>
+            val subTreeId = convertDestructingElement(element, index)
+            astEdgeBuilder.addAstEdge(subTreeId, blockId, blockOrder)
+            createDependencyNodeForRequire(element.getKeyName.toJavaStringUncached, assignment.getRhs)
           case (element: PropertyNode, index: Int) =>
             val subTreeId = convertDestructingElement(element, index)
             astEdgeBuilder.addAstEdge(subTreeId, blockId, blockOrder)
-            createDependencyNodeForRequire(element.getKeyName, assignment.getRhs)
         }
       case lhs: ArrayLiteralNode =>
         lhs.getElementExpressions.asScala.zipWithIndex.foreach {
@@ -1559,7 +1565,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
           case (element: IdentNode, index: Int) =>
             val subTreeId = convertDestructingElement(element, index)
             astEdgeBuilder.addAstEdge(subTreeId, blockId, blockOrder)
-            createDependencyNodeForRequire(element.getName, assignment.getRhs)
+            createDependencyNodeForRequire(element.getName.toJavaStringUncached, assignment.getRhs)
           // Skipped for array destruction assignment with ignores. The JS parser inserts null here.
           case (null, _) =>
           case (element, _) =>
@@ -1972,7 +1978,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   private def calcTypeNameAndFullName(classNode: ClassNode): (String, String) = {
     def calcTypeName(classNode: ClassNode): String = {
       val typeName = Option(classNode.getIdent) match {
-        case Some(ident) => ident.getName
+        case Some(ident) => ident.getName.toJavaStringUncached
         // in JS it is possible to create anonymous classes; hence no name
         case None =>
           "_anon_cdecl"
@@ -2013,9 +2019,9 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
         case _ if functionNode.isAnonymous =>
           "anonymous"
         case _ if functionNode.isClassConstructor =>
-          s"${functionNode.getName}<constructor>"
+          s"${functionNode.getName.toJavaStringUncached}<constructor>"
         case _ =>
-          functionNode.getName
+          functionNode.getName.toJavaStringUncached
       }
 
       name

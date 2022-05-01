@@ -36,7 +36,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
   private val sourceMap        = sourceMapOrigin()
 
   private val (positionToLineNumberMapping, positionToFirstPositionInLineMapping) =
-    FileUtils.positionLookupTables(source.getString)
+    FileUtils.positionLookupTables(source.getString.toJavaStringUncached)
 
   private case class SourceMapOrigin(
     sourceFilePath: Path,
@@ -69,7 +69,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
     */
   def getCode(node: Node): String = codeFromSourceMap(node)
 
-  def getString(node: Node): String = source.getString(node.getToken)
+  def getString(node: Node): String = source.getString(node.getToken).toJavaStringUncached
 
   /** @return
     *   always the original file that was parsed. Might be a file that is the result of transpilation
@@ -161,7 +161,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
         val column = getColumnOfSource(node.getStart)
         sourceMap.getMapping(line, column) match {
           case null =>
-            source.getString(node.getStart, node.getFinish - node.getStart)
+            source.getString(node.getStart, node.getFinish - node.getStart).toJavaStringUncached
           case mapping =>
             val originLine   = mapping.getSourceLine
             val originColumn = mapping.getSourceColumn
@@ -183,12 +183,12 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
               case None =>
                 // It has an actual mapping, but it is synthetic code not found in the source file.
                 // We return the synthetic code.
-                source.getString(node.getStart, node.getFinish - node.getStart)
+                source.getString(node.getStart, node.getFinish - node.getStart).toJavaStringUncached
             }
         }
       case _ =>
         // No mapping at all. We return the node code.
-        source.getString(node.getStart, node.getFinish - node.getStart)
+        source.getString(node.getStart, node.getFinish - node.getStart).toJavaStringUncached
     }
   }
 
@@ -211,7 +211,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
       case line if line.length < transpiledCodeLength && sourceWithLineNumbers.contains(currentLineNumber + 1) =>
         calculateCode(
           sourceWithLineNumbers,
-          line + System.lineSeparator() + sourceWithLineNumbers(currentLineNumber + 1),
+          line + "\n" + sourceWithLineNumbers(currentLineNumber + 1),
           currentLineNumber + 1,
           transpiledCodeLength
         )

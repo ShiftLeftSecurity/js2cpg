@@ -64,12 +64,13 @@ object PassHelpers {
   @tailrec
   def getRequire(callNode: CallNode): Option[String] = {
     callNode.getFunction match {
-      case identNode: IdentNode if identNode.getName == "require" && callNode.getArgs.size() == 1 =>
+      case identNode: IdentNode
+          if identNode.getName.toJavaStringUncached == "require" && callNode.getArgs.size() == 1 =>
         callNode.getArgs.asScala
           .collectFirst { case literalNode: LiteralNode.PrimitiveLiteralNode[_] =>
             literalNode
           }
-          .map(_.getPropertyName)
+          .map(_.getPropertyName.toJavaStringUncached)
       case accessNode: AccessNode if accessNode.getBase.isInstanceOf[CallNode] =>
         getRequire(accessNode.getBase.asInstanceOf[CallNode])
       case other: Node => getRequire(other)

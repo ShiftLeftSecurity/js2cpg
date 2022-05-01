@@ -8,7 +8,7 @@ import scala.collection.mutable
 class UsedIdentNodesPass(val usedIdentNodes: mutable.Set[String] = mutable.HashSet.empty) extends DefaultAstVisitor {
 
   override def enterIdentNode(identNode: IdentNode): Boolean = {
-    usedIdentNodes.add(identNode.getName)
+    usedIdentNodes.add(identNode.getName.toJavaStringUncached)
     false
   }
 

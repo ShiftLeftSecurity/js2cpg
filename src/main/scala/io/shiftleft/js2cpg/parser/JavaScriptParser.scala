@@ -2,6 +2,7 @@ package io.shiftleft.js2cpg.parser
 
 import com.oracle.js.parser.{ErrorManager, Parser, ParserException, ScriptEnvironment, Source}
 import com.oracle.js.parser.ir.{ErrorNode, FunctionNode}
+import com.oracle.truffle.api.strings.TruffleString
 import io.shiftleft.js2cpg.util.SourceWrapper._
 import org.slf4j.LoggerFactory
 
@@ -77,18 +78,20 @@ object JavaScriptParser {
     val lines        = jsSource.source.getContent.toString.linesIterator.toSeq
     val replaceIndex = lines.lastIndexWhere(l => importRegex.matches(l.trim())) + 1
     val (head, rest) = lines.splitAt(replaceIndex)
-    val fixedCode    = (head ++ nodeJsFixWrapper(rest)).mkString(System.lineSeparator())
+    val fixedCode    = (head ++ nodeJsFixWrapper(rest)).mkString("\n")
     val source       = Source.sourceFor(jsSource.filePath, fixedCode)
     source.toJsSource(jsSource.srcDir, jsSource.projectDir)
   }
 
   private def safeParse(jsSource: JsSource): (FunctionNode, JsSource) = {
     val moduleErrorManager = new Js2CpgErrMgr("strict mode")
-    buildParser(jsSource, moduleErrorManager).parseModule(moduleName) match {
+    val moduleNameAsTruffleString =
+      TruffleString.FromJavaStringNode.create().execute(moduleName, TruffleString.Encoding.UTF_8)
+    buildParser(jsSource, moduleErrorManager).parseModule(moduleNameAsTruffleString) match {
       case null if moduleErrorManager.containsNodeJSInvalidReturn =>
         // We might have to fix NodeJS code here:
         val newSource = nodeJsFix(jsSource)
-        val fixed     = buildParser(newSource, moduleErrorManager).parseModule(moduleName)
+        val fixed     = buildParser(newSource, moduleErrorManager).parseModule(moduleNameAsTruffleString)
         if (fixed == null) {
           moduleErrorManager.printMessages()
           throw new ParserException(s"Parsing of file '${jsSource.filePath}' failed! See DEBUG logs.")

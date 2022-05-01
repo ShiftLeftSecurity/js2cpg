@@ -84,7 +84,7 @@ class EjsTranspiler(override val config: Config, override val projectPath: Path)
         result.append(extractedJsCode)
       }
     }
-    (result.mkString(System.lineSeparator()), sourceMap)
+    (result.mkString("\n"), sourceMap)
   }
 
   override def shouldRun(): Boolean = config.templateTranspiling && ejsFiles.nonEmpty
