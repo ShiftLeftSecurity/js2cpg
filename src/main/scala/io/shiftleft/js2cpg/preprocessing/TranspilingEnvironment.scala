@@ -10,9 +10,11 @@ object TranspilingEnvironment {
   // These are singleton objects because we want to check the environment only once
   // even if multiple transpilers require this specific environment:
   private var isValid: Option[Boolean]         = None
+  private var isPnpmAvailable: Option[Boolean] = None
   private var isYarnAvailable: Option[Boolean] = None
   private var isNpmAvailable: Option[Boolean]  = None
 
+  val PNPM: String = ExternalCommand.toOSCommand("pnpm")
   val YARN: String = ExternalCommand.toOSCommand("yarn")
   val NPM: String  = ExternalCommand.toOSCommand("npm")
 
@@ -20,6 +22,10 @@ object TranspilingEnvironment {
     s"$YARN --prefer-offline --ignore-scripts --legacy-peer-deps --dev -W add"
   val YARN_INSTALL: String =
     s"$YARN --prefer-offline --ignore-scripts --legacy-peer-deps install"
+  val PNPM_ADD: String =
+    s"$PNPM --prefer-offline --ignore-scripts add -w -D"
+  val PNPM_INSTALL: String =
+    s"$PNPM --prefer-offline --frozen-lockfile --ignore-scripts install"
   val NPM_INSTALL: String =
     s"$NPM --prefer-offline --no-audit --progress=false --ignore-scripts --legacy-peer-deps --save-dev install"
 }
@@ -30,6 +36,18 @@ trait TranspilingEnvironment {
   import TranspilingEnvironment._
 
   private val logger = LoggerFactory.getLogger(getClass)
+
+  private def checkForPnpm(): Boolean = {
+    logger.debug(s"\t+ Checking pnpm ...")
+    ExternalCommand.run(s"${TranspilingEnvironment.PNPM} -v", projectPath.toString) match {
+      case Success(result) =>
+        logger.debug(s"\t+ pnpm is available: $result")
+        true
+      case Failure(_) =>
+        logger.error("\t- pnpm is not installed. Transpiling sources will not be available.")
+        false
+    }
+  }
 
   private def checkForYarn(): Boolean = {
     logger.debug("\t+ Checking yarn ...")
@@ -83,8 +101,16 @@ trait TranspilingEnvironment {
     case Some(value) =>
       value
     case None =>
-      isValid = Some((yarnAvailable() || npmAvailable()) && setNpmPython())
+      isValid = Some((pnpmAvailable() || yarnAvailable() || npmAvailable()) && setNpmPython())
       isValid.get
+  }
+
+  protected def pnpmAvailable(): Boolean = isPnpmAvailable match {
+    case Some(value) =>
+      value
+    case None =>
+      isPnpmAvailable = Some((File(projectPath) / "pnpm-lock.yaml").exists && checkForPnpm())
+      isPnpmAvailable.get
   }
 
   protected def yarnAvailable(): Boolean = isYarnAvailable match {
