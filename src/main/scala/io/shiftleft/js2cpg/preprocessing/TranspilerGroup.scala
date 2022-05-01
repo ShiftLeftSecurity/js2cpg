@@ -27,7 +27,9 @@ case class TranspilerGroup(override val config: Config, override val projectPath
       "@babel/plugin-transform-property-mutators"
 
   private def installPlugins(): Boolean = {
-    val command = if (yarnAvailable()) {
+    val command = if (pnpmAvailable()) {
+      s"${TranspilingEnvironment.PNPM_ADD} $BABEL_PLUGINS && ${TranspilingEnvironment.PNPM_INSTALL}"
+    } else if (yarnAvailable()) {
       s"${TranspilingEnvironment.YARN_ADD} $BABEL_PLUGINS && ${TranspilingEnvironment.YARN_INSTALL}"
     } else {
       s"${TranspilingEnvironment.NPM_INSTALL} $BABEL_PLUGINS && ${TranspilingEnvironment.NPM_INSTALL}"

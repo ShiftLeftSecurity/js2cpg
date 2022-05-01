@@ -19,7 +19,9 @@ class PugTranspiler(override val config: Config, override val projectPath: Path)
   override def shouldRun(): Boolean = config.templateTranspiling && hasPugFiles
 
   private def installPugPlugins(): Boolean = {
-    val command = if (yarnAvailable()) {
+    val command = if (pnpmAvailable()) {
+      s"${TranspilingEnvironment.PNPM_ADD} pug-cli && ${TranspilingEnvironment.PNPM_INSTALL}"
+    } else if (yarnAvailable()) {
       s"${TranspilingEnvironment.YARN_ADD} pug-cli && ${TranspilingEnvironment.YARN_INSTALL}"
     } else {
       s"${TranspilingEnvironment.NPM_INSTALL} pug-cli && ${TranspilingEnvironment.NPM_INSTALL}"

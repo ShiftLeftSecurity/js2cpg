@@ -4487,7 +4487,9 @@ class AstCreationPassTest extends AbstractPassTest {
         |""".stripMargin) { cpg =>
       val List(x: Import, y: Import) = cpg.graph.V.label(NodeTypes.IMPORT).l
       x.code shouldBe "import {a} from \"depA\""
+      x.importedEntity shouldBe Some("depA")
       y.code shouldBe "import {b} from \"depB\""
+      y.importedEntity shouldBe Some("depB")
       x.astIn.l match {
         case List(n: NamespaceBlock) =>
           n.fullName shouldBe "test.js:<global>"
