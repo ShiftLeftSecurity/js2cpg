@@ -1,10 +1,6 @@
 package io.shiftleft.js2cpg.preprocessing
 
-import better.files.File
 import io.shiftleft.js2cpg.core.Config
-import io.shiftleft.js2cpg.io.FileDefaults.VUE_SUFFIX
-import io.shiftleft.js2cpg.io.FileUtils
-import io.shiftleft.js2cpg.parser.PackageJsonParser
 
 import java.nio.file.Path
 

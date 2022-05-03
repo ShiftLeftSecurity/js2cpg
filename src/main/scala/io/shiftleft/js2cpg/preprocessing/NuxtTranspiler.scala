@@ -65,7 +65,7 @@ class NuxtTranspiler(override val config: Config, override val projectPath: Path
     false
   }
 
-  override def validEnvironment(): Boolean = valid()
+  override def validEnvironment(): Boolean = valid(projectPath)
 
   override protected def logExecution(): Unit =
     logger.info(s"Nuxt.js - transpiling source files in '${File(projectPath).name}'")

@@ -87,7 +87,7 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
   }
 
   private def installTsPlugins(): Boolean = {
-    val command = if (pnpmAvailable()) {
+    val command = if (pnpmAvailable(projectPath)) {
       s"${TranspilingEnvironment.PNPM_ADD} typescript"
     } else if (yarnAvailable()) {
       s"${TranspilingEnvironment.YARN_ADD} typescript"
@@ -166,7 +166,7 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
     true
   }
 
-  override def validEnvironment(): Boolean = valid()
+  override def validEnvironment(): Boolean = valid(projectPath)
 
   override protected def logExecution(): Unit =
     logger.info(s"TypeScript - transpiling source files in '${File(projectPath).name}'")
