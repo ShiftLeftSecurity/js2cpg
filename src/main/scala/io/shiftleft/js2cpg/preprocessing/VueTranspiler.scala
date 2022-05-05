@@ -59,7 +59,7 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
         logger.info("\t+ Vue.js plugins installed")
         true
       case Failure(exception) =>
-        logger.error("\t- Failed to install Vue.js plugins", exception)
+        logger.warn("\t- Failed to install Vue.js plugins", exception)
         false
     }
   }
