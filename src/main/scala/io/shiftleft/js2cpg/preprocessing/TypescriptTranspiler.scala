@@ -101,7 +101,7 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
         logger.info("\t+ TypeScript plugins installed")
         true
       case Failure(exception) =>
-        logger.error("\t- Failed to install TypeScript plugins", exception)
+        logger.warn("\t- Failed to install TypeScript plugins", exception)
         false
     }
   }

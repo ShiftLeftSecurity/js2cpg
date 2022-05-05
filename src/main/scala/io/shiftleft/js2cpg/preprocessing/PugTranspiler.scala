@@ -33,7 +33,7 @@ class PugTranspiler(override val config: Config, override val projectPath: Path)
         logger.info("\t+ Pug plugins installed")
         true
       case Failure(exception) =>
-        logger.error("\t- Failed to install Pug plugins", exception)
+        logger.warn("\t- Failed to install Pug plugins", exception)
         false
     }
   }
