@@ -21,7 +21,7 @@ object VueTranspiler {
       PackageJsonParser
         .dependencies((File(config.srcDir) / PackageJsonParser.PACKAGE_JSON_FILENAME).path)
         .contains("vue")
-    hasVueDep || hasVueFiles(config, projectPath)
+    hasVueDep && hasVueFiles(config, projectPath)
   }
 }
 

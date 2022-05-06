@@ -113,7 +113,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
 
   private def withTemporaryPackageJson(workUnit: () => Unit): Unit = {
     val packageJson = File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME
-    if (packageJson.exists) {
+    if (packageJson.exists && !VueTranspiler.isVueProject(config, projectPath)) {
       // move lock files out of the way
       List(
         PackageJsonParser.PACKAGE_JSON_LOCK_FILENAME,
