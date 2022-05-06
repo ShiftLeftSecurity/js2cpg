@@ -30,9 +30,6 @@ object PackageJsonParser {
   val PACKAGE_YARN_LOCK_FILENAME_BAK: String = "yarn.lock.bak"
 
   val PROJECT_DEPENDENCIES: Seq[String] =
-    Seq("dependencies", "peerDependencies", "optionalDependencies")
-
-  val ALL_PROJECT_DEPENDENCIES: Seq[String] =
     Seq("dependencies", "devDependencies", "peerDependencies", "optionalDependencies")
 
   private val cachedDependencies: TrieMap[Path, Map[String, String]] = TrieMap.empty
@@ -88,7 +85,7 @@ object PackageJsonParser {
           val packageJson  = objectMapper.readTree(content)
 
           var depToVersion = Map.empty[String, String]
-          ALL_PROJECT_DEPENDENCIES
+          PROJECT_DEPENDENCIES
             .foreach { dependency =>
               val dependencyIt = Option(packageJson.get(dependency))
                 .map(_.fields().asScala)

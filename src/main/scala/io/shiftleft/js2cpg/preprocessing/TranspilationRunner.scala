@@ -13,6 +13,7 @@ import io.shiftleft.js2cpg.parser.PackageJsonParser
 import org.slf4j.LoggerFactory
 
 import java.nio.file.{Path, StandardCopyOption}
+import scala.jdk.CollectionConverters.IteratorHasAsScala
 import scala.util.Try
 import scala.util.chaining.scalaUtilChainingOps
 
@@ -113,7 +114,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
 
   private def withTemporaryPackageJson(workUnit: () => Unit): Unit = {
     val packageJson = File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME
-    if (packageJson.exists && !VueTranspiler.isVueProject(config, projectPath)) {
+    if (packageJson.exists) {
       // move lock files out of the way
       List(
         PackageJsonParser.PACKAGE_JSON_LOCK_FILENAME,
@@ -123,6 +124,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
         case lockFile if lockFile.exists =>
           lockFile.renameTo(lockFile.pathAsString + ".bak")
       }
+      // pnpm workspace config file is not required as we manually descent into sub-project
       File(projectPath, PackageJsonParser.PACKAGE_PNPM_WS_FILENAME).delete(swallowIOExceptions = true)
 
       // create a temporary package.json without dependencies
@@ -130,7 +132,16 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
       val mapper          = new ObjectMapper()
       val json            = mapper.readTree(PackageJsonParser.removeComments(originalContent))
       PackageJsonParser.PROJECT_DEPENDENCIES.foreach { dep =>
-        json.asInstanceOf[ObjectNode].remove(dep)
+        Option(json.asInstanceOf[ObjectNode].get(dep).asInstanceOf[ObjectNode]).foreach { depNode =>
+          val fieldsToRemove =
+            depNode
+              .fieldNames()
+              .asScala
+              .toList
+              // nuxt.js and vue.js projects require these dependencies to be present
+              .filterNot(f => f.startsWith("nuxt") || f.startsWith("vue") || f.contains("@vue"))
+          fieldsToRemove.foreach(depNode.remove)
+        }
       }
       packageJson.writeText(mapper.writeValueAsString(json))
 
