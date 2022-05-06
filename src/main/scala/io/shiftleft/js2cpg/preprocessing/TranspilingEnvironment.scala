@@ -2,6 +2,7 @@ package io.shiftleft.js2cpg.preprocessing
 
 import better.files.File
 import io.shiftleft.js2cpg.io.ExternalCommand
+import io.shiftleft.js2cpg.parser.PackageJsonParser
 import org.slf4j.LoggerFactory
 
 import java.nio.file.Path
@@ -24,9 +25,9 @@ object TranspilingEnvironment {
   val YARN_INSTALL: String =
     s"$YARN --prefer-offline --ignore-scripts --legacy-peer-deps install"
   val PNPM_ADD: String =
-    s"$PNPM --prefer-offline --ignore-scripts add -w -D"
+    s"$PNPM --prefer-offline --ignore-scripts add -D"
   val PNPM_INSTALL: String =
-    s"$PNPM --prefer-offline --frozen-lockfile --ignore-scripts install"
+    s"$PNPM --prefer-offline --ignore-scripts install"
   val NPM_INSTALL: String =
     s"$NPM --prefer-offline --no-audit --progress=false --ignore-scripts --legacy-peer-deps --save-dev install"
 }
@@ -106,11 +107,26 @@ trait TranspilingEnvironment {
       isValid.get
   }
 
+  private def anyLockFileExists(dir: Path, lockFiles: List[String]): Boolean = {
+    lockFiles.exists { f =>
+      val lockFile = File(dir) / f
+      lockFile.exists
+    }
+  }
+
   protected def pnpmAvailable(dir: Path): Boolean = isPnpmAvailable match {
     case Some(value) =>
-      value && (File(dir) / "pnpm-lock.yaml").exists
+      val hasLockFile = anyLockFileExists(
+        dir,
+        List(PackageJsonParser.PACKAGE_PNPM_LOCK_FILENAME_BAK, PackageJsonParser.PACKAGE_PNPM_LOCK_FILENAME)
+      )
+      value && hasLockFile
     case None =>
-      isPnpmAvailable = Some((File(projectPath) / "pnpm-lock.yaml").exists && checkForPnpm())
+      val hasLockFile = anyLockFileExists(
+        dir,
+        List(PackageJsonParser.PACKAGE_PNPM_LOCK_FILENAME_BAK, PackageJsonParser.PACKAGE_PNPM_LOCK_FILENAME)
+      )
+      isPnpmAvailable = Some(hasLockFile && checkForPnpm())
       isPnpmAvailable.get
   }
 
@@ -118,7 +134,11 @@ trait TranspilingEnvironment {
     case Some(value) =>
       value
     case None =>
-      isYarnAvailable = Some((File(projectPath) / "yarn.lock").exists && checkForYarn())
+      val hasLockFile = anyLockFileExists(
+        projectPath,
+        List(PackageJsonParser.PACKAGE_YARN_LOCK_FILENAME_BAK, PackageJsonParser.PACKAGE_YARN_LOCK_FILENAME)
+      )
+      isYarnAvailable = Some(hasLockFile && checkForYarn())
       isYarnAvailable.get
   }
 

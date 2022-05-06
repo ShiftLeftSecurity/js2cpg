@@ -2,11 +2,14 @@ package io.shiftleft.js2cpg.preprocessing
 
 import better.files.File
 import better.files.File.LinkOptions
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.ExternalCommand
 import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.js2cpg.io.FileDefaults._
 import io.shiftleft.js2cpg.io.FileUtils
+import io.shiftleft.js2cpg.parser.PackageJsonParser
 import org.slf4j.LoggerFactory
 
 import java.nio.file.{Path, StandardCopyOption}
@@ -108,6 +111,59 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
     }
   }
 
+  private def withTemporaryPackageJson(workUnit: () => Unit): Unit = {
+    val packageJson = File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME
+    if (packageJson.exists) {
+      // move lock files out of the way
+      List(
+        PackageJsonParser.PACKAGE_JSON_LOCK_FILENAME,
+        PackageJsonParser.PACKAGE_YARN_LOCK_FILENAME,
+        PackageJsonParser.PACKAGE_PNPM_LOCK_FILENAME
+      ).map(File(projectPath, _)).collect {
+        case lockFile if lockFile.exists =>
+          lockFile.renameTo(lockFile.pathAsString + ".bak")
+      }
+      File(projectPath, PackageJsonParser.PACKAGE_PNPM_WS_FILENAME).delete(swallowIOExceptions = true)
+
+      // create a temporary package.json without dependencies
+      val originalContent = FileUtils.readLinesInFile(packageJson.path).mkString("\n")
+      val mapper          = new ObjectMapper()
+      val json            = mapper.readTree(PackageJsonParser.removeComments(originalContent))
+      PackageJsonParser.PROJECT_DEPENDENCIES.foreach { dep =>
+        json.asInstanceOf[ObjectNode].remove(dep)
+      }
+      packageJson.writeText(mapper.writeValueAsString(json))
+
+      // run the transpilers
+      workUnit()
+
+      // remove freshly created lock files from transpiler runs
+      List(
+        PackageJsonParser.PACKAGE_JSON_LOCK_FILENAME,
+        PackageJsonParser.PACKAGE_YARN_LOCK_FILENAME,
+        PackageJsonParser.PACKAGE_PNPM_LOCK_FILENAME
+      ).map(File(projectPath, _)).collect {
+        case lockFile if lockFile.exists =>
+          lockFile.delete()
+      }
+
+      // restore the original package.json
+      packageJson.writeText(originalContent)
+
+      // restore lock files
+      List(
+        PackageJsonParser.PACKAGE_JSON_LOCK_FILENAME,
+        PackageJsonParser.PACKAGE_YARN_LOCK_FILENAME,
+        PackageJsonParser.PACKAGE_PNPM_LOCK_FILENAME
+      ).map(f => File(projectPath, f + ".bak")).collect {
+        case lockFile if lockFile.exists =>
+          lockFile.renameTo(lockFile.pathAsString.stripSuffix(".bak"))
+      }
+    } else {
+      workUnit()
+    }
+  }
+
   def execute(): Unit = {
     if (transpilers.exists(_.shouldRun())) {
       if (!transpilers.headOption.exists(_.validEnvironment())) {
@@ -119,7 +175,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
         logger.error(errorMsg)
         System.exit(1)
       }
-      transpilers.takeWhile(_.run(tmpTranspileDir))
+      withTemporaryPackageJson(() => transpilers.takeWhile(_.run(tmpTranspileDir)))
     }
   }
 

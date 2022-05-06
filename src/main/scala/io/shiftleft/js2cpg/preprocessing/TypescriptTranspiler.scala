@@ -1,12 +1,12 @@
 package io.shiftleft.js2cpg.preprocessing
 
 import better.files.File
-import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileDefaults.TS_SUFFIX
 import io.shiftleft.js2cpg.io.{ExternalCommand, FileUtils}
+import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.parser.TsConfigJsonParser
 import org.slf4j.LoggerFactory
 import org.apache.commons.io.{FileUtils => CommonsFileUtils}
@@ -63,18 +63,12 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
     }
   }
 
-  private def removeComments(json: String): String = {
-    val mapper = new ObjectMapper
-    mapper.enable(JsonParser.Feature.ALLOW_COMMENTS)
-    mapper.writeValueAsString(mapper.readTree(json))
-  }
-
   private def createCustomTsConfigFile(): Try[File] = {
     val customTsConfigFilePath = (File(projectPath) / "tsconfig.json").path
     Try {
       val content = FileUtils.readLinesInFile(customTsConfigFilePath).mkString("\n")
       val mapper  = new ObjectMapper()
-      val json    = mapper.readTree(removeComments(content))
+      val json    = mapper.readTree(PackageJsonParser.removeComments(content))
       // --include is not available as tsc CLI argument; we set it manually:
       Option(json.get("compilerOptions")).foreach(_.asInstanceOf[ObjectNode].remove("sourceRoot"))
       json.asInstanceOf[ObjectNode].putArray("include").add("**/*")
