@@ -211,7 +211,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
       case line if line.length < transpiledCodeLength && sourceWithLineNumbers.contains(currentLineNumber + 1) =>
         calculateCode(
           sourceWithLineNumbers,
-          line + System.lineSeparator() + sourceWithLineNumbers(currentLineNumber + 1),
+          line + "\n" + sourceWithLineNumbers(currentLineNumber + 1),
           currentLineNumber + 1,
           transpiledCodeLength
         )

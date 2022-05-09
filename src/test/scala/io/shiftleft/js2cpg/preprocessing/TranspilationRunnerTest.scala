@@ -165,7 +165,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
           every(
             jsFilesAfterTranspilation.map(f =>
               File(f._1).contentAsString
-                .split(System.lineSeparator())
+                .split("\n")
                 .head // we ignore the sourcemap reference comment here
                 .mkString
                 .stripLineEnd
