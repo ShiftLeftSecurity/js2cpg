@@ -43,7 +43,7 @@ class NuxtTranspiler(override val config: Config, override val projectPath: Path
 
   private def isNuxtProject: Boolean =
     PackageJsonParser
-      .dependencies((File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME).path)
+      .dependencies((File(config.srcDir) / PackageJsonParser.PACKAGE_JSON_FILENAME).path)
       .contains("nuxt")
 
   override def shouldRun(): Boolean = config.nuxtTranspiling && isNuxtProject

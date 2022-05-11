@@ -57,14 +57,25 @@ object FileDefaults {
     ".*\\.stylelintrc\\.js".r,
     ".*rollup\\.config.*".r,
     ".*\\.types\\.js".r,
-    ".*\\.cjs\\.js".r
+    ".*\\.cjs\\.js".r,
+    ".*eslint-local-rules\\.js".r
   )
 
   val IGNORED_TESTS_REGEX: Seq[Regex] =
     List(".*\\.spec\\.js".r, ".*\\.mock\\.js".r, ".*\\.e2e\\.js".r, ".*\\.test\\.js".r)
 
   val IGNORED_FOLDERS_REGEX: Seq[Regex] =
-    List("__.*__".r, "\\..*".r, "jest-cache".r, (NODE_MODULES_DIR_NAME + ".*").r)
+    List(
+      "__.*__".r,
+      "\\..*".r,
+      "jest-cache".r,
+      "codemods".r,
+      "e2e".r,
+      "e2e-beta".r,
+      "eslint-rules".r,
+      "flow-typed".r,
+      (NODE_MODULES_DIR_NAME + ".*").r
+    )
 
   val MINIFIED_PATH_REGEX: Regex = ".*([.-]min\\.js|bundle\\.js)".r
 

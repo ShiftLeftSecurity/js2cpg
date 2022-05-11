@@ -32,6 +32,7 @@ object Config {
   val DEFAULT_JVM_METRICS: Option[Int]          = None
   val DEFAULT_MODULE_MODE: Option[String]       = None
   val DEFAULT_WITH_NODE_MODULES_FOLDER: Boolean = false
+  val DEFAULT_OPTIMIZE_DEPENDENCIES: Boolean    = false
 
 }
 
@@ -55,7 +56,8 @@ case class Config(
   includeHtml: Boolean = Config.DEFAULT_INCLUDE_HTML,
   jvmMetrics: Option[Int] = Config.DEFAULT_JVM_METRICS,
   moduleMode: Option[String] = Config.DEFAULT_MODULE_MODE,
-  withNodeModuleFolder: Boolean = Config.DEFAULT_WITH_NODE_MODULES_FOLDER
+  withNodeModuleFolder: Boolean = Config.DEFAULT_WITH_NODE_MODULES_FOLDER,
+  optimizeDependencies: Boolean = Config.DEFAULT_OPTIMIZE_DEPENDENCIES
 ) {
 
   def createPathForPackageJson(): Path = Paths.get(packageJsonLocation) match {
@@ -87,6 +89,7 @@ case class Config(
     s"""
       |\t- Source project: '$srcDir'
       |\t- Module mode: '${moduleMode.getOrElse(TypescriptTranspiler.DEFAULT_MODULE)}'
+      |\t- Optimize dependencies: $optimizeDependencies
       |\t- Typescript transpiling: $tsTranspiling
       |\t- Babel transpiling: $babelTranspiling
       |\t- Vue.js transpiling: $vueTranspiling
