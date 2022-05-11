@@ -39,7 +39,7 @@ Usage: js2cpg.sh [options] <srcdir>
   --help                   prints this usage text
   --version                print js2cpg version and exit
   <src>                    directory containing Javascript code or the path to a *.vsix file
-  --package-json <value>   path to the projects package.json (path relative to <src> or absolute path; defaults to '<src>\package.json')
+  --package-json <value>   path to the projects package.json (path relative to <src> or absolute path; defaults to '<src>/package.json')
   --output <value>         CPG output file name (defaults to 'cpg.bin.zip')
   --no-ts                  disables transpiling Typescript files to Javascript
   --no-babel               disables transpiling Javascript files with Babel
