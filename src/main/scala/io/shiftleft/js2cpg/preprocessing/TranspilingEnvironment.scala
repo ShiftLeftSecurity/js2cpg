@@ -4,7 +4,6 @@ import better.files.File
 import io.shiftleft.js2cpg.io.ExternalCommand
 import org.slf4j.LoggerFactory
 
-import java.nio.file.Path
 import scala.util.{Failure, Success}
 
 object TranspilingEnvironment {
@@ -98,19 +97,19 @@ trait TranspilingEnvironment {
     }
   }
 
-  protected def valid(dir: Path): Boolean = isValid match {
+  protected def valid(): Boolean = isValid match {
     case Some(value) =>
       value
     case None =>
-      isValid = Some((pnpmAvailable(dir) || yarnAvailable() || npmAvailable()) && setNpmPython())
+      isValid = Some((pnpmAvailable() || yarnAvailable() || npmAvailable()) && setNpmPython())
       isValid.get
   }
 
-  protected def pnpmAvailable(dir: Path): Boolean = isPnpmAvailable match {
+  protected def pnpmAvailable(): Boolean = isPnpmAvailable match {
     case Some(value) =>
-      value && (File(dir) / "pnpm-lock.yaml").exists
+      value
     case None =>
-      isPnpmAvailable = Some((File(projectPath) / "pnpm-lock.yaml").exists && checkForPnpm())
+      isPnpmAvailable = Some((config.forcePnpm || (File(config.srcDir) / "pnpm-lock.yaml").exists) && checkForPnpm())
       isPnpmAvailable.get
   }
 
@@ -118,7 +117,7 @@ trait TranspilingEnvironment {
     case Some(value) =>
       value
     case None =>
-      isYarnAvailable = Some((File(projectPath) / "yarn.lock").exists && checkForYarn())
+      isYarnAvailable = Some((File(config.srcDir) / "yarn.lock").exists && checkForYarn())
       isYarnAvailable.get
   }
 

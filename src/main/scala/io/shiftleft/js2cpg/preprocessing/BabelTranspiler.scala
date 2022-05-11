@@ -58,7 +58,7 @@ class BabelTranspiler(
     true
   }
 
-  override def validEnvironment(): Boolean = valid(inDir.map(dir => projectPath.resolve(dir)).getOrElse(projectPath))
+  override def validEnvironment(): Boolean = valid()
 
   override protected def logExecution(): Unit =
     logger.info(s"Babel - transpiling source files in '${File(projectPath).name}'")

@@ -38,6 +38,7 @@ object Js2cpgArgumentsParser {
   val JVM_MONITOR: String              = "enable-jvm-monitor"
   val MODULE_MODE: String              = "module-mode"
   val WITH_NODE_MODULES_FOLDER: String = "with-node-modules-folder"
+  val FORCE_PNPM: String               = "force-pnpm"
 }
 
 class Js2cpgArgumentsParser {
@@ -182,6 +183,11 @@ class Js2cpgArgumentsParser {
       )
       .action((module, c) => c.copy(moduleMode = Some(module)))
       .hidden()
+    opt[Unit](FORCE_PNPM)
+      .action((_, c) => c.copy(forcePnpm = true))
+      .text(
+        s"always use pnpm if installed, ignore the existence of pnpm-lock.yaml (default is ${Config.DEFAULT_FORCE_PNPM})"
+      )
   }
 
   def parse(args: Array[String]): Option[Config] = parser.parse(args, Config())
