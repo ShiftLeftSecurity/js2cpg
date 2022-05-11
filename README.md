@@ -39,8 +39,8 @@ Usage: js2cpg.sh [options] <srcdir>
   --help                   prints this usage text
   --version                print js2cpg version and exit
   <src>                    directory containing Javascript code or the path to a *.vsix file
-  --package-json <value>   path to the projects package.json (path relative to <src> or absolute path; defaults to '<src>/package.json')
-  --output <value>         CPG output file name (defaults to `cpg.bin.zip`)
+  --package-json <value>   path to the projects package.json (path relative to <src> or absolute path; defaults to '<src>\package.json')
+  --output <value>         CPG output file name (defaults to 'cpg.bin.zip')
   --no-ts                  disables transpiling Typescript files to Javascript
   --no-babel               disables transpiling Javascript files with Babel
   --no-vue-js              disables transpiling Vue.js files
@@ -51,11 +51,12 @@ Usage: js2cpg.sh [options] <srcdir>
   --exclude-regex <value>  a regex specifying files to exclude during CPG generation (the absolute file path is matched)
   --include-minified       include minified Javascript files (filename ending with '-min.js', '.min.js', or 'bundle.js')
   --include-tests          include test files
-  --exclude-private-deps   excludes private modules/dependencies in 'node_modules/' (defaults to `false`)
+  --exclude-private-deps   excludes private modules/dependencies in 'node_modules/' (defaults to 'false')
   --private-deps-ns <dep1>,<dep2>,...
                            additional private dependencies to be analyzed from 'node_modules'
   --include-configs        include configuration files (*.conf.js, *.config.js, *.json)
   --include-html           include HTML files (*.html)
+  --optimize-dependencies  optimize project dependencies during transpilation (defaults to 'false')
 ```
 
 `js2cpg` requires at least one argument `<srcdir>`. `srcdir` is path to the project directory from which you would like to generate a CPG.

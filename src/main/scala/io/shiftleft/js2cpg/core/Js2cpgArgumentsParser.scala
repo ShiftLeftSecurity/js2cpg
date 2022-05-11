@@ -38,6 +38,7 @@ object Js2cpgArgumentsParser {
   val JVM_MONITOR: String              = "enable-jvm-monitor"
   val MODULE_MODE: String              = "module-mode"
   val WITH_NODE_MODULES_FOLDER: String = "with-node-modules-folder"
+  val OPTIMIZE_DEPENDENCIES: String    = "optimize-dependencies"
 }
 
 class Js2cpgArgumentsParser {
@@ -82,7 +83,7 @@ class Js2cpgArgumentsParser {
         else failure(s"File '$path' does not exist or is a directory")
       })
     opt[String](OUTPUT)
-      .text(s"CPG output file name (defaults to `${Config.DEFAULT_CPG_OUT_FILE}`)")
+      .text(s"CPG output file name (defaults to '${Config.DEFAULT_CPG_OUT_FILE}')")
       .action((x, c) => c.copy(outputFile = x))
       .validate(x =>
         if (x.isEmpty) {
@@ -119,11 +120,11 @@ class Js2cpgArgumentsParser {
       .text("enables transpiling Typescript files to Javascript")
       .hidden()
     opt[Unit](WITH_NODE_MODULES_FOLDER)
-      .text(s"include the node_module folder (defaults to `${Config.DEFAULT_WITH_NODE_MODULES_FOLDER}`)")
+      .text(s"include the node_module folder (defaults to '${Config.DEFAULT_WITH_NODE_MODULES_FOLDER}')")
       .action((_, c) => c.copy(withNodeModuleFolder = true))
       .hidden()
     opt[Unit](WITH_TS_TYPES)
-      .text(s"query types via Typescript; needs a `package.json` (defaults to `${Config.DEFAULT_TS_TYPES}`)")
+      .text(s"query types via Typescript; needs a `package.json` (defaults to '${Config.DEFAULT_TS_TYPES}')")
       .action((_, c) => c.copy(withTsTypes = true))
       .hidden() // deprecated
     opt[Seq[String]](EXCLUDE)
@@ -153,13 +154,13 @@ class Js2cpgArgumentsParser {
       .text("include test files")
     opt[Unit](IGNORE_PRIVATE_DEPS)
       .text(
-        s"ignores private modules/dependencies in 'node_modules/' (defaults to `${Config.DEFAULT_IGNORE_PRIVATE_DEPS}`)"
+        s"ignores private modules/dependencies in 'node_modules/' (defaults to '${Config.DEFAULT_IGNORE_PRIVATE_DEPS}')"
       )
       .action((_, c) => c.copy(ignorePrivateDeps = true))
       .hidden()
     opt[Unit](EXCLUDE_PRIVATE_DEPS)
       .text(
-        s"excludes private modules/dependencies in 'node_modules/' (defaults to `${Config.DEFAULT_IGNORE_PRIVATE_DEPS}`)"
+        s"excludes private modules/dependencies in 'node_modules/' (defaults to '${Config.DEFAULT_IGNORE_PRIVATE_DEPS}')"
       )
       .action((_, c) => c.copy(ignorePrivateDeps = true))
     opt[Seq[String]](PRIVATE_DEPS)
@@ -172,13 +173,18 @@ class Js2cpgArgumentsParser {
     opt[Unit](INCLUDE_HTML)
       .text("include HTML files (*.html)")
       .action((_, c) => c.copy(includeHtml = true))
+    opt[Unit](OPTIMIZE_DEPENDENCIES)
+      .text(
+        s"optimize project dependencies during transpilation (defaults to '${Config.DEFAULT_OPTIMIZE_DEPENDENCIES}')"
+      )
+      .action((_, c) => c.copy(optimizeDependencies = true))
     opt[Int](JVM_MONITOR)
       .text("enable JVM metrics logging (requires JMX port number)")
       .action((jmxPortNumber, c) => c.copy(jvmMetrics = Some(jmxPortNumber)))
       .hidden()
     opt[String](MODULE_MODE)
       .text(
-        s"set the module mode for transpiling (default is ${TypescriptTranspiler.DEFAULT_MODULE}, alternatives are e.g., esnext or es2015)"
+        s"set the module mode for transpiling (default is '${TypescriptTranspiler.DEFAULT_MODULE}', alternatives are e.g., esnext or es2015)"
       )
       .action((module, c) => c.copy(moduleMode = Some(module)))
       .hidden()

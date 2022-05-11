@@ -74,7 +74,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
           new TranspilationRunner(
             tmpDir.path,
             transpileOutDir.path,
-            core.Config(tsTranspiling = false, withNodeModuleFolder = true)
+            core.Config(tsTranspiling = false, withNodeModuleFolder = true, optimizeDependencies = true)
           ).execute()
 
           val transpiledJsFiles = FileUtils
@@ -93,7 +93,16 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     "contain correctly re-mapped code fields in simple Babel project" in
       TranspilationArchiveFixture("babel", Seq.empty, Seq("babel")) { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath, "--no-ts", "--with-node-modules-folder"))
+        Js2CpgMain.main(
+          Array(
+            tmpDir.pathAsString,
+            "--output",
+            cpgPath,
+            "--no-ts",
+            "--with-node-modules-folder",
+            "--optimize-dependencies"
+          )
+        )
 
         val cpg =
           CpgLoader
@@ -121,7 +130,16 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     "generate and use sourcemap files correctly" in
       TranspilationArchiveFixture("typescript", Seq.empty, Seq("tsc")) { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath, "--no-babel", "--with-node-modules-folder"))
+        Js2CpgMain.main(
+          Array(
+            tmpDir.pathAsString,
+            "--output",
+            cpgPath,
+            "--no-babel",
+            "--with-node-modules-folder",
+            "--optimize-dependencies"
+          )
+        )
 
         val cpg =
           CpgLoader
@@ -151,7 +169,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
           new TranspilationRunner(
             tmpDir.path,
             transpileOutDir.path,
-            core.Config(babelTranspiling = false, withNodeModuleFolder = true)
+            core.Config(babelTranspiling = false, withNodeModuleFolder = true, optimizeDependencies = true)
           ).execute()
 
           val transpiledJsFiles = FileUtils
@@ -177,7 +195,16 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     "generate js files correctly for a simple Typescript project with subfolders" in
       TranspilationArchiveFixture("typescriptsub", Seq.empty, Seq("tsc")) { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath, "--no-babel", "--with-node-modules-folder"))
+        Js2CpgMain.main(
+          Array(
+            tmpDir.pathAsString,
+            "--output",
+            cpgPath,
+            "--no-babel",
+            "--with-node-modules-folder",
+            "--optimize-dependencies"
+          )
+        )
 
         val cpg =
           CpgLoader
@@ -202,7 +229,15 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
       TranspilationArchiveFixture("typescript", Seq.empty, Seq("tsc")) { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpDir.pathAsString, "--output", cpgPath, "--no-babel", "--with-tests", "--with-node-modules-folder")
+          Array(
+            tmpDir.pathAsString,
+            "--output",
+            cpgPath,
+            "--no-babel",
+            "--with-tests",
+            "--with-node-modules-folder",
+            "--optimize-dependencies"
+          )
         )
 
         val cpg =
@@ -222,7 +257,9 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     "generate js files correctly for a simple multi-project Typescript project" in
       TranspilationArchiveFixture("multisimple", Seq("a", "b"), Seq("tsc", "babel")) { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
+        Js2CpgMain.main(
+          Array(tmpDir.pathAsString, "--output", cpgPath, "--with-node-modules-folder", "--optimize-dependencies")
+        )
 
         val cpg =
           CpgLoader
@@ -241,7 +278,9 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     "generate js files correctly for a multi-project Typescript project (using solution config)" in
       TranspilationArchiveFixture("multisolutionconfig", Seq("a", "b"), Seq("tsc", "babel")) { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
+        Js2CpgMain.main(
+          Array(tmpDir.pathAsString, "--output", cpgPath, "--with-node-modules-folder", "--optimize-dependencies")
+        )
 
         val cpg =
           CpgLoader
@@ -259,7 +298,9 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     "generate js files correctly for a simple Vue.js 2 project" in
       TranspilationArchiveFixture("vue2", Seq.empty, Seq("vue-cli-service", "tsc", "babel")) { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
+        Js2CpgMain.main(
+          Array(tmpDir.pathAsString, "--output", cpgPath, "--with-node-modules-folder", "--optimize-dependencies")
+        )
 
         val cpg =
           CpgLoader
@@ -276,7 +317,9 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     "generate js files correctly for a simple Vue.js 3 project" in
       TranspilationArchiveFixture("vue3", Seq.empty, Seq("vue-cli-service", "tsc", "babel")) { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath, "--with-node-modules-folder"))
+        Js2CpgMain.main(
+          Array(tmpDir.pathAsString, "--output", cpgPath, "--with-node-modules-folder", "--optimize-dependencies")
+        )
 
         val cpg =
           CpgLoader
@@ -297,7 +340,15 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
       TranspilationFixture("ejs") { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpDir.pathAsString, "--output", cpgPath, "--no-ts", "--no-babel", "--with-node-modules-folder")
+          Array(
+            tmpDir.pathAsString,
+            "--output",
+            cpgPath,
+            "--no-ts",
+            "--no-babel",
+            "--with-node-modules-folder",
+            "--optimize-dependencies"
+          )
         )
 
         val cpg =
@@ -314,7 +365,15 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
       TranspilationArchiveFixture("pug", Seq.empty, Seq("pug")) { tmpDir =>
         val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
         Js2CpgMain.main(
-          Array(tmpDir.pathAsString, "--output", cpgPath, "--no-ts", "--no-babel", "--with-node-modules-folder")
+          Array(
+            tmpDir.pathAsString,
+            "--output",
+            cpgPath,
+            "--no-ts",
+            "--no-babel",
+            "--with-node-modules-folder",
+            "--optimize-dependencies"
+          )
         )
 
         val cpg =
