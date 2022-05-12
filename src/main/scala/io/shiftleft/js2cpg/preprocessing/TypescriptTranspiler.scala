@@ -13,7 +13,6 @@ import org.apache.commons.io.{FileUtils => CommonsFileUtils}
 
 import java.nio.file.{Path, Paths}
 import scala.util.{Failure, Success, Try}
-import scala.jdk.CollectionConverters._
 
 object TypescriptTranspiler {
 
@@ -169,12 +168,10 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
     true
   }
 
-  private def isCleanTrace(exception: Throwable): Boolean = !exception.getMessage
-    .lines()
-    .iterator()
-    .asScala
-    .filterNot(l => l.contains("error TS") || l.contains(".d.ts"))
-    .exists(_.contains("error TS"))
+  private def isCleanTrace(exception: Throwable): Boolean = {
+    val lines = exception.getMessage.linesIterator
+    !lines.filterNot(l => l.contains("error TS") || l.contains(".d.ts")).exists(_.contains("error TS"))
+  }
 
   override def validEnvironment(): Boolean = valid(projectPath)
 
