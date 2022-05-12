@@ -30,10 +30,12 @@ jobs:
           npm config set registry http://registry.npmjs.org/
       - name: Compile and run tests (1)
         if: ${{ matrix.os != 'windows-2019' }}
-        run: sbt +test
+        run: |
+          sbt +test
       - name: Compile and run tests (2)
         if: ${{ matrix.os == 'windows-2019' }}
-        run: '& sbt +test'
+        run: |
+          & "sbt" +test
   formatting:
     runs-on: ubuntu-20.04
     steps:
