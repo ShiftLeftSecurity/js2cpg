@@ -13,6 +13,7 @@ import org.apache.commons.io.{FileUtils => CommonsFileUtils}
 
 import java.nio.file.{Path, Paths}
 import scala.util.{Failure, Success, Try}
+import scala.jdk.CollectionConverters._
 
 object TypescriptTranspiler {
 
@@ -69,8 +70,12 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
       val content = FileUtils.readLinesInFile(customTsConfigFilePath).mkString("\n")
       val mapper  = new ObjectMapper()
       val json    = mapper.readTree(PackageJsonParser.removeComments(content))
+      Option(json.get("compilerOptions")).foreach { options =>
+        options.asInstanceOf[ObjectNode].remove("sourceRoot")
+        options.asInstanceOf[ObjectNode].putArray("types")
+        options.asInstanceOf[ObjectNode].putArray("typeRoots")
+      }
       // --include is not available as tsc CLI argument; we set it manually:
-      Option(json.get("compilerOptions")).foreach(_.asInstanceOf[ObjectNode].remove("sourceRoot"))
       json.asInstanceOf[ObjectNode].putArray("include").add("**/*")
       val customTsConfigFile =
         File
@@ -142,14 +147,18 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
             else ""
 
           val command =
-            s"${ExternalCommand.toOSCommand(tsc)} -sourcemap $sourceRoot --outDir $projOutDir -t ES2017 -m $module --jsx react --noEmit false $projCommand"
+            s"${ExternalCommand.toOSCommand(tsc)} --skipLibCheck -sourcemap $sourceRoot --outDir $projOutDir -t ES2017 -m $module --jsx react --noEmit false $projCommand"
           logger.debug(
             s"\t+ TypeScript compiling $projectPath $projCommand to $projOutDir (using $module style modules)"
           )
 
           ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
-            case Success(_)         => logger.debug("\t+ TypeScript compiling finished")
-            case Failure(exception) => logger.debug("\t- TypeScript compiling failed", exception)
+            case Success(_) =>
+              logger.debug("\t+ TypeScript compiling finished")
+            case Failure(exception) if isCleanTrace(exception) =>
+              logger.debug("\t+ TypeScript compiling finished")
+            case Failure(exception) =>
+              logger.debug(s"\t- TypeScript compiling failed: $exception")
           }
         }
 
@@ -159,6 +168,13 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
     }
     true
   }
+
+  private def isCleanTrace(exception: Throwable): Boolean = !exception.getMessage
+    .lines()
+    .iterator()
+    .asScala
+    .filterNot(l => l.contains("error TS") || l.contains(".d.ts"))
+    .exists(_.contains("error TS"))
 
   override def validEnvironment(): Boolean = valid(projectPath)
 
