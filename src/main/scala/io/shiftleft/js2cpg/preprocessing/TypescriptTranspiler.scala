@@ -22,6 +22,9 @@ object TypescriptTranspiler {
 
   val DEFAULT_MODULE: String = COMMONJS
 
+  private val tscTypingWarnings =
+    List("error TS", ".d.ts", "The file is in the program because", "Entry point of type library")
+
 }
 
 class TypescriptTranspiler(override val config: Config, override val projectPath: Path, subDir: Option[Path] = None)
@@ -104,6 +107,9 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
     }
   }
 
+  private def isCleanTrace(exception: Throwable): Boolean =
+    exception.getMessage.linesIterator.forall(l => TypescriptTranspiler.tscTypingWarnings.exists(l.contains))
+
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
     if (installTsPlugins()) {
       File.usingTemporaryDirectory() { tmpForIgnoredDirs =>
@@ -166,11 +172,6 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
       }
     }
     true
-  }
-
-  private def isCleanTrace(exception: Throwable): Boolean = {
-    val lines = exception.getMessage.linesIterator
-    !lines.filterNot(l => l.contains("error TS") || l.contains(".d.ts")).exists(_.contains("error TS"))
   }
 
   override def validEnvironment(): Boolean = valid(projectPath)
