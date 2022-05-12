@@ -1,5 +1,5 @@
-val cpgVersion   = "1.3.517"
-val joernVersion = "1.1.626"
+val cpgVersion   = "1.3.537"
+val joernVersion = "1.1.799"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
@@ -90,7 +90,6 @@ lazy val commonSettings = Seq(
   ),
   libraryDependencies ++= Seq(
     "io.shiftleft"              %% "codepropertygraph" % cpgVersion,
-    "io.shiftleft"              %% "semanticcpg"       % cpgVersion,
     "io.joern"                  %% "x2cpg"             % joernVersion,
     ("com.github.pathikrit"     %% "better-files"      % "3.9.1").cross(CrossVersion.for3Use2_13),
     "com.github.scopt"          %% "scopt"             % "4.0.1",
@@ -101,7 +100,6 @@ lazy val commonSettings = Seq(
     "org.slf4j"                  % "slf4j-api"         % "1.7.36",
     "org.apache.logging.log4j"   % "log4j-slf4j-impl"  % "2.17.2"     % Runtime,
     "io.joern"                  %% "dataflowengineoss" % joernVersion % Test,
-    "io.shiftleft"              %% "semanticcpg"       % cpgVersion   % Test classifier "tests",
     "io.joern"                  %% "x2cpg"             % joernVersion % Test classifier "tests",
     "org.scalatest"             %% "scalatest"         % "3.2.12"     % Test
   ),
