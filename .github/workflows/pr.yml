@@ -29,7 +29,7 @@ jobs:
           npm set progress=false
           npm config set registry http://registry.npmjs.org/
       - name: Compile and run tests
-        run: sbt clean +test
+        run: sbt "clean; +test;"
   formatting:
     runs-on: ubuntu-20.04
     steps:
