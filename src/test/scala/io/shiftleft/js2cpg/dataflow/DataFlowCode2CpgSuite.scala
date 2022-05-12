@@ -7,7 +7,6 @@ import io.joern.dataflowengineoss.semanticsloader.{Parser, Semantics}
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.codepropertygraph.generated.nodes._
 import io.shiftleft.semanticcpg.language._
-import io.joern.x2cpg.layers._
 import io.shiftleft.semanticcpg.layers.LayerCreatorContext
 
 abstract class DataFlowCode2CpgSuite extends Js2CpgCode2CpgSuite {
@@ -31,14 +30,7 @@ abstract class DataFlowCode2CpgSuite extends Js2CpgCode2CpgSuite {
   }
 
   def runPasses(cpg: Cpg): Unit = {
-    val context = new LayerCreatorContext(cpg)
-    new Base().run(context)
-    new TypeRelations().run(context)
-    new ControlFlow().run(context)
-    new CallGraph().run(context)
-
-    val options = new OssDataFlowOptions()
-    new OssDataFlow(options).run(context)
+    new OssDataFlow(new OssDataFlowOptions()).run(new LayerCreatorContext(cpg))
   }
 
   protected def flowToResultPairs(path: Path): List[(String, Integer)] = {
