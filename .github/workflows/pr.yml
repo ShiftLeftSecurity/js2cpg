@@ -35,7 +35,7 @@ jobs:
       - name: Compile and run tests (2)
         if: ${{ matrix.os == 'windows-2019' }}
         run: |
-          & "sbt" +test
+          sbt +test
   formatting:
     runs-on: ubuntu-20.04
     steps:
