@@ -6,12 +6,7 @@
         </Console>
     </Appenders>
     <Loggers>
-        <!-- java.util.logging redirection (from tomcat/jasper) -->
-        <Logger name="org.apache.tomcat" level="error"/>
-        <Logger name="org.apache.jasper" level="error"/>
-        <Logger name="org.apache.tinkerpop.gremlin.tinkergraph" level="debug"/>
-
-        <Root level="debug">
+        <Root level="WARN">
             <AppenderRef ref="STDOUT"/>
         </Root>
     </Loggers>
