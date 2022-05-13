@@ -8,6 +8,7 @@ import io.shiftleft.js2cpg.core
 import io.shiftleft.js2cpg.core.Js2CpgMain
 import io.shiftleft.js2cpg.io.FileDefaults.JS_SUFFIX
 import io.shiftleft.js2cpg.io.FileUtils
+import io.shiftleft.js2cpg.parser.PackageJsonParser
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.tags.Slow
 import org.scalatest.wordspec.AnyWordSpec
@@ -54,6 +55,8 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
             executables.map(e => (tmpProjectPath / "node_modules" / ".bin" / e).toJava)
         allExecutables.foreach(_.setExecutable(true, false))
 
+        (tmpProjectPath / PackageJsonParser.PACKAGE_YARN_LOCK_FILENAME).touch()
+
         f(tmpProjectPath)
       }
     }
@@ -62,7 +65,11 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
   private object TranspilationFixture {
     def apply(project: String)(f: File => Unit): Unit = {
       val projectPath = getClass.getResource(s"/$project").toURI
-      File.usingTemporaryDirectory()(tmpDir => f(File(projectPath).copyToDirectory(tmpDir)))
+      File.usingTemporaryDirectory() { tmpDir =>
+        val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
+        (tmpProjectPath / PackageJsonParser.PACKAGE_YARN_LOCK_FILENAME).touch()
+        f(tmpProjectPath)
+      }
     }
   }
 
