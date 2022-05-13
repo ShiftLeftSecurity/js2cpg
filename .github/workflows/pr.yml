@@ -5,14 +5,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-10.15, macos-11]
+        os: [ubuntu-20.04, windows-2022, macos-10.15, macos-11]
     steps:
       - name: Checkout github repo
         uses: actions/checkout@v2
         with:
           fetch-depth: 1
-      - name: Install yarn for transpilation tests
-        run: npm install -g yarn
       - name: Set up JDK 8
         uses: olafurpg/setup-scala@v11
         with:
