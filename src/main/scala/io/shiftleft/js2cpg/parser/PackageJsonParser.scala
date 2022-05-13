@@ -17,17 +17,16 @@ import scala.util.Success
 object PackageJsonParser {
   private val logger = LoggerFactory.getLogger(PackageJsonParser.getClass)
 
-  val PACKAGE_JSON_FILENAME: String = "package.json"
+  val PACKAGE_JSON_FILENAME: String   = "package.json"
+  val JSON_LOCK_FILENAME: String      = "package-lock.json"
+  val NPM_SHRINKWRAP_FILENAME: String = "npm-shrinkwrap.json"
+  val PNPM_WS_FILENAME: String        = "pnpm-workspace.yaml"
+  val PNPM_LOCK_FILENAME: String      = "pnpm-lock.yaml"
+  val PNPM_LOCK_FILENAME_BAK: String  = "pnpm-lock.yaml.bak"
+  val YARN_LOCK_FILENAME: String      = "yarn.lock"
+  val YARN_LOCK_FILENAME_BAK: String  = "yarn.lock.bak"
 
-  val PACKAGE_JSON_LOCK_FILENAME: String     = "package-lock.json"
-  val PACKAGE_JSON_LOCK_FILENAME_BAK: String = "package-lock.json.bak"
-
-  val PACKAGE_PNPM_WS_FILENAME: String       = "pnpm-workspace.yaml"
-  val PACKAGE_PNPM_LOCK_FILENAME: String     = "pnpm-lock.yaml"
-  val PACKAGE_PNPM_LOCK_FILENAME_BAK: String = "pnpm-lock.yaml.bak"
-
-  val PACKAGE_YARN_LOCK_FILENAME: String     = "yarn.lock"
-  val PACKAGE_YARN_LOCK_FILENAME_BAK: String = "yarn.lock.bak"
+  val LOCKFILES: List[String] = List(JSON_LOCK_FILENAME, YARN_LOCK_FILENAME, PNPM_LOCK_FILENAME)
 
   val PROJECT_DEPENDENCIES: Seq[String] =
     Seq("dependencies", "devDependencies", "peerDependencies", "optionalDependencies")
@@ -57,7 +56,7 @@ object PackageJsonParser {
     cachedDependencies.getOrElseUpdate(
       packageJsonPath, {
         val depsPath     = packageJsonPath
-        val lockDepsPath = packageJsonPath.resolveSibling(Paths.get(PACKAGE_JSON_LOCK_FILENAME))
+        val lockDepsPath = packageJsonPath.resolveSibling(Paths.get(JSON_LOCK_FILENAME))
 
         val lockDeps = Try {
           val content      = FileUtils.readLinesInFile(lockDepsPath).mkString("\n")
@@ -106,7 +105,7 @@ object PackageJsonParser {
             deps.get
           } else {
             logger.debug(
-              s"No project dependencies found in $PACKAGE_JSON_FILENAME or $PACKAGE_JSON_LOCK_FILENAME at '${depsPath.getParent}'."
+              s"No project dependencies found in $PACKAGE_JSON_FILENAME or $JSON_LOCK_FILENAME at '${depsPath.getParent}'."
             )
             Map.empty
           }
