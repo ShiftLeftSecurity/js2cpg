@@ -9,7 +9,6 @@ import io.shiftleft.utils.IOUtils
 import org.slf4j.LoggerFactory
 
 import java.nio.file.attribute.BasicFileAttributes
-import java.security.{DigestInputStream, MessageDigest}
 import scala.collection.concurrent.TrieMap
 import scala.collection.{mutable, SortedMap}
 
@@ -19,25 +18,6 @@ object FileUtils {
 
   // we only want to print excluded files and folders once (Path -> Reason as String)
   private val excludedPaths = TrieMap.empty[Path, String]
-
-  private def isDirectory(path: Path): Boolean =
-    if (path == null || !Files.exists(path)) false
-    else Files.isDirectory(path)
-
-  def md5(files: Seq[Path]): String = {
-    val md = MessageDigest.getInstance("MD5")
-    files
-      .filterNot(p => isDirectory(p.toRealPath()))
-      .sortBy(_.toRealPath().toString)
-      .foreach { path =>
-        val dis = new DigestInputStream(Files.newInputStream(path), md)
-        while (dis.available() > 0) {
-          dis.read()
-        }
-        dis.close()
-      }
-    md.digest().map(b => String.format("%02x", Byte.box(b))).mkString
-  }
 
   def logAndClearExcludedPaths(): Unit = {
     excludedPaths.foreach { case (path, reason) =>
