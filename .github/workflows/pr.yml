@@ -21,7 +21,12 @@ jobs:
         uses: olafurpg/setup-scala@v11
         with:
           java-version: adopt@1.8
-      - run: sbt clean +test
+      - name: Compile and run tests (1)
+        if: ${{ matrix.os != 'windows-2019' }}
+        run: sbt +test
+      - name: Compile and run tests (2)
+        if: ${{ matrix.os == 'windows-2019' }}
+        run: sbt.bat +test
   formatting:
     runs-on: ubuntu-20.04
     steps:
