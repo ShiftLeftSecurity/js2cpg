@@ -116,16 +116,13 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
     val packageJson = File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME
     if (config.optimizeDependencies && packageJson.exists) {
       // move lock files out of the way
-      List(
-        PackageJsonParser.PACKAGE_JSON_LOCK_FILENAME,
-        PackageJsonParser.PACKAGE_YARN_LOCK_FILENAME,
-        PackageJsonParser.PACKAGE_PNPM_LOCK_FILENAME
-      ).map(File(projectPath, _)).collect {
+      PackageJsonParser.LOCKFILES.map(File(projectPath, _)).collect {
         case lockFile if lockFile.exists =>
           lockFile.renameTo(lockFile.pathAsString + ".bak")
       }
       // pnpm workspace config file is not required as we manually descent into sub-project
-      File(projectPath, PackageJsonParser.PACKAGE_PNPM_WS_FILENAME).delete(swallowIOExceptions = true)
+      File(projectPath, PackageJsonParser.PNPM_WS_FILENAME).delete(swallowIOExceptions = true)
+      File(projectPath, PackageJsonParser.NPM_SHRINKWRAP_FILENAME).delete(swallowIOExceptions = true)
 
       // create a temporary package.json without dependencies
       val originalContent = FileUtils.readLinesInFile(packageJson.path).mkString("\n")
@@ -149,23 +146,16 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
       workUnit()
 
       // remove freshly created lock files from transpiler runs
-      List(
-        PackageJsonParser.PACKAGE_JSON_LOCK_FILENAME,
-        PackageJsonParser.PACKAGE_YARN_LOCK_FILENAME,
-        PackageJsonParser.PACKAGE_PNPM_LOCK_FILENAME
-      ).map(File(projectPath, _)).collect {
-        case lockFile if lockFile.exists =>
-          lockFile.delete()
-      }
+      PackageJsonParser.LOCKFILES.map(File(projectPath, _)).foreach(_.delete(swallowIOExceptions = true))
 
       // restore the original package.json
       packageJson.writeText(originalContent)
 
       // restore lock files
       List(
-        PackageJsonParser.PACKAGE_JSON_LOCK_FILENAME,
-        PackageJsonParser.PACKAGE_YARN_LOCK_FILENAME,
-        PackageJsonParser.PACKAGE_PNPM_LOCK_FILENAME
+        PackageJsonParser.JSON_LOCK_FILENAME,
+        PackageJsonParser.YARN_LOCK_FILENAME,
+        PackageJsonParser.PNPM_LOCK_FILENAME
       ).map(f => File(projectPath, f + ".bak")).collect {
         case lockFile if lockFile.exists =>
           lockFile.renameTo(lockFile.pathAsString.stripSuffix(".bak"))

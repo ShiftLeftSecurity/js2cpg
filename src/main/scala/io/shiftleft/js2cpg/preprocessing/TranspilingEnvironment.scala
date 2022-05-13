@@ -116,16 +116,12 @@ trait TranspilingEnvironment {
 
   protected def pnpmAvailable(dir: Path): Boolean = isPnpmAvailable match {
     case Some(value) =>
-      val hasLockFile = anyLockFileExists(
-        dir,
-        List(PackageJsonParser.PACKAGE_PNPM_LOCK_FILENAME_BAK, PackageJsonParser.PACKAGE_PNPM_LOCK_FILENAME)
-      )
+      val hasLockFile =
+        anyLockFileExists(dir, List(PackageJsonParser.PNPM_LOCK_FILENAME_BAK, PackageJsonParser.PNPM_LOCK_FILENAME))
       value && hasLockFile
     case None =>
-      val hasLockFile = anyLockFileExists(
-        dir,
-        List(PackageJsonParser.PACKAGE_PNPM_LOCK_FILENAME_BAK, PackageJsonParser.PACKAGE_PNPM_LOCK_FILENAME)
-      )
+      val hasLockFile =
+        anyLockFileExists(dir, List(PackageJsonParser.PNPM_LOCK_FILENAME_BAK, PackageJsonParser.PNPM_LOCK_FILENAME))
       isPnpmAvailable = Some(hasLockFile && checkForPnpm())
       isPnpmAvailable.get
   }
@@ -136,7 +132,7 @@ trait TranspilingEnvironment {
     case None =>
       val hasLockFile = anyLockFileExists(
         projectPath,
-        List(PackageJsonParser.PACKAGE_YARN_LOCK_FILENAME_BAK, PackageJsonParser.PACKAGE_YARN_LOCK_FILENAME)
+        List(PackageJsonParser.YARN_LOCK_FILENAME_BAK, PackageJsonParser.YARN_LOCK_FILENAME)
       )
       isYarnAvailable = Some(hasLockFile && checkForYarn())
       isYarnAvailable.get

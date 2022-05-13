@@ -74,7 +74,7 @@ class DependenciesPassTest extends AbstractPassTest {
           |  }
           |}
           |""".stripMargin,
-      packageJsonName = PackageJsonParser.PACKAGE_JSON_LOCK_FILENAME
+      packageJsonName = PackageJsonParser.JSON_LOCK_FILENAME
     ) { cpg =>
       def deps = getDependencies(cpg)
       deps.size shouldBe 2
