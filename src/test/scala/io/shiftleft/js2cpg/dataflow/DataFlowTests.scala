@@ -32,9 +32,8 @@ class DataFlowTestSuite
       new JSDataFlowTest22
     )
 
-class JSDataFlowTest1 extends DataFlowCodeToCpgSuite {
-
-  override val code: String =
+class JSDataFlowTest1 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       | function flows1(fd, mode) {
       |     var buff = [];
@@ -73,8 +72,8 @@ class JSDataFlowTest1 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest2 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest2 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       | function foo(x) {};
       |
@@ -97,8 +96,8 @@ class JSDataFlowTest2 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest3 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest3 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       | function flow() {
       |   var a = 0x37;
@@ -124,8 +123,8 @@ class JSDataFlowTest3 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest4 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest4 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       | function flow(a){
       |   var z = a;
@@ -145,8 +144,8 @@ class JSDataFlowTest4 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest5 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest5 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       | function nested(a){
       |   var x = 0;
@@ -174,8 +173,8 @@ class JSDataFlowTest5 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest6 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest6 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       | function nested(a) {
       |   var x = 0;
@@ -208,8 +207,8 @@ class JSDataFlowTest6 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest7 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest7 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       | function foo(y) {};
       |
@@ -234,8 +233,8 @@ class JSDataFlowTest7 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest8 extends DataFlowCodeToCpgSuite {
-  override val code: String = """
+class JSDataFlowTest8 extends DataFlowCode2CpgSuite {
+  override val testCode = """
       | function param(x){
       |    var a = x;
       |    var b = a;
@@ -253,8 +252,8 @@ class JSDataFlowTest8 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest9 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest9 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       | var node = {
       |  'value1' : 1,
@@ -281,8 +280,8 @@ class JSDataFlowTest9 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest10 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest10 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       | function flow() {
       |   var a = 37;
@@ -305,8 +304,8 @@ class JSDataFlowTest10 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest11 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest11 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       | function flow() {
       |    var a = 37;
@@ -326,8 +325,8 @@ class JSDataFlowTest11 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest12 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest12 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       | function flow() {
       |    var a = 37;
@@ -348,8 +347,8 @@ class JSDataFlowTest12 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest13 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest13 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       | function main(argc, argv){
       |    var x = argv[1];
@@ -372,8 +371,8 @@ class JSDataFlowTest13 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest14 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest14 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
        |function foo(x, y) {
        |  var z =  x ? f(y) : g(y);
@@ -389,8 +388,8 @@ class JSDataFlowTest14 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest15 extends DataFlowCodeToCpgSuite {
-  override val code: String = """
+class JSDataFlowTest15 extends DataFlowCode2CpgSuite {
+  override val testCode = """
     |function bar() {
     |  var x = source();
     |  foo(x);
@@ -411,8 +410,8 @@ class JSDataFlowTest15 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest16 extends DataFlowCodeToCpgSuite {
-  override val code: String = """
+class JSDataFlowTest16 extends DataFlowCode2CpgSuite {
+  override val testCode = """
     |function bar() {
     |  return source();
     |};
@@ -453,8 +452,8 @@ class JSDataFlowTest16 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest17 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest17 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       | var point = {
       |   'x' : 0,
@@ -489,8 +488,8 @@ class JSDataFlowTest17 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest18 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest18 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       | var s { 'field' : 0 };
       |
@@ -511,8 +510,8 @@ class JSDataFlowTest18 extends DataFlowCodeToCpgSuite {
 
 }
 
-class JSDataFlowTest19 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest19 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       |function bar() {
       |  source(a.b);
@@ -530,8 +529,8 @@ class JSDataFlowTest19 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest20 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest20 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       |function foo(y, x) {
       |  free(y);
@@ -549,8 +548,8 @@ class JSDataFlowTest20 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest21 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest21 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
       | function foo() {
       |   return bar();
@@ -565,8 +564,8 @@ class JSDataFlowTest21 extends DataFlowCodeToCpgSuite {
   }
 }
 
-class JSDataFlowTest22 extends DataFlowCodeToCpgSuite {
-  override val code: String =
+class JSDataFlowTest22 extends DataFlowCode2CpgSuite {
+  override val testCode =
     """
        | function f(x, y) {
        |   g(x, y);
