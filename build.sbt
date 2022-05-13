@@ -5,9 +5,6 @@ val gitCommitString = SettingKey[String]("gitSha")
 
 enablePlugins(JavaAppPackaging, BuildInfoPlugin)
 
-Test / fork := true
-Test / testForkedParallel := true
-
 lazy val Fast = config("fast").extend(Test)
 configs(Fast)
 inConfig(Fast)(Defaults.testTasks)
