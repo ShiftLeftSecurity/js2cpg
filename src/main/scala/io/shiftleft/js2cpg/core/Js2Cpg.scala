@@ -12,6 +12,7 @@ import io.shiftleft.js2cpg.preprocessing.TranspilationRunner
 import io.shiftleft.js2cpg.util.MemoryMetrics
 import io.shiftleft.passes.{IntervalKeyPool, KeyPoolCreator}
 import io.joern.x2cpg.X2Cpg.newEmptyCpg
+import io.joern.x2cpg.utils.HashUtil
 import org.slf4j.LoggerFactory
 
 import scala.util.{Failure, Success, Try}
@@ -194,7 +195,7 @@ class Js2Cpg {
     val htmlAsConfigPassPool   = otherPools(4)
 
     val cpg  = newEmptyCpg(Some(config.outputFile))
-    val hash = FileUtils.md5(jsFilesWithRoot.map(_._1))
+    val hash = HashUtil.sha256(jsFilesWithRoot.map(_._1))
 
     new AstCreationPass(File(config.srcDir), jsFilesWithRoot, cpg, functionKeyPool, report)
       .createAndApply()
