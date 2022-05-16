@@ -23,6 +23,8 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
 
   private val transpilers: Seq[Transpiler] = createTranspilers()
 
+  private val DEPS_TO_KEEP: List[String] = List("@vue", "vue", "nuxt", "@babel")
+
   private def createTranspilers(): Seq[Transpiler] = {
     // We always run the following transpilers by default when not stated otherwise in the Config.
     // This includes running them for sub-projects.
@@ -135,8 +137,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
               .fieldNames()
               .asScala
               .toList
-              // nuxt.js and vue.js projects require these dependencies to be present
-              .filterNot(f => f.startsWith("nuxt") || f.startsWith("vue") || f.contains("@vue"))
+              .filterNot(f => DEPS_TO_KEEP.exists(f.startsWith))
           fieldsToRemove.foreach(depNode.remove)
         }
       }
