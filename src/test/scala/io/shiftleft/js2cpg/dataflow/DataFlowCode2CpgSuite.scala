@@ -10,13 +10,6 @@ import io.shiftleft.semanticcpg.language._
 import io.shiftleft.semanticcpg.layers.LayerCreatorContext
 
 abstract class DataFlowCode2CpgSuite extends Js2CpgCode2CpgSuite {
-  def testCode: String
-
-  lazy val cpg = {
-    val cpg = code(testCode)
-    runPasses(cpg)
-    cpg
-  }
 
   private val semanticsFilename: String =
     better.files.File(getClass.getResource("/default.semantics").toURI).pathAsString
@@ -29,7 +22,8 @@ abstract class DataFlowCode2CpgSuite extends Js2CpgCode2CpgSuite {
     context = EngineContext(semantics)
   }
 
-  def runPasses(cpg: Cpg): Unit = {
+  override def applyPasses(cpg: Cpg): Unit = {
+    super.applyPasses(cpg)
     new OssDataFlow(new OssDataFlowOptions()).run(new LayerCreatorContext(cpg))
   }
 
