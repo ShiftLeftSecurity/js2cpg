@@ -62,7 +62,7 @@ object FileDefaults {
   )
 
   val IGNORED_TESTS_REGEX: Seq[Regex] =
-    List(".*\\.spec\\.js".r, ".*\\.mock\\.js".r, ".*\\.e2e\\.js".r, ".*\\.test\\.js".r)
+    List(".*[.-]spec\\.js".r, ".*[.-]mock\\.js".r, ".*[.-]e2e\\.js".r, ".*[.-]test\\.js".r)
 
   val IGNORED_FOLDERS_REGEX: Seq[Regex] =
     List(

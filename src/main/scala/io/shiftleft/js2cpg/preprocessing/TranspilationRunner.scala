@@ -153,11 +153,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
       packageJson.writeText(originalContent)
 
       // restore lock files
-      List(
-        PackageJsonParser.JSON_LOCK_FILENAME,
-        PackageJsonParser.YARN_LOCK_FILENAME,
-        PackageJsonParser.PNPM_LOCK_FILENAME
-      ).map(f => File(projectPath, f + ".bak")).collect {
+      PackageJsonParser.LOCKFILES.map(f => File(projectPath, f + ".bak")).collect {
         case lockFile if lockFile.exists =>
           lockFile.renameTo(lockFile.pathAsString.stripSuffix(".bak"))
       }
