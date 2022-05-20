@@ -49,6 +49,7 @@ class BabelTranspiler(
       "--plugins @babel/plugin-proposal-object-rest-spread " +
       "--plugins @babel/plugin-proposal-nullish-coalescing-operator " +
       "--plugins @babel/plugin-transform-property-mutators " +
+      "--plugins @babel/plugin-transform-runtime " +
       s"--out-dir $outDir $constructIgnoreDirArgs"
     logger.debug(s"\t+ Babel transpiling $projectPath to $outDir")
     ExternalCommand.run(command, in.toString) match {
