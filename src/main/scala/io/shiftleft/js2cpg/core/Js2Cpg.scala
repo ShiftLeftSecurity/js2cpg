@@ -201,7 +201,7 @@ class Js2Cpg {
       .createAndApply()
     new CallLinkerPass(cpg).createAndApply()
 
-    new JsMetaDataPass(cpg, metaDataKeyPool, hash).createAndApply()
+    new JsMetaDataPass(cpg, metaDataKeyPool, hash, config.srcDir).createAndApply()
     new BuiltinTypesPass(cpg, builtinTypesKeyPool).createAndApply()
     new DependenciesPass(cpg, config, dependenciesKeyPool)
       .createAndApply()
