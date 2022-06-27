@@ -13,7 +13,7 @@ class JsMetaDataPassTest extends AbstractPassTest {
     val cpg               = Cpg.emptyCpg
     val jsMetaDataKeyPool = new IntervalKeyPool(1, 100)
 
-    new JsMetaDataPass(cpg, jsMetaDataKeyPool, "somehash").createAndApply()
+    new JsMetaDataPass(cpg, jsMetaDataKeyPool, "somehash", ".").createAndApply()
 
     "create exactly 1 node" in {
       cpg.graph.V.asScala.size shouldBe 1
