@@ -39,6 +39,7 @@ object Js2cpgArgumentsParser {
   val MODULE_MODE: String              = "module-mode"
   val WITH_NODE_MODULES_FOLDER: String = "with-node-modules-folder"
   val OPTIMIZE_DEPENDENCIES: String    = "optimize-dependencies"
+  val ALL_DEPENDENCIES: String         = "all-dependencies"
 }
 
 class Js2cpgArgumentsParser {
@@ -177,7 +178,12 @@ class Js2cpgArgumentsParser {
       .text(
         s"optimize project dependencies during transpilation (defaults to '${Config.DEFAULT_OPTIMIZE_DEPENDENCIES}')"
       )
-      .action((_, c) => c.copy(optimizeDependencies = true))
+      .hidden() // deprecated, it is the default
+    opt[Unit](ALL_DEPENDENCIES)
+      .text(
+        s"install all project dependencies during transpilation (defaults to '${!Config.DEFAULT_OPTIMIZE_DEPENDENCIES}')"
+      )
+      .action((_, c) => c.copy(optimizeDependencies = false))
     opt[Int](JVM_MONITOR)
       .text("enable JVM metrics logging (requires JMX port number)")
       .action((jmxPortNumber, c) => c.copy(jvmMetrics = Some(jmxPortNumber)))

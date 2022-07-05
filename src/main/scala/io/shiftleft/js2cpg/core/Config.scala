@@ -32,7 +32,7 @@ object Config {
   val DEFAULT_JVM_METRICS: Option[Int]          = None
   val DEFAULT_MODULE_MODE: Option[String]       = None
   val DEFAULT_WITH_NODE_MODULES_FOLDER: Boolean = false
-  val DEFAULT_OPTIMIZE_DEPENDENCIES: Boolean    = false
+  val DEFAULT_OPTIMIZE_DEPENDENCIES: Boolean    = true
 
 }
 
