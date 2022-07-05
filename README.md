@@ -56,7 +56,7 @@ Usage: js2cpg.sh [options] <srcdir>
                            additional private dependencies to be analyzed from 'node_modules'
   --include-configs        include configuration files (*.conf.js, *.config.js, *.json)
   --include-html           include HTML files (*.html)
-  --optimize-dependencies  optimize project dependencies during transpilation (defaults to 'false')
+  --all-dependencies       install all project dependencies during transpilation (defaults to 'false')
 ```
 
 `js2cpg` requires at least one argument `<srcdir>`. `srcdir` is path to the project directory from which you would like to generate a CPG.
