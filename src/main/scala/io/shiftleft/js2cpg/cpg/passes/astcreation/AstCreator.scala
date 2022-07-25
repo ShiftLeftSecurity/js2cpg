@@ -49,7 +49,6 @@ import io.shiftleft.codepropertygraph.generated.nodes.{
   NewCall,
   NewControlStructure,
   NewIdentifier,
-  NewImport,
   NewLocal,
   NewMethod,
   NewMethodRef,
@@ -173,7 +172,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
             }
           }
         case module =>
-          astNodeBuilder.createDependencyNode(module.getValue, groupId, VERSION_IMPORT)
+          astNodeBuilder.createDependencyNode(module.getValue.toJavaStringUncached, groupId, VERSION_IMPORT)
           createImportNodeAndAttachToAst(importNode)
       }
     }
@@ -1133,6 +1132,12 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     literalNode match {
       case arrayLiteralNode: ArrayLiteralNode =>
         createArrayLiteralNode(arrayLiteralNode)
+      case stringLiteralNode if stringLiteralNode.isString =>
+        // Some string values are artificially created and thus source.getCode() would
+        // result in misleading code fields.
+        val code              = "\"" + stringLiteralNode.getString + "\""
+        val dynamicTypeOption = Some(Defines.STRING.label)
+        astNodeBuilder.createLiteralNode(code, astNodeBuilder.lineAndColumn(literalNode), dynamicTypeOption)
       case _ =>
         val (code, dynamicTypeOption) = literalNode.getObject match {
           case bool: java.lang.Boolean =>
@@ -1140,10 +1145,6 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
             // This is required because source.getCode(literalNode) can be an empty string
             // for constructs like: for(;;)
             (bool.toString, Some(Defines.BOOLEAN.label))
-          case stringValue: String =>
-            // Some string values are artificially created and thus source.getCode() would
-            // result in misleading code fields.
-            ("\"" + stringValue + "\"", Some(Defines.STRING.label))
           case null =>
             ("null", Some(Defines.NULL.label))
           case obj =>
