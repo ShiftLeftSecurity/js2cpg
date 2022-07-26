@@ -42,7 +42,7 @@ case class TranspilerGroup(override val config: Config, override val projectPath
         logger.info("\t+ Plugins installed")
         true
       case Failure(exception) =>
-        logger.warn("\t- Failed to install plugins", exception)
+        logger.error("\t- Failed to install plugins", exception)
         false
     }
   }

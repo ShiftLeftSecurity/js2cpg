@@ -103,6 +103,7 @@ trait TranspilingEnvironment {
     case Some(value) =>
       value
     case None =>
+      nodeVersion()
       isValid = Some((pnpmAvailable(dir) || yarnAvailable() || npmAvailable()) && setNpmPython())
       isValid.get
   }
