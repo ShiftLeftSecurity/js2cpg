@@ -21,8 +21,8 @@ class AstNodeBuilder[NodeBuilderType](
   implicit def int2Integer(x: Int): Integer                    = java.lang.Integer.valueOf(x)
 
   def codeOf(node: NewNode): String = node match {
-    case code: HasCode => code.code
-    case _             => ""
+    case node: AstNodeNew => node.code
+    case _                => ""
   }
 
   def lineAndColumn(node: Node): LineAndColumn = {
