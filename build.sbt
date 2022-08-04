@@ -109,8 +109,11 @@ lazy val commonSettings = Seq(
 lazy val js2cpg = (project in file(".")).settings(
   commonSettings,
   name := "js2cpg",
-  Test / unmanagedResources += baseDirectory.value / "src" / "test" / "resources" / "privatemodules" / ".npmrc",
-  Test / unmanagedResources += baseDirectory.value / "src" / "test" / "resources" / "ignoreprivatemodules" / ".npmrc",
+  Test / unmanagedResources ++= Seq(
+    baseDirectory.value / "src" / "test" / "resources" / "privatemodules" / ".npmrc",
+    baseDirectory.value / "src" / "test" / "resources" / "ignoreprivatemodules" / ".npmrc",
+    baseDirectory.value / "src" / "test" / "resources" / "enginecheck" / ".npmrc"
+  ),
   Test / javaOptions ++= Seq("-Dlog4j.configurationFile=file:src/test/resources/log4j2-test.xml"),
   publishTo             := sonatypePublishToBundle.value,
   sonatypeTimeoutMillis := 7200000,

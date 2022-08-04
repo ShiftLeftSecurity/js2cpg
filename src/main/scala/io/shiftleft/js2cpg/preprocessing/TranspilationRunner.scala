@@ -130,8 +130,11 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
       val originalContent = FileUtils.readLinesInFile(packageJson.path).mkString("\n")
       val mapper          = new ObjectMapper()
       val json            = mapper.readTree(PackageJsonParser.removeComments(originalContent))
+      val jsonObject      = json.asInstanceOf[ObjectNode]
+
+      // remove all project specific dependencies (only keep the ones required for transpiling)
       PackageJsonParser.PROJECT_DEPENDENCIES.foreach { dep =>
-        Option(json.asInstanceOf[ObjectNode].get(dep).asInstanceOf[ObjectNode]).foreach { depNode =>
+        Option(jsonObject.get(dep).asInstanceOf[ObjectNode]).foreach { depNode =>
           val fieldsToRemove =
             depNode
               .fieldNames()
@@ -141,6 +144,10 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
           fieldsToRemove.foreach(depNode.remove)
         }
       }
+      // remove project specific engine restrictions and script hooks
+      jsonObject.remove("engines")
+      jsonObject.remove("scripts")
+
       packageJson.writeText(mapper.writeValueAsString(json))
 
       // run the transpilers
