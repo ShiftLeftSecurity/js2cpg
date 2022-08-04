@@ -293,6 +293,34 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         lineNumbers(cpg) should contain allElementsOf List(1, 2, 4, 7, 9)
       }
 
+    "fail when running on engine restricted project" in TranspilationFixture("enginecheck") { tmpDir =>
+      File.usingTemporaryDirectory() { transpileOutDir =>
+        new TranspilationRunner(
+          tmpDir.path,
+          transpileOutDir.path,
+          core.Config(srcDir = tmpDir.pathAsString, babelTranspiling = false, optimizeDependencies = false)
+        ).execute()
+        val transpiledJsFiles = FileUtils.getFileTree(transpileOutDir.path, core.Config(), List(JS_SUFFIX))
+        transpiledJsFiles shouldBe empty
+      }
+    }
+
+    "work when running on engine restricted project with optimized dependencies" in TranspilationFixture(
+      "enginecheck"
+    ) { tmpDir =>
+      File.usingTemporaryDirectory() { transpileOutDir =>
+        new TranspilationRunner(
+          tmpDir.path,
+          transpileOutDir.path,
+          core.Config(srcDir = tmpDir.pathAsString, babelTranspiling = false, optimizeDependencies = true)
+        ).execute()
+        val transpiledJsFiles = FileUtils
+          .getFileTree(transpileOutDir.path, core.Config(), List(JS_SUFFIX))
+          .map(_.getFileName.toString)
+        transpiledJsFiles shouldBe List("index.js")
+      }
+    }
+
   }
 
 }

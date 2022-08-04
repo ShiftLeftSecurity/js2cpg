@@ -1,0 +1,9 @@
+{
+  "name": "privatemodules",
+  "version": "0.1.0",
+  "private": true,
+  "engines" : {
+    "npm" : "<=4.0.0",
+    "node" : "<=12.0.0"
+  }
+}
