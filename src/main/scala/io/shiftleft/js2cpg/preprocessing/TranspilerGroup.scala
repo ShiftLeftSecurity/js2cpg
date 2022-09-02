@@ -31,7 +31,8 @@ case class TranspilerGroup(override val config: Config, override val projectPath
     val command = if (pnpmAvailable(projectPath)) {
       s"${TranspilingEnvironment.PNPM_ADD} $BABEL_PLUGINS && ${TranspilingEnvironment.PNPM_INSTALL}"
     } else if (yarnAvailable()) {
-      s"${TranspilingEnvironment.YARN_ADD} $BABEL_PLUGINS && ${TranspilingEnvironment.YARN_INSTALL}"
+      val verbose = if (logger.isDebugEnabled) " -v" else ""
+      s"${TranspilingEnvironment.YARN_ADD} $verbose $BABEL_PLUGINS && ${TranspilingEnvironment.YARN_INSTALL} $verbose"
     } else {
       s"${TranspilingEnvironment.NPM_INSTALL} $BABEL_PLUGINS && ${TranspilingEnvironment.NPM_INSTALL}"
     }

@@ -28,8 +28,14 @@ object PackageJsonParser {
 
   val LOCKFILES: List[String] = List(JSON_LOCK_FILENAME, YARN_LOCK_FILENAME, PNPM_LOCK_FILENAME)
 
-  val PROJECT_DEPENDENCIES: Seq[String] =
-    Seq("dependencies", "devDependencies", "peerDependencies", "optionalDependencies")
+  val PROJECT_DEPENDENCIES: Seq[String] = Seq(
+    "dependencies",
+    "devDependencies",
+    "peerDependencies",
+    "optionalDependencies",
+    "resolutions",
+    "bundledDependencies"
+  )
 
   private val cachedDependencies: TrieMap[Path, Map[String, String]] = TrieMap.empty
 
