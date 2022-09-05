@@ -94,7 +94,7 @@ lazy val commonSettings = Seq(
     ("com.github.pathikrit"     %% "better-files"      % "3.9.1").cross(CrossVersion.for3Use2_13),
     "com.github.scopt"          %% "scopt"             % "4.1.0",
     "org.graalvm.js"             % "js"                % "22.0.0.2",
-    "com.fasterxml.jackson.core" % "jackson-databind"  % "2.13.3",
+    "com.fasterxml.jackson.core" % "jackson-databind"  % "2.13.4",
     "com.atlassian.sourcemap"    % "sourcemap"         % "2.0.0",
     "commons-io"                 % "commons-io"        % "2.11.0",
     "org.slf4j"                  % "slf4j-api"         % "1.7.36",
