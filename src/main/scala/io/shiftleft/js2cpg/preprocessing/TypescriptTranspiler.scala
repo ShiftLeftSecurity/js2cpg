@@ -91,7 +91,10 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
     val command = if (pnpmAvailable(projectPath)) {
       s"${TranspilingEnvironment.PNPM_ADD} typescript"
     } else if (yarnAvailable()) {
-      s"${TranspilingEnvironment.YARN_ADD} typescript"
+      if (logger.isDebugEnabled)
+        s"${TranspilingEnvironment.YARN_ADD} typescript"
+      else
+        s"${TranspilingEnvironment.YARN_ADD} -v typescript"
     } else {
       s"${TranspilingEnvironment.NPM_INSTALL} typescript"
     }

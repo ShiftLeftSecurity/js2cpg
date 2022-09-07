@@ -2,8 +2,8 @@ package io.shiftleft.js2cpg.preprocessing
 
 import better.files.File
 import io.shiftleft.js2cpg.core.Config
-import io.shiftleft.js2cpg.io.FileDefaults.NODE_MODULES_DIR_NAME
 import io.shiftleft.js2cpg.io.ExternalCommand
+import io.shiftleft.js2cpg.io.FileDefaults.NODE_MODULES_DIR_NAME
 import org.slf4j.LoggerFactory
 
 import java.nio.file.{Path, Paths}
@@ -51,7 +51,7 @@ class BabelTranspiler(
       "--plugins @babel/plugin-transform-property-mutators " +
       "--plugins @babel/plugin-transform-runtime " +
       s"--out-dir $outDir $constructIgnoreDirArgs"
-    logger.debug(s"\t+ Babel transpiling $projectPath to $outDir")
+    logger.debug(s"\t+ Babel transpiling $projectPath to $outDir with command '$command'")
     ExternalCommand.run(command, in.toString) match {
       case Success(_)         => logger.debug("\t+ Babel transpiling finished")
       case Failure(exception) => logger.debug("\t- Babel transpiling failed", exception)
