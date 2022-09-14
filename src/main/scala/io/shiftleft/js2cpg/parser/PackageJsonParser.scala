@@ -25,8 +25,19 @@ object PackageJsonParser {
   val PNPM_LOCK_FILENAME_BAK: String  = "pnpm-lock.yaml.bak"
   val YARN_LOCK_FILENAME: String      = "yarn.lock"
   val YARN_LOCK_FILENAME_BAK: String  = "yarn.lock.bak"
+  val WEBPACK_CONFIG_FILENAME: String = "webpack.config.js"
+  val BABEL_CONFIG_FILENAME: String   = "babel.config.js"
 
-  val LOCKFILES: List[String] = List(JSON_LOCK_FILENAME, YARN_LOCK_FILENAME, PNPM_LOCK_FILENAME)
+  val PROJECT_CONFIG_FILES: List[String] = List(
+    JSON_LOCK_FILENAME,
+    YARN_LOCK_FILENAME,
+    PNPM_LOCK_FILENAME,
+    // pnpm workspace config file is not required as we manually descent into sub-project:
+    PNPM_WS_FILENAME,
+    NPM_SHRINKWRAP_FILENAME,
+    WEBPACK_CONFIG_FILENAME,
+    BABEL_CONFIG_FILENAME
+  )
 
   val PROJECT_DEPENDENCIES: Seq[String] = Seq(
     "dependencies",

@@ -117,15 +117,11 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
   private def withTemporaryPackageJson(workUnit: () => Unit): Unit = {
     val packageJson = File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME
     if (config.optimizeDependencies && packageJson.exists) {
-      // move lock files out of the way
-      PackageJsonParser.LOCKFILES.map(File(projectPath, _)).collect {
-        case lockFile if lockFile.exists =>
-          lockFile.renameTo(lockFile.pathAsString + ".bak")
+      // move config files out of the way
+      PackageJsonParser.PROJECT_CONFIG_FILES.map(File(projectPath, _)).collect {
+        case file if file.exists =>
+          file.renameTo(file.pathAsString + ".bak")
       }
-      // pnpm workspace config file is not required as we manually descent into sub-project
-      File(projectPath, PackageJsonParser.PNPM_WS_FILENAME).delete(swallowIOExceptions = true)
-      File(projectPath, PackageJsonParser.NPM_SHRINKWRAP_FILENAME).delete(swallowIOExceptions = true)
-
       // create a temporary package.json without dependencies
       val originalContent = FileUtils.readLinesInFile(packageJson.path).mkString("\n")
       val mapper          = new ObjectMapper()
@@ -153,16 +149,16 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
       // run the transpilers
       workUnit()
 
-      // remove freshly created lock files from transpiler runs
-      PackageJsonParser.LOCKFILES.map(File(projectPath, _)).foreach(_.delete(swallowIOExceptions = true))
+      // remove freshly created files from transpiler runs
+      PackageJsonParser.PROJECT_CONFIG_FILES.map(File(projectPath, _)).foreach(_.delete(swallowIOExceptions = true))
 
       // restore the original package.json
       packageJson.writeText(originalContent)
 
-      // restore lock files
-      PackageJsonParser.LOCKFILES.map(f => File(projectPath, f + ".bak")).collect {
-        case lockFile if lockFile.exists =>
-          lockFile.renameTo(lockFile.pathAsString.stripSuffix(".bak"))
+      // restore config files
+      PackageJsonParser.PROJECT_CONFIG_FILES.map(f => File(projectPath, f + ".bak")).collect {
+        case file if file.exists =>
+          file.renameTo(file.pathAsString.stripSuffix(".bak"))
       }
     } else {
       workUnit()
