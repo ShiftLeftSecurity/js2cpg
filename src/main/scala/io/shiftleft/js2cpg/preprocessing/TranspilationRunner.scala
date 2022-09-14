@@ -118,10 +118,11 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
     val packageJson = File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME
     if (config.optimizeDependencies && packageJson.exists) {
       // move config files out of the way
-      PackageJsonParser.PROJECT_CONFIG_FILES.map(File(projectPath, _)).collect {
-        case file if file.exists =>
-          file.renameTo(file.pathAsString + ".bak")
-      }
+      PackageJsonParser.PROJECT_CONFIG_FILES
+        .map(File(projectPath, _))
+        .filter(_.exists)
+        .foreach(file => file.renameTo(file.pathAsString + ".bak"))
+
       // create a temporary package.json without dependencies
       val originalContent = FileUtils.readLinesInFile(packageJson.path).mkString("\n")
       val mapper          = new ObjectMapper()
@@ -156,10 +157,10 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
       packageJson.writeText(originalContent)
 
       // restore config files
-      PackageJsonParser.PROJECT_CONFIG_FILES.map(f => File(projectPath, f + ".bak")).collect {
-        case file if file.exists =>
-          file.renameTo(file.pathAsString.stripSuffix(".bak"))
-      }
+      PackageJsonParser.PROJECT_CONFIG_FILES
+        .map(f => File(projectPath, f + ".bak"))
+        .filter(_.exists)
+        .foreach(file => file.renameTo(file.pathAsString.stripSuffix(".bak")))
     } else {
       workUnit()
     }
