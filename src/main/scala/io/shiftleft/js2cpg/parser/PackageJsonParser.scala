@@ -43,6 +43,7 @@ object PackageJsonParser {
     "dependencies",
     "devDependencies",
     "peerDependencies",
+    "peerDependenciesMeta",
     "optionalDependencies",
     "resolutions",
     "bundledDependencies"
