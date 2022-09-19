@@ -35,6 +35,7 @@ object Js2cpgArgumentsParser {
   val PRIVATE_DEPS: String             = "private-deps-ns"
   val INCLUDE_CONFIGS: String          = "include-configs"
   val INCLUDE_HTML: String             = "include-html"
+  val EXCLUDE_HTML: String             = "exclude-html"
   val JVM_MONITOR: String              = "enable-jvm-monitor"
   val MODULE_MODE: String              = "module-mode"
   val WITH_NODE_MODULES_FOLDER: String = "with-node-modules-folder"
@@ -167,13 +168,16 @@ class Js2cpgArgumentsParser {
     opt[Seq[String]](PRIVATE_DEPS)
       .valueName("<dep1>,<dep2>,...")
       .action((x, c) => c.copy(privateDeps = c.privateDeps ++ x.flatMap(d => Seq(d, s"@$d"))))
-      .text(s"additional private dependencies to be analyzed from '${FileDefaults.NODE_MODULES_DIR_NAME}'")
+      .text(s"additional private dependencies to be analyzed from '${FileDefaults.NODE_MODULES_DIR_NAME}/'")
     opt[Unit](INCLUDE_CONFIGS)
       .text("include configuration files (*.conf.js, *.config.js, *.json)")
       .action((_, c) => c.copy(includeConfigs = true))
     opt[Unit](INCLUDE_HTML)
       .text("include HTML files (*.html)")
-      .action((_, c) => c.copy(includeHtml = true))
+      .hidden() // deprecated, it is the default
+    opt[Unit](EXCLUDE_HTML)
+      .text("excludes HTML files (*.html)")
+      .action((_, c) => c.copy(includeHtml = false))
     opt[Unit](OPTIMIZE_DEPENDENCIES)
       .text(
         s"optimize project dependencies during transpilation (defaults to '${Config.DEFAULT_OPTIMIZE_DEPENDENCIES}')"
