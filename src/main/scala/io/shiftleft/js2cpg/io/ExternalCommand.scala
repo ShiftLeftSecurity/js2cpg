@@ -24,7 +24,8 @@ object ExternalCommand {
       case 0 =>
         Success(stdOutOutput.asScala.mkString(System.lineSeparator()))
       case _ =>
-        Failure(new RuntimeException(stdErrOutput.asScala.mkString(System.lineSeparator())))
+        val allOutput = stdOutOutput.asScala ++ stdErrOutput.asScala
+        Failure(new RuntimeException(allOutput.mkString(System.lineSeparator())))
     }
   }
 
