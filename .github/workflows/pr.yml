@@ -15,15 +15,8 @@ jobs:
         uses: olafurpg/setup-scala@v11
         with:
           java-version: adopt@1.8
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.sbt
-            ~/.coursier
-          key: ${{ runner.os }}-sbt-${{ hashfiles('**/build.sbt') }}
       - name: Compile and run tests
-        run: sbt -v -Dfile.encoding=UTF-8 "clean; +test;"
-        shell: bash
+        run: sbt clean +test
   formatting:
     runs-on: ubuntu-20.04
     steps:

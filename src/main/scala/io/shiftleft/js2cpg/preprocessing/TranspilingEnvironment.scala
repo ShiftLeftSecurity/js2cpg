@@ -9,6 +9,9 @@ import java.nio.file.Path
 import scala.util.{Failure, Success}
 
 object TranspilingEnvironment {
+
+  val ENV_PATH_CONTENT: String = scala.util.Properties.envOrElse("PATH", "")
+
   // These are singleton objects because we want to check the environment only once
   // even if multiple transpilers require this specific environment:
   private var isValid: Option[Boolean]         = None
