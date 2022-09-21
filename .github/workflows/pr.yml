@@ -1,5 +1,7 @@
 name: PR
 on: pull_request
+env:
+  POWERSHELL_TELEMETRY_OPTOUT: 1
 jobs:
   test:
     runs-on: ${{ matrix.os }}
