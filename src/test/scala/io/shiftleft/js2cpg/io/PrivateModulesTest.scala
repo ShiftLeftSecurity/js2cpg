@@ -28,20 +28,17 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
       File.usingTemporaryDirectory("js2cpgTest") { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
-        val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-babel"))
+        val cpgPath = tmpDir / "cpg.bin.zip"
+        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath.pathAsString, "--no-babel"))
 
-        val cpg =
-          CpgLoader
-            .loadFromOverflowDb(
-              CpgLoaderConfig.withDefaults
-                .withOverflowConfig(Config.withDefaults.withStorageLocation(cpgPath))
-            )
+        val cpg = Cpg.withConfig(overflowdb.Config.withDefaults.withStorageLocation(cpgPath.pathAsString))
 
         fileNames(cpg) should contain allElementsOf Set(
           s"@privateA${java.io.File.separator}a.js",
           s"@privateB${java.io.File.separator}b.js"
         )
+        cpg.close()
+        cpgPath.deleteOnExit()
       }
     }
 
@@ -50,24 +47,19 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
       File.usingTemporaryDirectory("js2cpgTest") { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
-        val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
+        val cpgPath = tmpDir / "cpg.bin.zip"
         Js2CpgMain.main(
           Array(
             tmpProjectPath.pathAsString,
             "--output",
-            cpgPath,
+            cpgPath.pathAsString,
             "--no-babel",
             "--private-deps-ns",
             "privateC,privateD"
           )
         )
 
-        val cpg =
-          CpgLoader
-            .loadFromOverflowDb(
-              CpgLoaderConfig.withDefaults
-                .withOverflowConfig(Config.withDefaults.withStorageLocation(cpgPath))
-            )
+        val cpg = Cpg.withConfig(overflowdb.Config.withDefaults.withStorageLocation(cpgPath.pathAsString))
 
         fileNames(cpg) should contain allElementsOf Set(
           s"@privateA${java.io.File.separator}a.js",
@@ -75,6 +67,8 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
           s"@privateC${java.io.File.separator}c.js",
           s"privateD${java.io.File.separator}d.js"
         )
+        cpg.close()
+        cpgPath.deleteOnExit()
       }
     }
 
@@ -83,26 +77,23 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
       File.usingTemporaryDirectory("js2cpgTest") { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
-        val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
+        val cpgPath = tmpDir / "cpg.bin.zip"
         Js2CpgMain.main(
           Array(
             tmpProjectPath.pathAsString,
             "--output",
-            cpgPath,
+            cpgPath.pathAsString,
             "--no-babel",
             "--exclude-regex",
             s".*@privateA${Pattern.quote(java.io.File.separator)}a.js"
           )
         )
 
-        val cpg =
-          CpgLoader
-            .loadFromOverflowDb(
-              CpgLoaderConfig.withDefaults
-                .withOverflowConfig(Config.withDefaults.withStorageLocation(cpgPath))
-            )
+        val cpg = Cpg.withConfig(overflowdb.Config.withDefaults.withStorageLocation(cpgPath.pathAsString))
 
         fileNames(cpg) should contain only s"@privateB${java.io.File.separator}b.js"
+        cpg.close()
+        cpgPath.deleteOnExit()
       }
     }
 
@@ -111,17 +102,14 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
       File.usingTemporaryDirectory("js2cpgTest") { tmpDir =>
         val tmpProjectPath = File(projectPath).copyToDirectory(tmpDir)
 
-        val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
-        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath, "--no-babel"))
+        val cpgPath = tmpDir / "cpg.bin.zip"
+        Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath.pathAsString, "--no-babel"))
 
-        val cpg =
-          CpgLoader
-            .loadFromOverflowDb(
-              CpgLoaderConfig.withDefaults
-                .withOverflowConfig(Config.withDefaults.withStorageLocation(cpgPath))
-            )
+        val cpg = Cpg.withConfig(overflowdb.Config.withDefaults.withStorageLocation(cpgPath.pathAsString))
 
         fileNames(cpg) should contain only "index.js"
+        cpg.close()
+        cpgPath.deleteOnExit()
       }
     }
 
