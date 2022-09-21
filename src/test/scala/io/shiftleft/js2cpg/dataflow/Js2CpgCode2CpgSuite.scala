@@ -24,11 +24,7 @@ class Js2CpgFrontend extends LanguageFrontend {
         outputFile = cpgFile.pathAsString
       )
       js2cpg.run(config)
-      cpg = CpgLoader
-        .loadFromOverflowDb(
-          CpgLoaderConfig.withDefaults
-            .withOverflowConfig(overflowdb.Config.withDefaults.withStorageLocation(cpgFile.pathAsString))
-        )
+      cpg = Cpg.withConfig(overflowdb.Config.withDefaults.withStorageLocation(cpgFile.pathAsString))
     }
     cpg
   }

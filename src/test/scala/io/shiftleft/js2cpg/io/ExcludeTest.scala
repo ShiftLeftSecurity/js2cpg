@@ -34,23 +34,20 @@ class ExcludeTest extends AnyWordSpec with Matchers with TableDrivenPropertyChec
     expectedFiles: Set[String],
     defaultArgs: Set[String] = Set(NO_TS, NO_BABEL)
   ): Unit = {
-    File.usingTemporaryDirectory() { tmpDir =>
-      val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
+    File.usingTemporaryDirectory("js2cpgTest") { tmpDir =>
+      val cpgPath = tmpDir / "cpg.bin.zip"
 
       Js2CpgMain.main(
-        Array(projectUnderTestPath, "--output", cpgPath) ++
+        Array(projectUnderTestPath, "--output", cpgPath.pathAsString) ++
           args.toArray ++
           defaultArgs.map(_.toArg).toArray
       )
 
-      val cpg =
-        CpgLoader
-          .loadFromOverflowDb(
-            CpgLoaderConfig.withDefaults
-              .withOverflowConfig(Config.withDefaults.withStorageLocation(cpgPath))
-          )
+      val cpg = Cpg.withConfig(overflowdb.Config.withDefaults.withStorageLocation(cpgPath.pathAsString))
 
       fileNames(cpg) should contain theSameElementsAs expectedFiles.map(_.replace("/", java.io.File.separator))
+      cpg.close()
+      cpgPath.deleteOnExit()
     }
   }
 
