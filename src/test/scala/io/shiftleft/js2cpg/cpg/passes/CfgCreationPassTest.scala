@@ -4,7 +4,6 @@ import better.files.File
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.codepropertygraph.generated._
 import io.shiftleft.js2cpg.core.Report
-import io.shiftleft.passes.IntervalKeyPool
 import io.shiftleft.semanticcpg.language._
 import io.joern.x2cpg.passes.controlflow.CfgCreationPass
 import io.joern.x2cpg.passes.controlflow.cfgcreation.Cfg._
@@ -1294,9 +1293,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
     File.usingTemporaryDirectory("js2cpgCfgIntegrationTest") { workspace =>
       val file = workspace / "test.js"
       file.write(code)
-      val keyPool   = new IntervalKeyPool(1001, 2000)
       val filenames = List((file.path, file.parent.path))
-      new AstCreationPass(workspace, filenames, cpg, keyPool, new Report()).createAndApply()
+      new AstCreationPass(workspace, filenames, cpg, new Report()).createAndApply()
       new CfgCreationPass(cpg).createAndApply()
     }
 

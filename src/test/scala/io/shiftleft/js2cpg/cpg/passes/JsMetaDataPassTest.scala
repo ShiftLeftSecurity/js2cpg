@@ -2,7 +2,6 @@ package io.shiftleft.js2cpg.cpg.passes
 
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.codepropertygraph.generated.Languages
-import io.shiftleft.passes.IntervalKeyPool
 import io.shiftleft.semanticcpg.language._
 
 import scala.jdk.CollectionConverters._
@@ -10,10 +9,8 @@ import scala.jdk.CollectionConverters._
 class JsMetaDataPassTest extends AbstractPassTest {
 
   "MetaDataPass" should {
-    val cpg               = Cpg.emptyCpg
-    val jsMetaDataKeyPool = new IntervalKeyPool(1, 100)
-
-    new JsMetaDataPass(cpg, jsMetaDataKeyPool, "somehash", ".").createAndApply()
+    val cpg = Cpg.emptyCpg
+    new JsMetaDataPass(cpg, "somehash", ".").createAndApply()
 
     "create exactly 1 node" in {
       cpg.graph.V.asScala.size shouldBe 1

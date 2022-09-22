@@ -5,7 +5,6 @@ import io.shiftleft.codepropertygraph.generated.PropertyNames
 import better.files.File
 import io.shiftleft.js2cpg.core.{Config, Report}
 import io.shiftleft.js2cpg.parser.PackageJsonParser
-import io.shiftleft.passes.IntervalKeyPool
 import overflowdb.traversal._
 
 class DependenciesPassTest extends AbstractPassTest {
@@ -138,16 +137,10 @@ class DependenciesPassTest extends AbstractPassTest {
         file.write(code)
         json.write(packageJsonContent)
 
-        val cpg                 = Cpg.emptyCpg
-        val keyPool             = new IntervalKeyPool(1001, 2000)
-        val dependenciesKeyPool = new IntervalKeyPool(100, 1000100)
-        val filenames           = List((file.path, file.parent.path))
-        new AstCreationPass(dir, filenames, cpg, keyPool, new Report()).createAndApply()
-        new DependenciesPass(
-          cpg,
-          Config(srcDir = dir.toString, packageJsonLocation = packageJsonName),
-          dependenciesKeyPool
-        ).createAndApply()
+        val cpg       = Cpg.emptyCpg
+        val filenames = List((file.path, file.parent.path))
+        new AstCreationPass(dir, filenames, cpg, new Report()).createAndApply()
+        new DependenciesPass(cpg, Config(srcDir = dir.toString, packageJsonLocation = packageJsonName)).createAndApply()
 
         f(cpg)
       }
