@@ -5,7 +5,6 @@ import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.codepropertygraph.generated.nodes.ConfigFile
 import io.shiftleft.codepropertygraph.generated.NodeTypes
 import io.shiftleft.js2cpg.core.Report
-import io.shiftleft.passes.IntervalKeyPool
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import overflowdb.traversal.TraversalSource
@@ -27,9 +26,8 @@ class ConfigPassTest extends AnyWordSpec with Matchers {
         fileA.write("someCodeA();")
         fileB.write("someCodeB();")
         val cpg       = Cpg.emptyCpg
-        val keyPool   = new IntervalKeyPool(1001, 2000)
         val filenames = List((fileA.path, fileA.parent.path), (fileB.path, fileB.parent.path))
-        new ConfigPass(filenames, cpg, keyPool, new Report()).createAndApply()
+        new ConfigPass(filenames, cpg, new Report()).createAndApply()
 
         val allConfigFiles = configFiles(cpg)
 
@@ -57,11 +55,10 @@ class ConfigPassTest extends AnyWordSpec with Matchers {
         fileB.write("b")
         fileC.write("c")
 
-        val cpg     = Cpg.emptyCpg
-        val keyPool = new IntervalKeyPool(1001, 2000)
+        val cpg = Cpg.emptyCpg
         val filenames =
           List((fileA.path, fileA.parent.path), (fileB.path, fileB.parent.path), (fileC.path, fileC.parent.path))
-        new ConfigPass(filenames, cpg, keyPool, new Report()).createAndApply()
+        new ConfigPass(filenames, cpg, new Report()).createAndApply()
 
         val allConfigFiles = configFiles(cpg)
 
@@ -95,9 +92,8 @@ class ConfigPassTest extends AnyWordSpec with Matchers {
         fileB.write("b")
 
         val cpg       = Cpg.emptyCpg
-        val keyPool   = new IntervalKeyPool(1001, 2000)
         val filenames = List((fileA.path, fileA.parent.path), (fileB.path, fileB.parent.path))
-        new ConfigPass(filenames, cpg, keyPool, new Report()).createAndApply()
+        new ConfigPass(filenames, cpg, new Report()).createAndApply()
 
         val allConfigFiles = configFiles(cpg)
         val configFileA =
@@ -125,9 +121,8 @@ class ConfigPassTest extends AnyWordSpec with Matchers {
         val fileB = dir / "b.key"
         fileB.write("-----BEGIN SOME OTHER KEY-----\nthis is fine\n-----END SOME OTHER KEY-----")
         val cpg       = Cpg.emptyCpg
-        val keyPool   = new IntervalKeyPool(1001, 2000)
         val filenames = List((fileA.path, fileA.parent.path), (fileB.path, fileB.parent.path))
-        new PrivateKeyFilePass(filenames, cpg, keyPool, new Report()).createAndApply()
+        new PrivateKeyFilePass(filenames, cpg, new Report()).createAndApply()
 
         val allConfigFiles = configFiles(cpg)
 

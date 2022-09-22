@@ -10,7 +10,6 @@ import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.preprocessing.NuxtTranspiler
 import io.shiftleft.js2cpg.preprocessing.TranspilationRunner
 import io.shiftleft.js2cpg.util.MemoryMetrics
-import io.shiftleft.passes.{IntervalKeyPool, KeyPoolCreator}
 import io.joern.x2cpg.X2Cpg.newEmptyCpg
 import io.joern.x2cpg.utils.HashUtil
 import org.slf4j.LoggerFactory
@@ -183,41 +182,22 @@ class Js2Cpg {
       .map(f => (f, File(config.srcDir).path))
 
   private def generateCPG(config: Config, jsFilesWithRoot: List[(Path, Path)]): Unit = {
-    val metaDataKeyPool     = new IntervalKeyPool(1, 100)
-    val builtinTypesKeyPool = new IntervalKeyPool(101, 200)
-    val dependenciesKeyPool = new IntervalKeyPool(201, 1000100)
-
-    val otherPools             = KeyPoolCreator.obtain(5, 1000101)
-    val functionKeyPool        = otherPools.head
-    val vueAsConfigPassPool    = otherPools(1)
-    val configPassPool         = otherPools(2)
-    val privateKeyFilePassPool = otherPools(3)
-    val htmlAsConfigPassPool   = otherPools(4)
-
     val cpg  = newEmptyCpg(Some(config.outputFile))
     val hash = HashUtil.sha256(jsFilesWithRoot.map(_._1))
 
-    new AstCreationPass(File(config.srcDir), jsFilesWithRoot, cpg, functionKeyPool, report)
-      .createAndApply()
-    new CallLinkerPass(cpg).createAndApply()
-
-    new JsMetaDataPass(cpg, metaDataKeyPool, hash, config.srcDir).createAndApply()
-    new BuiltinTypesPass(cpg, builtinTypesKeyPool).createAndApply()
-    new DependenciesPass(cpg, config, dependenciesKeyPool)
-      .createAndApply()
-    new ConfigPass(configFiles(config, List(VUE_SUFFIX)), cpg, vueAsConfigPassPool, report)
-      .createAndApply()
-    new PrivateKeyFilePass(configFiles(config, List(KEY_SUFFIX)), cpg, privateKeyFilePassPool, report)
-      .createAndApply()
+    new AstCreationPass(File(config.srcDir), jsFilesWithRoot, cpg, report).createAndApply()
+    new JsMetaDataPass(cpg, hash, config.srcDir).createAndApply()
+    new BuiltinTypesPass(cpg).createAndApply()
+    new DependenciesPass(cpg, config).createAndApply()
+    new ConfigPass(configFiles(config, List(VUE_SUFFIX)), cpg, report).createAndApply()
+    new PrivateKeyFilePass(configFiles(config, List(KEY_SUFFIX)), cpg, report).createAndApply()
 
     if (config.includeHtml) {
-      new ConfigPass(configFiles(config, List(HTML_SUFFIX)), cpg, htmlAsConfigPassPool, report)
-        .createAndApply()
+      new ConfigPass(configFiles(config, List(HTML_SUFFIX)), cpg, report).createAndApply()
     }
 
     if (config.includeConfigs) {
-      new ConfigPass(configFiles(config, CONFIG_FILES), cpg, configPassPool, report)
-        .createAndApply()
+      new ConfigPass(configFiles(config, CONFIG_FILES), cpg, report).createAndApply()
     }
 
     cpg.close()

@@ -5,13 +5,13 @@ import io.shiftleft.codepropertygraph.generated.nodes.NewConfigFile
 import io.shiftleft.js2cpg.core.Report
 import io.shiftleft.js2cpg.io.{FileDefaults, TimeUtils}
 import io.shiftleft.js2cpg.io.FileUtils
-import io.shiftleft.passes.{ConcurrentWriterCpgPass, DiffGraph, IntervalKeyPool}
+import io.shiftleft.passes.ConcurrentWriterCpgPass
 import org.slf4j.{Logger, LoggerFactory}
 
 import java.nio.file.Path
 
-class ConfigPass(filenames: List[(Path, Path)], cpg: Cpg, keyPool: IntervalKeyPool, report: Report)
-    extends ConcurrentWriterCpgPass[(Path, Path)](cpg, keyPool = Some(keyPool)) {
+class ConfigPass(filenames: List[(Path, Path)], cpg: Cpg, report: Report)
+    extends ConcurrentWriterCpgPass[(Path, Path)](cpg) {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
