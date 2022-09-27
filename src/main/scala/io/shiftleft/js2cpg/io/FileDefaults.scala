@@ -74,9 +74,11 @@ object FileDefaults {
       "e2e-beta".r,
       "eslint-rules".r,
       "flow-typed".r,
+      "i18n".r,
+      "vendor".r,
       (NODE_MODULES_DIR_NAME + ".*").r
     )
 
-  val MINIFIED_PATH_REGEX: Regex = ".*([.-]min\\.js|bundle\\.js)".r
+  val MINIFIED_PATH_REGEX: Regex = ".*([.-]min\\..*js|bundle\\.js)".r
 
 }
