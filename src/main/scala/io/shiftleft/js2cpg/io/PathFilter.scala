@@ -66,17 +66,21 @@ case class PathFilter(
     val filterResult: FilterResult = path match {
       // default file ignores:
       case Some(filePath)
-          if filterIgnoredFiles && ignores.exists(_.matches(filePath.toString)) &&
+          if filterIgnoredFiles &&
+            ignores.exists(_.matches(filePath.toString)) &&
             !acceptFromNodeModulesFolder(filePath) =>
         Rejected(relFile, "file ignored by default")
       // minified ignores:
       case Some(filePath)
-          if config.ignoreMinified && MINIFIED_PATH_REGEX.matches(filePath.toString) &&
+          if config.ignoreMinified &&
+            JsFileChecks.isMinifiedFile(file) &&
             !acceptFromNodeModulesFolder(filePath) =>
         Rejected(relFile, "minified file")
       // user ignores:
       case Some(filePath) if shouldBeIgnoredByUserConfig(filePath, config) =>
         Rejected(relFile, "by user configuration")
+      case None =>
+        Rejected(relFile, "invalid path")
       case _ => Accepted()
     }
 
