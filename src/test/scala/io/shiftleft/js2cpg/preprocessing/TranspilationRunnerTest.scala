@@ -119,7 +119,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
           jsFiles.size shouldBe 0
 
-          new TranspilationRunner(tmpDir.path, transpileOutDir.path, core.Config(babelTranspiling = false)).execute()
+          new TranspilationRunner(tmpDir.path, transpileOutDir.path, Config(babelTranspiling = false)).execute()
 
           val transpiledJsFiles = FileUtils
             .getFileTree(transpileOutDir.path, config, List(JS_SUFFIX))
