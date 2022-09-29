@@ -2,38 +2,32 @@ package io.shiftleft.js2cpg.preprocessing
 
 import better.files.File
 import io.shiftleft.codepropertygraph.Cpg
-import io.shiftleft.codepropertygraph.cpgloading.{CpgLoader, CpgLoaderConfig}
-import io.shiftleft.codepropertygraph.generated.{NodeTypes, PropertyNames}
-import io.shiftleft.js2cpg.core
+import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.core.Js2CpgMain
 import io.shiftleft.js2cpg.io.FileDefaults.JS_SUFFIX
 import io.shiftleft.js2cpg.io.FileUtils
+import io.shiftleft.semanticcpg.language._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.tags.Slow
 import org.scalatest.wordspec.AnyWordSpec
-import overflowdb._
-import overflowdb.traversal._
 
 @Slow
 class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
   private def fileNames(cpg: Cpg): List[String] = {
-    val result =
-      TraversalSource(cpg.graph).label(NodeTypes.FILE).property(PropertyNames.NAME).toList
+    val result = cpg.file.name.l
     result.size should not be 0
     result
   }
 
-  private def lineNumbers(cpg: Cpg, label: String = NodeTypes.CALL): List[Integer] = {
-    val result =
-      TraversalSource(cpg.graph).label(label).property(PropertyNames.LINE_NUMBER).toList
+  private def lineNumbers(cpg: Cpg): List[Integer] = {
+    val result = cpg.call.lineNumber.l
     result.size should not be 0
     result
   }
 
-  private def codeFields(cpg: Cpg, label: String = NodeTypes.CALL): List[Integer] = {
-    val result =
-      TraversalSource(cpg.graph).label(label).property(PropertyNames.CODE).toList
+  private def codeFields(cpg: Cpg): List[String] = {
+    val result = cpg.call.code.l
     result.size should not be 0
     result
   }
@@ -50,10 +44,12 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     "generate js files correctly for a simple Babel project" in
       TranspilationFixture("babel") { tmpDir =>
         File.usingTemporaryDirectory("js2cpgTest") { transpileOutDir =>
-          new TranspilationRunner(tmpDir.path, transpileOutDir.path, core.Config(tsTranspiling = false)).execute()
+          val config = Config(srcDir = transpileOutDir.pathAsString, tsTranspiling = false)
+
+          new TranspilationRunner(tmpDir.path, transpileOutDir.path, config).execute()
 
           val transpiledJsFiles = FileUtils
-            .getFileTree(transpileOutDir.path, core.Config(), List(JS_SUFFIX))
+            .getFileTree(transpileOutDir.path, config, List(JS_SUFFIX))
             .map(f => (f, transpileOutDir.path))
 
           val expectedJsFiles = List(((transpileOutDir / "foo.js").path, transpileOutDir.path))
@@ -109,8 +105,10 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     "generate js files correctly for a simple Typescript project" in
       TranspilationFixture("typescript") { tmpDir =>
         File.usingTemporaryDirectory("js2cpgTest") { transpileOutDir =>
+          val config = Config(srcDir = transpileOutDir.pathAsString, tsTranspiling = false)
+
           val jsFiles = FileUtils
-            .getFileTree(tmpDir.path, core.Config(), List(JS_SUFFIX))
+            .getFileTree(tmpDir.path, Config(srcDir = tmpDir.pathAsString), List(JS_SUFFIX))
             .map(f => (f, tmpDir.path))
 
           val expectedJsFiles =
@@ -124,7 +122,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
           new TranspilationRunner(tmpDir.path, transpileOutDir.path, core.Config(babelTranspiling = false)).execute()
 
           val transpiledJsFiles = FileUtils
-            .getFileTree(transpileOutDir.path, core.Config(), List(JS_SUFFIX))
+            .getFileTree(transpileOutDir.path, config, List(JS_SUFFIX))
             .map(f => (f, transpileOutDir.path))
 
           val jsFilesAfterTranspilation = jsFiles ++ transpiledJsFiles
@@ -287,9 +285,10 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         new TranspilationRunner(
           tmpDir.path,
           transpileOutDir.path,
-          core.Config(srcDir = tmpDir.pathAsString, babelTranspiling = false, optimizeDependencies = false)
+          Config(srcDir = tmpDir.pathAsString, babelTranspiling = false, optimizeDependencies = false)
         ).execute()
-        val transpiledJsFiles = FileUtils.getFileTree(transpileOutDir.path, core.Config(), List(JS_SUFFIX))
+        val transpiledJsFiles =
+          FileUtils.getFileTree(transpileOutDir.path, Config(srcDir = transpileOutDir.pathAsString), List(JS_SUFFIX))
         transpiledJsFiles shouldBe empty
       }
     }
@@ -301,10 +300,10 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         new TranspilationRunner(
           tmpDir.path,
           transpileOutDir.path,
-          core.Config(srcDir = tmpDir.pathAsString, babelTranspiling = false, optimizeDependencies = true)
+          Config(srcDir = tmpDir.pathAsString, babelTranspiling = false, optimizeDependencies = true)
         ).execute()
         val transpiledJsFiles = FileUtils
-          .getFileTree(transpileOutDir.path, core.Config(), List(JS_SUFFIX))
+          .getFileTree(transpileOutDir.path, Config(srcDir = transpileOutDir.pathAsString), List(JS_SUFFIX))
           .map(_.getFileName.toString)
         transpiledJsFiles shouldBe List("index.js")
       }

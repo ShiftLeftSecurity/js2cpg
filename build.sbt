@@ -102,8 +102,7 @@ lazy val commonSettings = Seq(
     "io.joern"                  %% "dataflowengineoss" % joernVersion % Test,
     "io.joern"                  %% "x2cpg"             % joernVersion % Test classifier "tests",
     "org.scalatest"             %% "scalatest"         % "3.2.13"     % Test
-  ),
-  Test / fork := true
+  )
 )
 
 lazy val js2cpg = (project in file(".")).settings(
