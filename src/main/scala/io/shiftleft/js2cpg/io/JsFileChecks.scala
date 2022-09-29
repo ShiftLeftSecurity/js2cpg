@@ -25,13 +25,15 @@ object JsFileChecks {
     )
   }
 
-  def isMinifiedFile(relPath: String, fileStatistics: FileStatistics): Boolean = {
-    MINIFIED_PATH_REGEX.matches(relPath) || fileStatistics.longestLineLength >= LINE_LENGTH_THRESHOLD
+  def isMinifiedFile(path: String, fileStatistics: FileStatistics): Boolean = {
+    MINIFIED_PATH_REGEX.matches(path) || fileStatistics.longestLineLength >= LINE_LENGTH_THRESHOLD
   }
 
   def isMinifiedFile(file: Path): Boolean = {
-    val fileStatistics = FileUtils.fileStatistics(IOUtils.readLinesInFile(file))
-    MINIFIED_PATH_REGEX.matches(file.toString) || fileStatistics.longestLineLength >= LINE_LENGTH_THRESHOLD
+    if (file.toString.endsWith(".js")) {
+      val fileStatistics = FileUtils.fileStatistics(IOUtils.readLinesInFile(file))
+      isMinifiedFile(file.toString, fileStatistics)
+    } else false
   }
 
   def check(relPath: String, lines: Seq[String]): FileStatistics = {
