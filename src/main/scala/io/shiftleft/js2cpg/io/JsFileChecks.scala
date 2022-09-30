@@ -33,7 +33,7 @@ object JsFileChecks {
     case p if MINIFIED_PATH_REGEX.matches(p) => true
     case p if p.endsWith(".js") =>
       val fileStatistics = FileUtils.fileStatistics(IOUtils.readLinesInFile(path))
-      fileStatistics.longestLineLength >= LINE_LENGTH_THRESHOLD
+      fileStatistics.longestLineLength >= LINE_LENGTH_THRESHOLD && fileStatistics.linesOfCode <= 50
     case _ => false
   }
 
