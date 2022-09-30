@@ -29,11 +29,12 @@ object JsFileChecks {
     MINIFIED_PATH_REGEX.matches(path) || fileStatistics.longestLineLength >= LINE_LENGTH_THRESHOLD
   }
 
-  def isMinifiedFile(file: Path): Boolean = {
-    if (file.toString.endsWith(".js")) {
-      val fileStatistics = FileUtils.fileStatistics(IOUtils.readLinesInFile(file))
-      isMinifiedFile(file.toString, fileStatistics)
-    } else false
+  def isMinifiedFile(path: Path): Boolean = path.toString match {
+    case p if MINIFIED_PATH_REGEX.matches(p) => true
+    case p if p.endsWith(".js") =>
+      val fileStatistics = FileUtils.fileStatistics(IOUtils.readLinesInFile(path))
+      fileStatistics.longestLineLength >= LINE_LENGTH_THRESHOLD
+    case _ => false
   }
 
   def check(relPath: String, lines: Seq[String]): FileStatistics = {
