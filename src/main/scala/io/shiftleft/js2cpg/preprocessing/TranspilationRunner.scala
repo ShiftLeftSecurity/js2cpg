@@ -22,7 +22,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
 
   private val transpilers: Seq[Transpiler] = createTranspilers()
 
-  private val DEPS_TO_KEEP: List[String] = List("@vue", "vue", "nuxt")
+  private val DEPS_TO_KEEP: List[String] = List("@vue", "vue", "nuxt", "eslint", "@typescript-eslint")
 
   private def createTranspilers(): Seq[Transpiler] = {
     // We always run the following transpilers by default when not stated otherwise in the Config.
