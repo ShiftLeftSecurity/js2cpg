@@ -39,10 +39,13 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
   private def hasTsFiles: Boolean =
     FileUtils.getFileTree(projectPath, config, List(TS_SUFFIX)).nonEmpty
 
+  private def isFreshProject: Boolean = (File(projectPath) / "deno.json").exists
+
+  private def isTsProject: Boolean =
+    (File(projectPath) / "tsconfig.json").exists || isFreshProject
+
   override def shouldRun(): Boolean =
-    config.tsTranspiling &&
-      (File(projectPath) / "tsconfig.json").exists &&
-      hasTsFiles
+    config.tsTranspiling && isTsProject && hasTsFiles
 
   private def moveIgnoredDirs(from: File, to: File): Unit = {
     val ignores = if (config.ignoreTests) {
@@ -113,6 +116,13 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
     if (installTsPlugins()) {
       File.usingTemporaryDirectory() { tmpForIgnoredDirs =>
+        if (isFreshProject) {
+          // Fresh projects do not need a separate tsconfig, but tsc needs at least an empty one
+          (File(projectPath) / "tsconfig.json")
+            .touch()
+            .write("{}")
+            .deleteOnExit(swallowIOExceptions = true)
+        }
         // Sadly, tsc does not allow to exclude folders when being run from cli.
         // Hence, we have to move ignored folders to a temporary folder ...
         moveIgnoredDirs(File(projectPath), tmpForIgnoredDirs)
