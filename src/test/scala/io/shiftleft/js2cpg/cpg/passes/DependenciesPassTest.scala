@@ -1,11 +1,11 @@
 package io.shiftleft.js2cpg.cpg.passes
 
+import better.files.File
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.codepropertygraph.generated.PropertyNames
-import better.files.File
 import io.shiftleft.js2cpg.core.{Config, Report}
-import io.shiftleft.js2cpg.parser.FreshJsonParser
 import io.shiftleft.js2cpg.parser.PackageJsonParser
+import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler
 import overflowdb.traversal._
 
 class DependenciesPassTest extends AbstractPassTest {
@@ -84,7 +84,10 @@ class DependenciesPassTest extends AbstractPassTest {
 
     "generate dependency nodes correctly (simple fresh dependencies)" in DependencyFixture(
       code = "",
-      jsonContent = """
+      jsons = Iterable(
+        (
+          "import_map.json",
+          """
          |{
          |  "imports": {
          |    "@/": "./",
@@ -103,10 +106,13 @@ class DependenciesPassTest extends AbstractPassTest {
          |    "envalid": "https://deno.land/x/envalid@0.1.2/mod.ts"
          |  }
          |}
-         |""".stripMargin,
-      FreshJsonParser.FRESH_JSON_FILENAME
+         |""".stripMargin
+        ),
+        (TypescriptTranspiler.DENO_CONFIG, """{"importMap": "./import_map.json"}""")
+      )
     ) { cpg =>
       def deps = getDependencies(cpg)
+
       deps.size shouldBe 11
       deps.has(PropertyNames.NAME, "fresh").has(PropertyNames.VERSION, "1.1.0").size shouldBe 1
       deps.has(PropertyNames.NAME, "std").has(PropertyNames.VERSION, "0.152.0").size shouldBe 1
@@ -166,22 +172,30 @@ class DependenciesPassTest extends AbstractPassTest {
   }
 
   private object DependencyFixture extends Fixture {
-    def apply(code: String, jsonContent: String, jsonFilename: String = PackageJsonParser.PACKAGE_JSON_FILENAME)(
-      f: Cpg => Unit
-    ): Unit = {
+    def apply(code: String, jsons: Iterable[(String, String)])(f: Cpg => Unit): Unit = {
       File.usingTemporaryDirectory("js2cpgTest") { dir =>
         val file = dir / "file.js"
-        val json = dir / jsonFilename
         file.write(code)
-        json.write(jsonContent)
 
-        val cpg       = Cpg.emptyCpg
+        val packageJson: String = jsons.head._1
+        for ((jsonFilename, jsonContent) <- jsons) {
+          val json = dir / jsonFilename
+          json.write(jsonContent)
+        }
+
         val filenames = List((file.path, file.parent.path))
+        val cpg       = Cpg.emptyCpg
         new AstCreationPass(dir, filenames, cpg, new Report()).createAndApply()
-        new DependenciesPass(cpg, Config(srcDir = dir.toString, packageJsonLocation = jsonFilename)).createAndApply()
+        new DependenciesPass(cpg, Config(srcDir = dir.toString, packageJsonLocation = packageJson)).createAndApply()
 
         f(cpg)
       }
+    }
+
+    def apply(code: String, jsonContent: String, jsonFilename: String = PackageJsonParser.PACKAGE_JSON_FILENAME)(
+      f: Cpg => Unit
+    ): Unit = {
+      DependencyFixture(code, Iterable((jsonFilename, jsonContent)))(f)
     }
   }
 

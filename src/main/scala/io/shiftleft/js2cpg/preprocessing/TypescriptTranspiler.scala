@@ -8,6 +8,7 @@ import io.shiftleft.js2cpg.io.FileDefaults.TS_SUFFIX
 import io.shiftleft.js2cpg.io.{ExternalCommand, FileUtils}
 import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.parser.TsConfigJsonParser
+import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DENO_CONFIG
 import org.slf4j.LoggerFactory
 import org.apache.commons.io.{FileUtils => CommonsFileUtils}
 
@@ -25,6 +26,8 @@ object TypescriptTranspiler {
   private val tscTypingWarnings =
     List("error TS", ".d.ts", "The file is in the program because", "Entry point of type library")
 
+  val DENO_CONFIG: String = "deno.json"
+
 }
 
 class TypescriptTranspiler(override val config: Config, override val projectPath: Path, subDir: Option[Path] = None)
@@ -39,7 +42,7 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
   private def hasTsFiles: Boolean =
     FileUtils.getFileTree(projectPath, config, List(TS_SUFFIX)).nonEmpty
 
-  private def isFreshProject: Boolean = (File(projectPath) / "deno.json").exists
+  private def isFreshProject: Boolean = (File(projectPath) / DENO_CONFIG).exists
 
   private def isTsProject: Boolean =
     (File(projectPath) / "tsconfig.json").exists || isFreshProject
