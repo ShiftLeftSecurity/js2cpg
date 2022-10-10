@@ -196,9 +196,10 @@ class Js2Cpg {
       new ConfigPass(configFiles(config, List(HTML_SUFFIX)), cpg, report).createAndApply()
     }
 
-    if (config.includeConfigs) {
-      new ConfigPass(configFiles(config, CONFIG_FILES), cpg, report).createAndApply()
-    }
+    val cfgFiles =
+      configFiles(config, CONFIG_FILES)
+        .filter(p => config.includeConfigs || CONFIG_FILES_ALWAYS_EXACT.contains(p._1.getFileName.toString))
+    new ConfigPass(cfgFiles, cpg, report).createAndApply()
 
     cpg.close()
   }

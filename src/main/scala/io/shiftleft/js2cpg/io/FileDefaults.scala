@@ -35,6 +35,8 @@ object FileDefaults {
   val NPMRC_NAME: String = ".npmrc"
 
   val CONFIG_FILES: List[String] = List(".json", ".config.js", ".conf.js")
+  // a subset of the above that we always want to add if the full file name matches
+  val CONFIG_FILES_ALWAYS_EXACT: Set[String] = Set("import_map.json")
 
   val NUM_LINES_THRESHOLD: Int = 10000
 
