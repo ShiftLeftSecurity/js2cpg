@@ -8,20 +8,16 @@ import io.shiftleft.js2cpg.io.FileDefaults.TS_SUFFIX
 import io.shiftleft.js2cpg.io.{ExternalCommand, FileUtils}
 import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.parser.TsConfigJsonParser
+import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DEFAULT_MODULE
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DENO_CONFIG
 import org.slf4j.LoggerFactory
 import org.apache.commons.io.{FileUtils => CommonsFileUtils}
-
 import java.nio.file.{Path, Paths}
 import scala.util.{Failure, Success, Try}
 
 object TypescriptTranspiler {
 
-  val COMMONJS: String = "commonjs"
-  val ESNEXT: String   = "esnext"
-  val ES2020: String   = "es2020"
-
-  val DEFAULT_MODULE: String = COMMONJS
+  val DEFAULT_MODULE: String = "commonjs"
 
   private val tscTypingWarnings =
     List("error TS", ".d.ts", "The file is in the program because", "Entry point of type library")
@@ -137,11 +133,8 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
           "" :: Nil
         }
 
-        val module = config.moduleMode.getOrElse(TsConfigJsonParser.module(projectPath, tsc))
-        val outDir =
-          subDir
-            .map(s => File(tmpTranspileDir.toString, s.toString))
-            .getOrElse(File(tmpTranspileDir))
+        val module = config.moduleMode.getOrElse(DEFAULT_MODULE)
+        val outDir = subDir.map(s => File(tmpTranspileDir.toString, s.toString)).getOrElse(File(tmpTranspileDir))
 
         for (proj <- projects) {
           val projCommand = if (proj.nonEmpty) {
