@@ -6,7 +6,7 @@ import better.files.File.LinkOptions
 import io.shiftleft.js2cpg.cpg.passes._
 import io.shiftleft.js2cpg.io.FileDefaults._
 import io.shiftleft.js2cpg.io.FileUtils
-import io.shiftleft.js2cpg.parser.PackageJsonParser
+import io.shiftleft.js2cpg.parser.{FreshJsonParser, PackageJsonParser}
 import io.shiftleft.js2cpg.preprocessing.NuxtTranspiler
 import io.shiftleft.js2cpg.preprocessing.TranspilationRunner
 import io.shiftleft.js2cpg.util.MemoryMetrics
@@ -196,9 +196,12 @@ class Js2Cpg {
       new ConfigPass(configFiles(config, List(HTML_SUFFIX)), cpg, report).createAndApply()
     }
 
-    if (config.includeConfigs) {
-      new ConfigPass(configFiles(config, CONFIG_FILES), cpg, report).createAndApply()
-    }
+    val freshJsons = FreshJsonParser.findImportMapPaths(config, includeDenoConfig = true).map(_.normalize)
+
+    val cfgFiles =
+      configFiles(config, CONFIG_FILES)
+        .filter(p => config.includeConfigs || freshJsons.contains(p._1.normalize))
+    new ConfigPass(cfgFiles, cpg, report).createAndApply()
 
     cpg.close()
   }

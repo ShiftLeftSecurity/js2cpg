@@ -9,9 +9,9 @@ import io.shiftleft.js2cpg.io.{ExternalCommand, FileUtils}
 import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.parser.TsConfigJsonParser
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DEFAULT_MODULE
+import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DENO_CONFIG
 import org.slf4j.LoggerFactory
 import org.apache.commons.io.{FileUtils => CommonsFileUtils}
-
 import java.nio.file.{Path, Paths}
 import scala.util.{Failure, Success, Try}
 
@@ -21,6 +21,8 @@ object TypescriptTranspiler {
 
   private val tscTypingWarnings =
     List("error TS", ".d.ts", "The file is in the program because", "Entry point of type library")
+
+  val DENO_CONFIG: String = "deno.json"
 
 }
 
@@ -36,10 +38,13 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
   private def hasTsFiles: Boolean =
     FileUtils.getFileTree(projectPath, config, List(TS_SUFFIX)).nonEmpty
 
+  private def isFreshProject: Boolean = (File(projectPath) / DENO_CONFIG).exists
+
+  private def isTsProject: Boolean =
+    (File(projectPath) / "tsconfig.json").exists || isFreshProject
+
   override def shouldRun(): Boolean =
-    config.tsTranspiling &&
-      (File(projectPath) / "tsconfig.json").exists &&
-      hasTsFiles
+    config.tsTranspiling && isTsProject && hasTsFiles
 
   private def moveIgnoredDirs(from: File, to: File): Unit = {
     val ignores = if (config.ignoreTests) {
@@ -110,6 +115,13 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
     if (installTsPlugins()) {
       File.usingTemporaryDirectory() { tmpForIgnoredDirs =>
+        if (isFreshProject) {
+          // Fresh projects do not need a separate tsconfig, but tsc needs at least an empty one
+          (File(projectPath) / "tsconfig.json")
+            .touch()
+            .write("{}")
+            .deleteOnExit(swallowIOExceptions = true)
+        }
         // Sadly, tsc does not allow to exclude folders when being run from cli.
         // Hence, we have to move ignored folders to a temporary folder ...
         moveIgnoredDirs(File(projectPath), tmpForIgnoredDirs)
