@@ -25,7 +25,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("class Foo") shouldBe expected(("bar", AlwaysEdge))
         succOf("bar") shouldBe expected(("this", AlwaysEdge))
         succOf("this") shouldBe expected(("bar()", AlwaysEdge))
-        succOf("bar()") shouldBe expected(("x = class Foo , bar()", AlwaysEdge))
+        succOf("bar()") shouldBe expected(("class Foo , bar()", AlwaysEdge))
+        succOf("class Foo , bar()") shouldBe expected(("x = class Foo , bar()", AlwaysEdge))
         succOf("x = class Foo , bar()") shouldBe expected(("RET", AlwaysEdge))
       }
     }
@@ -60,7 +61,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("2") shouldBe expected(("_tmp_0.push(2)", AlwaysEdge))
 
         succOf("_tmp_0.push(2)") shouldBe expected(("_tmp_0", 5, AlwaysEdge))
-        succOf("_tmp_0", 5) shouldBe expected(("x = [1, 2]", AlwaysEdge))
+        succOf("_tmp_0", 5) shouldBe expected(("[1, 2]", AlwaysEdge))
+        succOf("[1, 2]") shouldBe expected(("x = [1, 2]", AlwaysEdge))
         succOf("x = [1, 2]") shouldBe expected(("RET", AlwaysEdge))
       }
     }
@@ -108,20 +110,15 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
     }
 
     "be correct for try" in {
-      new CfgFixture("""
-          |try {
-          | open()
-          |} catch(err) {
-          | handle()
-          |} finally {
-          | close()
-          |}
-          |""".stripMargin) {
+      new CfgFixture("try { open() } catch(err) { handle() } finally { close() }".stripMargin) {
         succOf(":program") shouldBe expected(("open", AlwaysEdge))
         succOf("open") shouldBe expected(("this", AlwaysEdge))
         succOf("this") shouldBe expected(("open()", AlwaysEdge))
         succOf("open()") shouldBe expected(("handle", AlwaysEdge), ("close", AlwaysEdge))
-        succOf("handle()") shouldBe expected(("close", AlwaysEdge))
+        succOf("handle()") shouldBe expected(("{ handle() }", AlwaysEdge))
+        succOf("{ handle() }") shouldBe expected(("close", AlwaysEdge))
+        succOf("close") shouldBe expected(("this", 2, AlwaysEdge))
+        succOf("this", 2) shouldBe expected(("close()", AlwaysEdge))
         succOf("close()") shouldBe expected(("RET", AlwaysEdge))
       }
     }
@@ -134,17 +131,15 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
           | } else {
           |   doB()
           | }
-          |} catch(err) {
-          | handle()
-          |} finally {
-          | close()
-          |}
+          |} catch(err) { handle() }
+          |finally { close() }
           |""".stripMargin) {
         succOf(":program") shouldBe expected(("true", AlwaysEdge))
         succOf("true") shouldBe expected(("doA", TrueEdge), ("doB", FalseEdge))
         succOf("doA()") shouldBe expected(("handle", AlwaysEdge), ("close", AlwaysEdge))
         succOf("doB()") shouldBe expected(("handle", AlwaysEdge), ("close", AlwaysEdge))
-        succOf("handle()") shouldBe expected(("close", AlwaysEdge))
+        succOf("handle()") shouldBe expected(("{ handle() }", AlwaysEdge))
+        succOf("{ handle() }") shouldBe expected(("close", AlwaysEdge))
         succOf("close()") shouldBe expected(("RET", AlwaysEdge))
       }
     }
@@ -170,7 +165,10 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("2") shouldBe expected(("_tmp_0.key2 = 2", AlwaysEdge))
 
         succOf("_tmp_0.key2 = 2") shouldBe expected(("_tmp_0", 2, AlwaysEdge))
-        succOf("_tmp_0", 2) shouldBe expected(("x = {\n key1: \"value\",\n key2: 2\n}", AlwaysEdge))
+        succOf("_tmp_0", 2) shouldBe expected(("{\n key1: \"value\",\n key2: 2\n}", AlwaysEdge))
+        succOf("{\n key1: \"value\",\n key2: 2\n}") shouldBe expected(
+          ("x = {\n key1: \"value\",\n key2: 2\n}", AlwaysEdge)
+        )
         succOf("x = {\n key1: \"value\",\n key2: 2\n}") shouldBe expected(("RET", AlwaysEdge))
       }
     }
@@ -501,22 +499,14 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
     }
 
     "be correct for for-loop with for-in" in {
-      new CfgFixture("""
-          |for (var i in arr) {
-          |   foo(i)
-          |}
-        """.stripMargin) {
-        testForInOrOf()
+      new CfgFixture("for (var i in arr) { foo(i) }") {
+        testForInOrOf("in")
       }
     }
 
     "be correct for for-loop with for-of" in {
-      new CfgFixture("""
-          |for (var i of arr) {
-          |   foo(i)
-          |}
-        """.stripMargin) {
-        testForInOrOf()
+      new CfgFixture("for (var i of arr) { foo(i) }") {
+        testForInOrOf("of")
       }
     }
 
@@ -682,7 +672,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("arg1") shouldBe expected(("arg2", AlwaysEdge))
         succOf("arg2") shouldBe expected(("MyClass(arg1, arg2)", AlwaysEdge))
         succOf("MyClass(arg1, arg2)") shouldBe expected(("_tmp_0", 2, AlwaysEdge))
-        succOf("_tmp_0", 2) shouldBe expected(("x = new MyClass(arg1, arg2)", AlwaysEdge))
+        succOf("_tmp_0", 2) shouldBe expected(("new MyClass(arg1, arg2)", AlwaysEdge))
+        succOf("new MyClass(arg1, arg2)") shouldBe expected(("x = new MyClass(arg1, arg2)", AlwaysEdge))
         succOf("x = new MyClass(arg1, arg2)") shouldBe expected(("RET", AlwaysEdge))
       }
     }
@@ -707,7 +698,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("b", 1) shouldBe expected(("_tmp_0.b", AlwaysEdge))
         succOf("_tmp_0.b") shouldBe expected(("b = _tmp_0.b", AlwaysEdge))
         succOf("b = _tmp_0.b") shouldBe expected(("_tmp_0", 3, AlwaysEdge))
-        succOf("_tmp_0", 3) shouldBe expected(("RET", AlwaysEdge))
+        succOf("_tmp_0", 3) shouldBe expected(("{a, b} = x", AlwaysEdge))
+        succOf("{a, b} = x") shouldBe expected(("RET", AlwaysEdge))
       }
     }
 
@@ -734,7 +726,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("b", 1) shouldBe expected(("_tmp_0.b", AlwaysEdge))
         succOf("_tmp_0.b") shouldBe expected(("b = _tmp_0.b", AlwaysEdge))
         succOf("b = _tmp_0.b") shouldBe expected(("_tmp_0", 3, AlwaysEdge))
-        succOf("_tmp_0", 3) shouldBe expected(("RET", AlwaysEdge))
+        succOf("_tmp_0", 3) shouldBe expected(("{ a, b } = test() ? foo() : bar()", AlwaysEdge))
+        succOf("{ a, b } = test() ? foo() : bar()") shouldBe expected(("RET", AlwaysEdge))
       }
     }
 
@@ -756,7 +749,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("b") shouldBe expected(("_tmp_0.b", AlwaysEdge))
         succOf("_tmp_0.b") shouldBe expected(("m = _tmp_0.b", AlwaysEdge))
         succOf("m = _tmp_0.b") shouldBe expected(("_tmp_0", 3, AlwaysEdge))
-        succOf("_tmp_0", 3) shouldBe expected(("RET", AlwaysEdge))
+        succOf("_tmp_0", 3) shouldBe expected(("{a: n, b: m} = x", AlwaysEdge))
+        succOf("{a: n, b: m} = x") shouldBe expected(("RET", AlwaysEdge))
       }
     }
 
@@ -802,7 +796,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
           expected(("m = _tmp_0.b === void 0 ? 2 : _tmp_0.b", AlwaysEdge))
         succOf("m = _tmp_0.b === void 0 ? 2 : _tmp_0.b") shouldBe
           expected(("_tmp_0", 5, AlwaysEdge))
-        succOf("_tmp_0", 5) shouldBe expected(("RET", AlwaysEdge))
+        succOf("_tmp_0", 5) shouldBe expected(("{a: n = 1, b: m = 2} = x", AlwaysEdge))
+        succOf("{a: n = 1, b: m = 2} = x") shouldBe expected(("RET", AlwaysEdge))
       }
     }
 
@@ -820,7 +815,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
 
         succOf("a = _tmp_0.a") shouldBe expected(("...rest", AlwaysEdge))
         succOf("...rest") shouldBe expected(("_tmp_0", 2, AlwaysEdge))
-        succOf("_tmp_0", 2) shouldBe expected(("RET", AlwaysEdge))
+        succOf("_tmp_0", 2) shouldBe expected(("{a, ...rest} = x", AlwaysEdge))
+        succOf("{a, ...rest} = x") shouldBe expected(("RET", AlwaysEdge))
       }
     }
 
@@ -844,7 +840,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
           ("param1_0", 1, FalseEdge)
         )
         succOf("param1_0", 1) shouldBe expected(("param1_0 === void 0 ? {} : param1_0", AlwaysEdge))
-        succOf("_tmp_1") shouldBe expected(("param1_0 === void 0 ? {} : param1_0", AlwaysEdge))
+        succOf("_tmp_1") shouldBe expected(("{}", AlwaysEdge))
+        succOf("{}") shouldBe expected(("param1_0 === void 0 ? {} : param1_0", AlwaysEdge))
         succOf("param1_0 === void 0 ? {} : param1_0") shouldBe expected(
           ("_tmp_0 = param1_0 === void 0 ? {} : param1_0", AlwaysEdge)
         )
@@ -858,7 +855,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
           ("_tmp_2", TrueEdge), // holds {}
           ("_tmp_0", 2, FalseEdge)
         )
-        succOf("_tmp_2") shouldBe expected(("_tmp_0.id === void 0 ? {} : _tmp_0.id", AlwaysEdge))
+        succOf("_tmp_2") shouldBe expected(("{}", 1, AlwaysEdge))
+        succOf("{}", 1) shouldBe expected(("_tmp_0.id === void 0 ? {} : _tmp_0.id", AlwaysEdge))
         succOf("_tmp_0", 2) shouldBe expected(("id", 2, AlwaysEdge))
 
         succOf("_tmp_0.id === void 0 ? {} : _tmp_0.id") shouldBe expected(
@@ -873,7 +871,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("b", 1) shouldBe expected(("_tmp_0.b", AlwaysEdge))
         succOf("_tmp_0.b") shouldBe expected(("b = _tmp_0.b", AlwaysEdge))
         succOf("b = _tmp_0.b") shouldBe expected(("_tmp_0", 4, AlwaysEdge))
-        succOf("_tmp_0", 4) shouldBe expected(("id", 3, AlwaysEdge))
+        succOf("_tmp_0", 4) shouldBe expected(("{id = {}, b} = {}", AlwaysEdge))
+        succOf("{id = {}, b} = {}") shouldBe expected(("id", 3, AlwaysEdge))
       }
     }
 
@@ -913,7 +912,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("1") shouldBe expected(("_tmp_0[1]", AlwaysEdge))
         succOf("_tmp_0[1]") shouldBe expected(("b = _tmp_0[1]", AlwaysEdge))
         succOf("b = _tmp_0[1]") shouldBe expected(("_tmp_0", 3, AlwaysEdge))
-        succOf("_tmp_0", 3) shouldBe expected(("RET", AlwaysEdge))
+        succOf("_tmp_0", 3) shouldBe expected(("[a, b] = x", AlwaysEdge))
+        succOf("[a, b] = x") shouldBe expected(("RET", AlwaysEdge))
       }
     }
 
@@ -936,7 +936,7 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("1") shouldBe expected(("_tmp_0[1]", AlwaysEdge))
         succOf("_tmp_0[1]") shouldBe expected(("b = _tmp_0[1]", AlwaysEdge))
         succOf("b = _tmp_0[1]") shouldBe expected(("_tmp_0", 3, AlwaysEdge))
-        succOf("_tmp_0", 3) shouldBe expected(("RET", AlwaysEdge))
+        succOf("_tmp_0", 3) shouldBe expected(("[a, b] = x", AlwaysEdge))
       }
     }
 
@@ -982,7 +982,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         )
         succOf("b = _tmp_0[1] === void 0 ? 2 : _tmp_0[1]") shouldBe expected(("_tmp_0", 5, AlwaysEdge))
 
-        succOf("_tmp_0", 5) shouldBe expected(("RET", AlwaysEdge))
+        succOf("_tmp_0", 5) shouldBe expected(("[a = 1, b = 2] = x", AlwaysEdge))
+        succOf("[a = 1, b = 2] = x") shouldBe expected(("RET", AlwaysEdge))
       }
     }
 
@@ -1005,7 +1006,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("2") shouldBe expected(("_tmp_0[2]", AlwaysEdge))
         succOf("_tmp_0[2]") shouldBe expected(("b = _tmp_0[2]", AlwaysEdge))
         succOf("b = _tmp_0[2]") shouldBe expected(("_tmp_0", 3, AlwaysEdge))
-        succOf("_tmp_0", 3) shouldBe expected(("RET", AlwaysEdge))
+        succOf("_tmp_0", 3) shouldBe expected(("[a, , b] = x", AlwaysEdge))
+        succOf("[a, , b] = x") shouldBe expected(("RET", AlwaysEdge))
       }
     }
 
@@ -1062,7 +1064,7 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("MyClass") shouldBe expected(("_tmp_0", 1, AlwaysEdge))
         succOf("_tmp_0", 1) shouldBe expected(("MyClass()", AlwaysEdge))
         succOf("MyClass()") shouldBe expected(("_tmp_0", 2, AlwaysEdge))
-        succOf("_tmp_0", 2) shouldBe expected(("RET", AlwaysEdge))
+        succOf("_tmp_0", 2) shouldBe expected(("new MyClass()", AlwaysEdge))
       }
     }
 
@@ -1077,7 +1079,7 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("arg1") shouldBe expected(("arg2", AlwaysEdge))
         succOf("arg2") shouldBe expected(("MyClass(arg1, arg2)", AlwaysEdge))
         succOf("MyClass(arg1, arg2)") shouldBe expected(("_tmp_0", 2, AlwaysEdge))
-        succOf("_tmp_0", 2) shouldBe expected(("RET", AlwaysEdge))
+        succOf("_tmp_0", 2) shouldBe expected(("new MyClass(arg1, arg2)", AlwaysEdge))
       }
     }
 
@@ -1094,7 +1096,7 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("foo.bar.MyClass") shouldBe expected(("_tmp_0", 1, AlwaysEdge))
         succOf("_tmp_0", 1) shouldBe expected(("foo.bar.MyClass()", AlwaysEdge))
         succOf("foo.bar.MyClass()") shouldBe expected(("_tmp_0", 2, AlwaysEdge))
-        succOf("_tmp_0", 2) shouldBe expected(("RET", AlwaysEdge))
+        succOf("_tmp_0", 2) shouldBe expected(("new foo.bar.MyClass()", AlwaysEdge))
       }
     }
 
@@ -1107,7 +1109,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("Foo") shouldBe expected(("_tmp_0", 1, AlwaysEdge))
         succOf("_tmp_0", 1) shouldBe expected(("Foo()", AlwaysEdge))
         succOf("Foo()") shouldBe expected(("_tmp_0", 2, AlwaysEdge))
-        succOf("_tmp_0", 2) shouldBe expected(("throw new Foo()", AlwaysEdge))
+        succOf("_tmp_0", 2) shouldBe expected(("new Foo()", AlwaysEdge))
+        succOf("new Foo()") shouldBe expected(("throw new Foo()", AlwaysEdge))
         succOf("throw new Foo()") shouldBe expected(("RET", AlwaysEdge))
       }
     }
@@ -1186,8 +1189,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("1") shouldBe expected(("a === void 0 ? 1 : a", AlwaysEdge))
         succOf("a", 2) shouldBe expected(("a === void 0 ? 1 : a", AlwaysEdge))
         succOf("a === void 0 ? 1 : a") shouldBe expected(("a = a === void 0 ? 1 : a", AlwaysEdge))
-
-        succOf("a = a === void 0 ? 1 : a") shouldBe expected(("RET", AlwaysEdge))
+        succOf("a = a === void 0 ? 1 : a") shouldBe expected(("{ }", AlwaysEdge))
+        succOf("{ }") shouldBe expected(("RET", AlwaysEdge))
       }
     }
 
@@ -1212,7 +1215,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("2") shouldBe expected(("b === void 0 ? 2 : b", AlwaysEdge))
         succOf("b", 2) shouldBe expected(("b === void 0 ? 2 : b", AlwaysEdge))
         succOf("b === void 0 ? 2 : b") shouldBe expected(("b = b === void 0 ? 2 : b", AlwaysEdge))
-        succOf("b = b === void 0 ? 2 : b") shouldBe expected(("RET", AlwaysEdge))
+        succOf("b = b === void 0 ? 2 : b") shouldBe expected(("{ }", AlwaysEdge))
+        succOf("{ }") shouldBe expected(("RET", AlwaysEdge))
       }
     }
 
@@ -1232,7 +1236,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("1") shouldBe expected(("b === void 0 ? 1 : b", AlwaysEdge))
         succOf("b", 2) shouldBe expected(("b === void 0 ? 1 : b", AlwaysEdge))
         succOf("b === void 0 ? 1 : b") shouldBe expected(("b = b === void 0 ? 1 : b", AlwaysEdge))
-        succOf("b = b === void 0 ? 1 : b") shouldBe expected(("RET", AlwaysEdge))
+        succOf("b = b === void 0 ? 1 : b") shouldBe expected(("{ }", AlwaysEdge))
+        succOf("{ }") shouldBe expected(("RET", AlwaysEdge))
       }
     }
 
@@ -1263,7 +1268,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         succOf("2") shouldBe expected(("b === void 0 ? 2 : b", AlwaysEdge))
         succOf("b", 2) shouldBe expected(("b === void 0 ? 2 : b", AlwaysEdge))
         succOf("b === void 0 ? 2 : b") shouldBe expected(("b = b === void 0 ? 2 : b", AlwaysEdge))
-        succOf("b = b === void 0 ? 2 : b") shouldBe expected(("RET", AlwaysEdge))
+        succOf("b = b === void 0 ? 2 : b") shouldBe expected(("{ }", AlwaysEdge))
+        succOf("{ }") shouldBe expected(("RET", AlwaysEdge))
       }
     }
   }
@@ -1365,7 +1371,7 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
       successors.toSetImmutable
     }
 
-    def testForInOrOf(): Unit = {
+    def testForInOrOf(keyWord: String): Unit = {
       succOf(":program") shouldBe expected(("_iterator_0", AlwaysEdge))
       succOf("_iterator_0") shouldBe expected(("arr", AlwaysEdge))
       succOf("arr") shouldBe expected(("Object.keys(arr)", AlwaysEdge))
@@ -1396,7 +1402,10 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
         ("!(_result_0 = _iterator_0.next()).done", AlwaysEdge)
       )
 
-      succOf("!(_result_0 = _iterator_0.next()).done") shouldBe expected(("i", 1, TrueEdge), ("RET", FalseEdge))
+      succOf("!(_result_0 = _iterator_0.next()).done") shouldBe expected(
+        ("i", 1, TrueEdge),
+        (s"for (var i $keyWord arr) { foo(i) }", FalseEdge)
+      )
 
       succOf("i", 1) shouldBe expected(("_result_0", 2, AlwaysEdge))
       succOf("_result_0", 2) shouldBe expected(("value", AlwaysEdge))
@@ -1406,7 +1415,8 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
       succOf("foo") shouldBe expected(("this", 1, AlwaysEdge))
       succOf("this", 1) shouldBe expected(("i", 2, AlwaysEdge))
       succOf("i", 2) shouldBe expected(("foo(i)", AlwaysEdge))
-      succOf("foo(i)") shouldBe expected(("_result_0", 1, AlwaysEdge))
+      succOf("foo(i)") shouldBe expected(("{ foo(i) }", AlwaysEdge))
+      succOf("{ foo(i) }") shouldBe expected(("_result_0", 1, AlwaysEdge))
     }
 
   }
