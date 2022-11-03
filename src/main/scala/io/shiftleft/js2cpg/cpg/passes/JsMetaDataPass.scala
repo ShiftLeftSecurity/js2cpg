@@ -4,10 +4,10 @@ import better.files.File
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.codepropertygraph.generated.Languages
 import io.shiftleft.codepropertygraph.generated.nodes.NewMetaData
-import io.shiftleft.passes.SimpleCpgPass
+import io.shiftleft.passes.CpgPass
 import org.slf4j.LoggerFactory
 
-class JsMetaDataPass(cpg: Cpg, hash: String, root: String) extends SimpleCpgPass(cpg) {
+class JsMetaDataPass(cpg: Cpg, hash: String, root: String) extends CpgPass(cpg) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 

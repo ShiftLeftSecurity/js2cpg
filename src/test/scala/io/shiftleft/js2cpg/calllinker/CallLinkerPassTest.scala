@@ -1,12 +1,12 @@
 package io.shiftleft.js2cpg.calllinker
 
 import io.shiftleft.codepropertygraph.Cpg
-import io.shiftleft.js2cpg.dataflow.DataFlowCode2CpgSuite
+import io.shiftleft.js2cpg.fixtures.DataFlowCode2CpgFixture
 import io.shiftleft.semanticcpg.language._
 import io.shiftleft.semanticcpg.language.NoResolve
 import org.scalatest.Inside
 
-class CallLinkerPassTest extends DataFlowCode2CpgSuite with Inside {
+class CallLinkerPassTest extends DataFlowCode2CpgFixture with Inside {
 
   "CallLinkerPass" should {
     val cpg: Cpg = code("""
