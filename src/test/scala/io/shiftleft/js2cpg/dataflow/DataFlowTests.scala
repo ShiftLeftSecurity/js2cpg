@@ -3,10 +3,11 @@ package io.shiftleft.js2cpg.dataflow
 import io.joern.dataflowengineoss.language._
 import io.shiftleft.codepropertygraph.generated.EdgeTypes
 import io.shiftleft.codepropertygraph.Cpg
+import io.shiftleft.js2cpg.fixtures.DataFlowCode2CpgFixture
 import io.shiftleft.semanticcpg.language._
 import overflowdb.traversal._
 
-class DataFlowTests extends DataFlowCode2CpgSuite {
+class DataFlowTests extends DataFlowCode2CpgFixture {
   private implicit val callResolver: NoResolve.type = NoResolve
 
   "Flow from function call read to multiple versions of the same variable" in {

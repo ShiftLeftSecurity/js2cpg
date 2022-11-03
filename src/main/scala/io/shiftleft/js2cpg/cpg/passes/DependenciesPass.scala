@@ -5,11 +5,11 @@ import io.shiftleft.codepropertygraph.generated.nodes.NewDependency
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.parser.{FreshJsonParser, PackageJsonParser}
-import io.shiftleft.passes.SimpleCpgPass
+import io.shiftleft.passes.CpgPass
 
 import java.nio.file.Paths
 
-class DependenciesPass(cpg: Cpg, config: Config) extends SimpleCpgPass(cpg) {
+class DependenciesPass(cpg: Cpg, config: Config) extends CpgPass(cpg) {
 
   private def dependenciesForPackageJsons(): Map[String, String] = {
     val packagesJsons =
