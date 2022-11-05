@@ -12,6 +12,7 @@ import scala.util.{Failure, Success}
 class PugTranspiler(override val config: Config, override val projectPath: Path) extends Transpiler {
 
   private val logger = LoggerFactory.getLogger(getClass)
+  private val pug    = Paths.get(projectPath.toString, "node_modules", ".bin", "pug").toString
 
   private def hasPugFiles: Boolean =
     FileUtils.getFileTree(projectPath, config, List(PUG_SUFFIX)).nonEmpty
@@ -40,9 +41,7 @@ class PugTranspiler(override val config: Config, override val projectPath: Path)
 
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
     if (installPugPlugins()) {
-      val pug = Paths.get(projectPath.toString, "node_modules", ".bin", "pug").toString
-      val command =
-        s"${ExternalCommand.toOSCommand(pug)} --client --no-debug --out $tmpTranspileDir ."
+      val command = s"${ExternalCommand.toOSCommand(pug)} --client --no-debug --out $tmpTranspileDir ."
       logger.debug(s"\t+ transpiling Pug templates in $projectPath to $tmpTranspileDir")
       ExternalCommand.run(command, projectPath.toString) match {
         case Success(_) =>

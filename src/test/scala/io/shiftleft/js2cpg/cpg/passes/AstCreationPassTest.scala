@@ -17,7 +17,6 @@ import io.shiftleft.codepropertygraph.generated.{
 import io.shiftleft.js2cpg.core.{Config, Report}
 import io.shiftleft.js2cpg.io.FileDefaults.JS_SUFFIX
 import io.shiftleft.js2cpg.io.FileUtils
-import io.shiftleft.passes.IntervalKeyPool
 import io.shiftleft.semanticcpg.language._
 import overflowdb.Node
 import overflowdb.traversal._
@@ -4868,9 +4867,8 @@ class AstCreationPassTest extends AbstractPassTest {
         val file = dir / "test.js"
         file.write(code)
         val cpg       = Cpg.emptyCpg
-        val keyPool   = new IntervalKeyPool(1001, 2000)
         val filenames = List((file.path, file.parent.path))
-        new AstCreationPass(dir, filenames, cpg, keyPool, new Report()).createAndApply()
+        new AstCreationPass(dir, filenames, cpg, new Report()).createAndApply()
         f(cpg)
       }
     }
@@ -4878,9 +4876,8 @@ class AstCreationPassTest extends AbstractPassTest {
     def apply(testFile: File)(f: Cpg => Unit): Unit = {
       val file      = testFile
       val cpg       = Cpg.emptyCpg
-      val keyPool   = new IntervalKeyPool(1001, 2000)
       val filenames = List((file.path, file.parent.path))
-      new AstCreationPass(file.parent, filenames, cpg, keyPool, new Report()).createAndApply()
+      new AstCreationPass(file.parent, filenames, cpg, new Report()).createAndApply()
       f(cpg)
     }
 
@@ -4889,9 +4886,8 @@ class AstCreationPassTest extends AbstractPassTest {
       testFiles.foreach { path =>
         val file      = File(path)
         val cpg       = Cpg.emptyCpg
-        val keyPool   = new IntervalKeyPool(1001, 2000)
         val filenames = List((file.path, file.parent.path))
-        new AstCreationPass(file.parent, filenames, cpg, keyPool, new Report()).createAndApply()
+        new AstCreationPass(file.parent, filenames, cpg, new Report()).createAndApply()
         f(file, cpg)
       }
     }

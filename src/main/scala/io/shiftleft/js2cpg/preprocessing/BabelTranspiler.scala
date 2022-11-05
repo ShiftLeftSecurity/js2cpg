@@ -17,6 +17,7 @@ class BabelTranspiler(
 ) extends Transpiler {
 
   private val logger = LoggerFactory.getLogger(getClass)
+  private val babel  = Paths.get(projectPath.toString, "node_modules", ".bin", "babel").toString
 
   override def shouldRun(): Boolean =
     config.babelTranspiling && !VueTranspiler.isVueProject(config, projectPath)
@@ -35,7 +36,6 @@ class BabelTranspiler(
     val outDir =
       subDir.map(s => File(tmpTranspileDir.toString, s.toString)).getOrElse(File(tmpTranspileDir))
 
-    val babel = Paths.get(projectPath.toString, "node_modules", ".bin", "babel").toString
     val command = s"${ExternalCommand.toOSCommand(babel)} . " +
       "--no-babelrc " +
       s"--source-root '${in.toString}' " +

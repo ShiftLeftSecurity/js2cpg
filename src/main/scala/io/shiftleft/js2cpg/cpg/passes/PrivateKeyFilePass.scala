@@ -3,13 +3,12 @@ package io.shiftleft.js2cpg.cpg.passes
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.js2cpg.core.Report
 import io.shiftleft.js2cpg.io.FileUtils
-import io.shiftleft.passes.IntervalKeyPool
 
 import java.nio.file.Path
 import scala.util.matching.Regex
 
-class PrivateKeyFilePass(filenames: List[(Path, Path)], cpg: Cpg, keyPool: IntervalKeyPool, report: Report)
-    extends ConfigPass(filenames, cpg, keyPool, report) {
+class PrivateKeyFilePass(filenames: List[(Path, Path)], cpg: Cpg, report: Report)
+    extends ConfigPass(filenames, cpg, report) {
 
   private val PRIVATE_KEY: Regex = """.*RSA\sPRIVATE\sKEY.*""".r
 

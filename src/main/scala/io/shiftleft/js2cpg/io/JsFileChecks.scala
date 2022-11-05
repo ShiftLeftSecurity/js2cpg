@@ -3,8 +3,10 @@ package io.shiftleft.js2cpg.io
 import io.shiftleft.js2cpg.core.Js2cpgArgumentsParser
 import io.shiftleft.js2cpg.io.FileDefaults._
 import io.shiftleft.js2cpg.io.FileUtils.FileStatistics
+import io.shiftleft.utils.IOUtils
 import org.slf4j.LoggerFactory
 
+import java.nio.file.Path
 import scala.collection.mutable
 
 object JsFileChecks {
@@ -23,6 +25,18 @@ object JsFileChecks {
     )
   }
 
+  def isMinifiedFile(path: String, fileStatistics: FileStatistics): Boolean = {
+    MINIFIED_PATH_REGEX.matches(path) || fileStatistics.longestLineLength >= LINE_LENGTH_THRESHOLD
+  }
+
+  def isMinifiedFile(path: Path): Boolean = path.toString match {
+    case p if MINIFIED_PATH_REGEX.matches(p) => true
+    case p if p.endsWith(".js") =>
+      val fileStatistics = FileUtils.fileStatistics(IOUtils.readLinesInFile(path))
+      fileStatistics.longestLineLength >= LINE_LENGTH_THRESHOLD && fileStatistics.linesOfCode <= 50
+    case _ => false
+  }
+
   def check(relPath: String, lines: Seq[String]): FileStatistics = {
     val fileStatistics = FileUtils.fileStatistics(lines)
     val reasons        = mutable.ArrayBuffer.empty[String]
@@ -38,15 +52,8 @@ object JsFileChecks {
     }
 
     // check for being a minified js file
-    if (MINIFIED_PATH_REGEX.matches(relPath)) {
+    if (isMinifiedFile(relPath, fileStatistics)) {
       reasons.append("\t- it appears to be a minified Javascript file")
-    }
-
-    // check for being stored in a build/ or dist/ folder during build or distribution process
-    if (BUILD_PATH_REGEX.matches(relPath)) {
-      reasons.append(
-        "\t- it is stored or copied to a www, dist, build or vendor folder during the build or distribution process"
-      )
     }
 
     if (reasons.nonEmpty) {

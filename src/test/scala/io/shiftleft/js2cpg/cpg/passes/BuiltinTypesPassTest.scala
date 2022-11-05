@@ -1,16 +1,13 @@
 package io.shiftleft.js2cpg.cpg.passes
 
 import io.shiftleft.codepropertygraph.Cpg
-import io.shiftleft.passes.IntervalKeyPool
 import io.shiftleft.semanticcpg.language._
 
 class BuiltinTypesPassTest extends AbstractPassTest {
 
   "BuiltinTypesPass" should {
-    val cpg                 = Cpg.emptyCpg
-    val builtinTypesKeyPool = new IntervalKeyPool(1, 100)
-
-    new BuiltinTypesPass(cpg, builtinTypesKeyPool).createAndApply()
+    val cpg = Cpg.emptyCpg
+    new BuiltinTypesPass(cpg).createAndApply()
 
     "create a '<global>' NamespaceBlock" in {
       cpg.namespaceBlock.name.l shouldBe List(Defines.GLOBAL_NAMESPACE)

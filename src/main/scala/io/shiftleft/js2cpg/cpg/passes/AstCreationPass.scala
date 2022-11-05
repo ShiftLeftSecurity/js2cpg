@@ -9,7 +9,7 @@ import io.shiftleft.js2cpg.core.Report
 import io.shiftleft.js2cpg.cpg.passes.astcreation.AstCreator
 import io.shiftleft.js2cpg.io.{FileUtils, JsFileChecks, TimeUtils}
 import io.shiftleft.js2cpg.parser.{JavaScriptParser, JsSource}
-import io.shiftleft.passes.{IntervalKeyPool, ConcurrentWriterCpgPass}
+import io.shiftleft.passes.ConcurrentWriterCpgPass
 import org.slf4j.LoggerFactory
 import io.shiftleft.js2cpg.util.SourceWrapper._
 
@@ -18,8 +18,8 @@ import scala.util.{Failure, Success, Try}
 /** Given a list of filenames, this pass creates the abstract syntax tree and CPG AST for each file. Files are processed
   * in parallel.
   */
-class AstCreationPass(srcDir: File, filenames: List[(Path, Path)], cpg: Cpg, keyPool: IntervalKeyPool, report: Report)
-    extends ConcurrentWriterCpgPass[(Path, Path)](cpg, keyPool = Some(keyPool)) {
+class AstCreationPass(srcDir: File, filenames: List[(Path, Path)], cpg: Cpg, report: Report)
+    extends ConcurrentWriterCpgPass[(Path, Path)](cpg) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
