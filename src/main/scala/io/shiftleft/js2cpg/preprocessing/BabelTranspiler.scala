@@ -4,6 +4,7 @@ import better.files.File
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.ExternalCommand
 import io.shiftleft.js2cpg.io.FileDefaults.NODE_MODULES_DIR_NAME
+import io.shiftleft.js2cpg.preprocessing.TranspilingEnvironment.Versions
 import org.slf4j.LoggerFactory
 
 import java.nio.file.{Path, Paths}
@@ -18,6 +19,12 @@ class BabelTranspiler(
 
   private val logger = LoggerFactory.getLogger(getClass)
   private val babel  = Paths.get(projectPath.toString, "node_modules", ".bin", "babel").toString
+
+  private val babelPresets =
+    Versions.babelVersions.keySet.filter(_.contains("@babel/preset")).map(n => s"--presets $n ").mkString
+
+  private val babelPlugins =
+    Versions.babelVersions.keySet.filter(_.contains("@babel/plugin")).map(n => s"--plugins $n ").mkString
 
   override def shouldRun(): Boolean =
     config.babelTranspiling && !VueTranspiler.isVueProject(config, projectPath)
@@ -39,17 +46,7 @@ class BabelTranspiler(
     val command = s"${ExternalCommand.toOSCommand(babel)} . " +
       "--no-babelrc " +
       s"--source-root '${in.toString}' " +
-      "--source-maps true " +
-      "--presets @babel/preset-env " +
-      "--presets @babel/preset-react " +
-      "--presets @babel/preset-flow " +
-      "--presets @babel/preset-typescript " +
-      "--plugins @babel/plugin-proposal-class-properties " +
-      "--plugins @babel/plugin-proposal-private-methods " +
-      "--plugins @babel/plugin-proposal-object-rest-spread " +
-      "--plugins @babel/plugin-proposal-nullish-coalescing-operator " +
-      "--plugins @babel/plugin-transform-property-mutators " +
-      "--plugins @babel/plugin-transform-runtime " +
+      "--source-maps true " + babelPresets + babelPlugins +
       s"--out-dir $outDir $constructIgnoreDirArgs"
     logger.debug(s"\t+ Babel transpiling $projectPath to $outDir with command '$command'")
     ExternalCommand.run(command, in.toString) match {

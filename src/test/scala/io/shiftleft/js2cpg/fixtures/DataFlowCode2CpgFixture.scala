@@ -33,7 +33,7 @@ trait Js2CpgFrontend extends LanguageFrontend {
         outputFile = cpgFile.pathAsString
       )
       js2cpg.run(config)
-      cpg = Cpg.withConfig(overflowdb.Config.withDefaults.withStorageLocation(cpgFile.pathAsString))
+      cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgFile.pathAsString))
     }
     cpg
   }

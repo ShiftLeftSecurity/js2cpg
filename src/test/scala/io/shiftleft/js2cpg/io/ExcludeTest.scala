@@ -43,7 +43,7 @@ class ExcludeTest extends AnyWordSpec with Matchers with TableDrivenPropertyChec
           defaultArgs.map(_.toArg).toArray
       )
 
-      val cpg = Cpg.withConfig(overflowdb.Config.withDefaults.withStorageLocation(cpgPath.pathAsString))
+      val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
 
       fileNames(cpg) should contain theSameElementsAs expectedFiles.map(_.replace("/", java.io.File.separator))
       cpg.close()
