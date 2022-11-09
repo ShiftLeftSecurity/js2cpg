@@ -24,15 +24,15 @@ object TranspilingEnvironment {
   val NPM: String  = ExternalCommand.toOSCommand("npm")
 
   val YARN_ADD: String =
-    s"$YARN --prefer-offline --ignore-scripts --legacy-peer-deps --dev -W add"
+    s"$YARN --ignore-scripts --legacy-peer-deps --dev -W add"
   val YARN_INSTALL: String =
-    s"$YARN --prefer-offline --ignore-scripts --legacy-peer-deps install"
+    s"$YARN --ignore-scripts --legacy-peer-deps install"
   val PNPM_ADD: String =
-    s"$PNPM --prefer-offline --ignore-scripts add -D"
+    s"$PNPM --ignore-scripts add -D"
   val PNPM_INSTALL: String =
-    s"$PNPM --prefer-offline --ignore-scripts install"
+    s"$PNPM --ignore-scripts install"
   val NPM_INSTALL: String =
-    s"$NPM --prefer-offline --no-audit --progress=false --ignore-scripts --legacy-peer-deps --save-dev install"
+    s"$NPM --no-audit --progress=false --ignore-scripts --legacy-peer-deps --save-dev install"
 }
 
 trait TranspilingEnvironment {
@@ -41,6 +41,35 @@ trait TranspilingEnvironment {
   import TranspilingEnvironment._
 
   private val logger = LoggerFactory.getLogger(getClass)
+
+  object Versions {
+    val babelVersions: Map[String, String] = Map(
+      "@babel/core"                                        -> "7.20.2",
+      "@babel/cli"                                         -> "7.19.3",
+      "@babel/preset-env"                                  -> "7.20.2",
+      "@babel/preset-flow"                                 -> "7.18.6",
+      "@babel/preset-react"                                -> "7.18.6",
+      "@babel/preset-typescript"                           -> "7.18.6",
+      "@babel/plugin-proposal-class-properties"            -> "7.18.6",
+      "@babel/plugin-proposal-private-methods"             -> "7.18.6",
+      "@babel/plugin-proposal-object-rest-spread"          -> "7.20.2",
+      "@babel/plugin-proposal-nullish-coalescing-operator" -> "7.18.6",
+      "@babel/plugin-transform-runtime"                    -> "7.19.6",
+      "@babel/plugin-transform-property-mutators"          -> "7.18.6"
+    )
+
+    private val versions: Map[String, String] =
+      babelVersions ++ Map("pug-cli" -> "1.0.0-alpha6", "typescript" -> "4.8.4", "@vue/cli-service-global" -> "4.5.19")
+
+    def nameAndVersion(dependencyName: String): String = {
+      if (config.fixedTranspilationDependencies) {
+        val version = versions.get(dependencyName).map(v => s"@$v").getOrElse("")
+        s"$dependencyName$version"
+      } else {
+        dependencyName
+      }
+    }
+  }
 
   private def checkForPnpm(): Boolean = {
     logger.debug(s"\t+ Checking pnpm ...")

@@ -12,6 +12,7 @@ import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DEFAULT_MODULE
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DENO_CONFIG
 import org.slf4j.LoggerFactory
 import org.apache.commons.io.{FileUtils => CommonsFileUtils}
+
 import java.nio.file.{Path, Paths}
 import scala.util.{Failure, Success, Try}
 
@@ -33,7 +34,8 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
 
   private val NODE_OPTIONS: Map[String, String] = Map("NODE_OPTIONS" -> "--max_old_space_size=4096")
 
-  private val tsc = Paths.get(projectPath.toString, "node_modules", ".bin", "tsc").toString
+  private val tsc                  = Paths.get(projectPath.toString, "node_modules", ".bin", "tsc").toString
+  private val typescriptAndVersion = Versions.nameAndVersion("typescript")
 
   private def hasTsFiles: Boolean =
     FileUtils.getFileTree(projectPath, config, List(TS_SUFFIX)).nonEmpty
@@ -91,11 +93,11 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
 
   private def installTsPlugins(): Boolean = {
     val command = if (pnpmAvailable(projectPath)) {
-      s"${TranspilingEnvironment.PNPM_ADD} typescript"
+      s"${TranspilingEnvironment.PNPM_ADD} $typescriptAndVersion"
     } else if (yarnAvailable()) {
-      s"${TranspilingEnvironment.YARN_ADD} typescript"
+      s"${TranspilingEnvironment.YARN_ADD} $typescriptAndVersion"
     } else {
-      s"${TranspilingEnvironment.NPM_INSTALL} typescript"
+      s"${TranspilingEnvironment.NPM_INSTALL} $typescriptAndVersion"
     }
     logger.info("Installing TypeScript dependencies and plugins. That will take a while.")
     logger.debug(s"\t+ Installing Typescript plugins with command '$command' in path '$projectPath'")

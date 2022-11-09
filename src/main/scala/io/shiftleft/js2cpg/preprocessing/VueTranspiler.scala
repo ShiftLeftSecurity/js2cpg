@@ -33,7 +33,8 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
 
   private lazy val NODE_OPTIONS: Map[String, String] = nodeOptions()
 
-  private val vue = Paths.get(projectPath.toString, "node_modules", ".bin", "vue-cli-service").toString
+  private val vue           = Paths.get(projectPath.toString, "node_modules", ".bin", "vue-cli-service").toString
+  private val vueAndVersion = Versions.nameAndVersion("@vue/cli-service-global")
 
   override def shouldRun(): Boolean = config.vueTranspiling && isVueProject(config, projectPath)
 
@@ -48,11 +49,11 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
 
   private def installVuePlugins(): Boolean = {
     val command = if (pnpmAvailable(projectPath)) {
-      s"${TranspilingEnvironment.PNPM_ADD} @vue/cli-service-global && ${TranspilingEnvironment.PNPM_INSTALL}"
+      s"${TranspilingEnvironment.PNPM_ADD} $vueAndVersion && ${TranspilingEnvironment.PNPM_INSTALL}"
     } else if (yarnAvailable()) {
-      s"${TranspilingEnvironment.YARN_ADD} @vue/cli-service-global && ${TranspilingEnvironment.YARN_INSTALL}"
+      s"${TranspilingEnvironment.YARN_ADD} $vueAndVersion && ${TranspilingEnvironment.YARN_INSTALL}"
     } else {
-      s"${TranspilingEnvironment.NPM_INSTALL} @vue/cli-service-global && ${TranspilingEnvironment.NPM_INSTALL}"
+      s"${TranspilingEnvironment.NPM_INSTALL} $vueAndVersion"
     }
     logger.info("Installing Vue.js dependencies and plugins. That will take a while.")
     logger.debug(s"\t+ Installing Vue.js plugins with command '$command' in path '$projectPath'")
