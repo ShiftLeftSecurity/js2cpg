@@ -3,7 +3,6 @@ package io.shiftleft.js2cpg.preprocessing
 import better.files.File
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.ExternalCommand
-import io.shiftleft.js2cpg.preprocessing.TranspilingEnvironment.Versions
 import org.slf4j.LoggerFactory
 
 import java.nio.file.Path

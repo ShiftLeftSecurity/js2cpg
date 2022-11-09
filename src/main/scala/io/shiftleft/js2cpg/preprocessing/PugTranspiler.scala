@@ -4,7 +4,6 @@ import better.files.File
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileDefaults.PUG_SUFFIX
 import io.shiftleft.js2cpg.io.{ExternalCommand, FileUtils}
-import io.shiftleft.js2cpg.preprocessing.TranspilingEnvironment.Versions
 import org.slf4j.LoggerFactory
 
 import java.nio.file.{Path, Paths}

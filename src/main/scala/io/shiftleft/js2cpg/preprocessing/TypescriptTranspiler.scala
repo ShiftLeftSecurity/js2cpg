@@ -8,7 +8,6 @@ import io.shiftleft.js2cpg.io.FileDefaults.TS_SUFFIX
 import io.shiftleft.js2cpg.io.{ExternalCommand, FileUtils}
 import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.parser.TsConfigJsonParser
-import io.shiftleft.js2cpg.preprocessing.TranspilingEnvironment.Versions
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DEFAULT_MODULE
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DENO_CONFIG
 import org.slf4j.LoggerFactory

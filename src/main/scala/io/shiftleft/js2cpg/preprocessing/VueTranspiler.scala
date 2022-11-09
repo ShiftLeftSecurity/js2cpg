@@ -6,7 +6,6 @@ import io.shiftleft.js2cpg.io.ExternalCommand
 import io.shiftleft.js2cpg.io.FileDefaults.VUE_SUFFIX
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.parser.PackageJsonParser
-import io.shiftleft.js2cpg.preprocessing.TranspilingEnvironment.Versions
 import org.slf4j.LoggerFactory
 
 import java.nio.file.{Path, Paths}

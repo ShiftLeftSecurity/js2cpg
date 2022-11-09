@@ -4,7 +4,6 @@ import better.files.File
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.ExternalCommand
 import io.shiftleft.js2cpg.io.FileDefaults.NODE_MODULES_DIR_NAME
-import io.shiftleft.js2cpg.preprocessing.TranspilingEnvironment.Versions
 import org.slf4j.LoggerFactory
 
 import java.nio.file.{Path, Paths}

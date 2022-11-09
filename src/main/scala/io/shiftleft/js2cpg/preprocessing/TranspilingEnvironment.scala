@@ -10,31 +10,6 @@ import scala.util.{Failure, Success}
 
 object TranspilingEnvironment {
 
-  object Versions {
-    val babelVersions: Map[String, String] = Map(
-      "@babel/core"                                        -> "7.20.2",
-      "@babel/cli"                                         -> "7.19.3",
-      "@babel/preset-env"                                  -> "7.20.2",
-      "@babel/preset-flow"                                 -> "7.18.6",
-      "@babel/preset-react"                                -> "7.18.6",
-      "@babel/preset-typescript"                           -> "7.18.6",
-      "@babel/plugin-proposal-class-properties"            -> "7.18.6",
-      "@babel/plugin-proposal-private-methods"             -> "7.18.6",
-      "@babel/plugin-proposal-object-rest-spread"          -> "7.20.2",
-      "@babel/plugin-proposal-nullish-coalescing-operator" -> "7.18.6",
-      "@babel/plugin-transform-runtime"                    -> "7.19.6",
-      "@babel/plugin-transform-property-mutators"          -> "7.18.6"
-    )
-
-    private val versions: Map[String, String] =
-      babelVersions ++ Map("pug-cli" -> "1.0.0-alpha6", "typescript" -> "4.8.4", "@vue/cli-service-global" -> "4.5.19")
-
-    def nameAndVersion(dependencyName: String): String = {
-      val version = versions.get(dependencyName).map(v => s"@$v").getOrElse("")
-      s"$dependencyName$version"
-    }
-  }
-
   val ENV_PATH_CONTENT: String = scala.util.Properties.envOrElse("PATH", "")
 
   // These are singleton objects because we want to check the environment only once
@@ -66,6 +41,35 @@ trait TranspilingEnvironment {
   import TranspilingEnvironment._
 
   private val logger = LoggerFactory.getLogger(getClass)
+
+  object Versions {
+    val babelVersions: Map[String, String] = Map(
+      "@babel/core"                                        -> "7.20.2",
+      "@babel/cli"                                         -> "7.19.3",
+      "@babel/preset-env"                                  -> "7.20.2",
+      "@babel/preset-flow"                                 -> "7.18.6",
+      "@babel/preset-react"                                -> "7.18.6",
+      "@babel/preset-typescript"                           -> "7.18.6",
+      "@babel/plugin-proposal-class-properties"            -> "7.18.6",
+      "@babel/plugin-proposal-private-methods"             -> "7.18.6",
+      "@babel/plugin-proposal-object-rest-spread"          -> "7.20.2",
+      "@babel/plugin-proposal-nullish-coalescing-operator" -> "7.18.6",
+      "@babel/plugin-transform-runtime"                    -> "7.19.6",
+      "@babel/plugin-transform-property-mutators"          -> "7.18.6"
+    )
+
+    private val versions: Map[String, String] =
+      babelVersions ++ Map("pug-cli" -> "1.0.0-alpha6", "typescript" -> "4.8.4", "@vue/cli-service-global" -> "4.5.19")
+
+    def nameAndVersion(dependencyName: String): String = {
+      if (config.fixedTranspilationDependencies) {
+        val version = versions.get(dependencyName).map(v => s"@$v").getOrElse("")
+        s"$dependencyName$version"
+      } else {
+        dependencyName
+      }
+    }
+  }
 
   private def checkForPnpm(): Boolean = {
     logger.debug(s"\t+ Checking pnpm ...")

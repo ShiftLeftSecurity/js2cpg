@@ -9,38 +9,39 @@ import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler
 import scopt.OptionParser
 
 object Js2cpgArgumentsParser {
-  val HELP: String                     = "help"
-  val VERSION: String                  = "version"
-  val SRCDIR: String                   = "<src>"
-  val OUTPUT: String                   = "output"
-  val WITH_TS_TYPES: String            = "with-typescript-types"
-  val EXCLUDE: String                  = "exclude"
-  val EXCLUDE_REGEX: String            = "exclude-regex"
-  val PACKAGE_JSON: String             = "package-json"
-  val NO_TS: String                    = "no-ts"
-  val TS: String                       = "ts"
-  val NO_BABEL: String                 = "no-babel"
-  val NO_VUE: String                   = "no-vue-js"
-  val NO_NUXT: String                  = "no-nuxt-js"
-  val NO_TEMPLATES: String             = "no-templates"
-  val BABEL: String                    = "babel"
-  val TRANSPILING: String              = "transpiling"
-  val IGNORE_MINIFIED: String          = "ignore-minified"
-  val WITH_MINIFIED: String            = "with-minified"
-  val INCLUDE_MINIFIED: String         = "include-minified"
-  val WITH_TESTS: String               = "with-tests"
-  val INCLUDE_TESTS: String            = "include-tests"
-  val IGNORE_PRIVATE_DEPS: String      = "ignore-private-deps"
-  val EXCLUDE_PRIVATE_DEPS: String     = "exclude-private-deps"
-  val PRIVATE_DEPS: String             = "private-deps-ns"
-  val INCLUDE_CONFIGS: String          = "include-configs"
-  val INCLUDE_HTML: String             = "include-html"
-  val EXCLUDE_HTML: String             = "exclude-html"
-  val JVM_MONITOR: String              = "enable-jvm-monitor"
-  val MODULE_MODE: String              = "module-mode"
-  val WITH_NODE_MODULES_FOLDER: String = "with-node-modules-folder"
-  val OPTIMIZE_DEPENDENCIES: String    = "optimize-dependencies"
-  val ALL_DEPENDENCIES: String         = "all-dependencies"
+  val HELP: String                             = "help"
+  val VERSION: String                          = "version"
+  val SRCDIR: String                           = "<src>"
+  val OUTPUT: String                           = "output"
+  val WITH_TS_TYPES: String                    = "with-typescript-types"
+  val EXCLUDE: String                          = "exclude"
+  val EXCLUDE_REGEX: String                    = "exclude-regex"
+  val PACKAGE_JSON: String                     = "package-json"
+  val NO_TS: String                            = "no-ts"
+  val TS: String                               = "ts"
+  val NO_BABEL: String                         = "no-babel"
+  val NO_VUE: String                           = "no-vue-js"
+  val NO_NUXT: String                          = "no-nuxt-js"
+  val NO_TEMPLATES: String                     = "no-templates"
+  val BABEL: String                            = "babel"
+  val TRANSPILING: String                      = "transpiling"
+  val IGNORE_MINIFIED: String                  = "ignore-minified"
+  val WITH_MINIFIED: String                    = "with-minified"
+  val INCLUDE_MINIFIED: String                 = "include-minified"
+  val WITH_TESTS: String                       = "with-tests"
+  val INCLUDE_TESTS: String                    = "include-tests"
+  val IGNORE_PRIVATE_DEPS: String              = "ignore-private-deps"
+  val EXCLUDE_PRIVATE_DEPS: String             = "exclude-private-deps"
+  val PRIVATE_DEPS: String                     = "private-deps-ns"
+  val INCLUDE_CONFIGS: String                  = "include-configs"
+  val INCLUDE_HTML: String                     = "include-html"
+  val EXCLUDE_HTML: String                     = "exclude-html"
+  val JVM_MONITOR: String                      = "enable-jvm-monitor"
+  val MODULE_MODE: String                      = "module-mode"
+  val WITH_NODE_MODULES_FOLDER: String         = "with-node-modules-folder"
+  val OPTIMIZE_DEPENDENCIES: String            = "optimize-dependencies"
+  val ALL_DEPENDENCIES: String                 = "all-dependencies"
+  val FIXED_TRANSPILATION_DEPENDENCIES: String = "fixed-transpilation-dependencies"
 }
 
 class Js2cpgArgumentsParser {
@@ -188,6 +189,11 @@ class Js2cpgArgumentsParser {
         s"install all project dependencies during transpilation (defaults to '${!Config.DEFAULT_OPTIMIZE_DEPENDENCIES}')"
       )
       .action((_, c) => c.copy(optimizeDependencies = false))
+    opt[Unit](FIXED_TRANSPILATION_DEPENDENCIES)
+      .text(
+        s"install fixed versions of transpilation dependencies during transpilation (defaults to '${!Config.DEFAULT_FIXED_TRANSPILATION_DEPENDENCIES}')"
+      )
+      .action((_, c) => c.copy(fixedTranspilationDependencies = true))
     opt[Int](JVM_MONITOR)
       .text("enable JVM metrics logging (requires JMX port number)")
       .action((jmxPortNumber, c) => c.copy(jvmMetrics = Some(jmxPortNumber)))
