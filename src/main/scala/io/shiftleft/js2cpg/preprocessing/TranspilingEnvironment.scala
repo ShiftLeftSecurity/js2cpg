@@ -33,6 +33,7 @@ object TranspilingEnvironment {
     s"$PNPM --ignore-scripts install"
   val NPM_INSTALL: String =
     s"$NPM --no-audit --progress=false --ignore-scripts --legacy-peer-deps --save-dev install"
+
 }
 
 trait TranspilingEnvironment {
@@ -107,18 +108,6 @@ trait TranspilingEnvironment {
     }
   }
 
-  private def setNpmPython(): Boolean = {
-    logger.debug("\t+ Setting npm config ...")
-    ExternalCommand.run(s"${TranspilingEnvironment.NPM} config set python python2.7", projectPath.toString) match {
-      case Success(_) =>
-        logger.debug("\t+ Set successfully")
-        true
-      case Failure(exception) =>
-        logger.debug("\t- Failed setting npm config", exception)
-        false
-    }
-  }
-
   protected def nodeVersion(): Option[String] = {
     logger.debug(s"\t+ Checking node ...")
     ExternalCommand.run("node -v", projectPath.toString) match {
@@ -136,7 +125,7 @@ trait TranspilingEnvironment {
       value
     case None =>
       nodeVersion()
-      isValid = Some((pnpmAvailable(dir) || yarnAvailable() || npmAvailable()) && setNpmPython())
+      isValid = Some(pnpmAvailable(dir) || yarnAvailable() || npmAvailable())
       isValid.get
   }
 
