@@ -5,7 +5,6 @@ import io.shiftleft.codepropertygraph.generated.EdgeTypes
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.js2cpg.fixtures.DataFlowCode2CpgFixture
 import io.shiftleft.semanticcpg.language._
-import overflowdb.traversal._
 
 class DataFlowTests extends DataFlowCode2CpgFixture {
   private implicit val callResolver: NoResolve.type = NoResolve
@@ -64,7 +63,14 @@ class DataFlowTests extends DataFlowCode2CpgFixture {
     def flows  = sink.reachableByFlows(source)
 
     flows.map(flowToResultPairs).toSetMutable shouldBe
-      Set(List(("foo(a)", 7)), List(("a = 10", 5), ("a < y", 6), ("foo(a)", 7)), List(("a < y", 6), ("foo(a)", 7)))
+      Set(
+        List(("a < y", 6), ("foo(a)", 7), ("foo(this, x)", 2), ("RET", 2), ("foo(a)", 7)),
+        List(("a = 10", 5), ("a < y", 6), ("foo(a)", 7), ("foo(this, x)", 2), ("RET", 2), ("foo(a)", 7)),
+        List(("foo(a)", 7)),
+        List(("a = 10", 5), ("a < y", 6), ("foo(a)", 7)),
+        List(("foo(a)", 7), ("foo(this, x)", 2), ("RET", 2), ("foo(a)", 7)),
+        List(("a < y", 6), ("foo(a)", 7))
+      )
   }
 
   "Flow chains from x to a" in {

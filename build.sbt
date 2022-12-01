@@ -1,5 +1,5 @@
-val cpgVersion   = "1.3.579"
-val joernVersion = "1.1.1236"
+val cpgVersion   = "1.3.582"
+val joernVersion = "1.1.1310"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
@@ -17,7 +17,7 @@ Global / excludeLintKeys += gitCommitString
 
 lazy val commonSettings = Seq(
   scalaVersion       := "2.13.10",
-  crossScalaVersions := Seq("2.13.10", "3.1.3"),
+  crossScalaVersions := Seq("2.13.10", "3.2.1"),
   organization       := "io.shiftleft",
   scalacOptions ++= Seq(
   ) ++ (
@@ -94,7 +94,7 @@ lazy val commonSettings = Seq(
     ("com.github.pathikrit"     %% "better-files"      % "3.9.1").cross(CrossVersion.for3Use2_13),
     "com.github.scopt"          %% "scopt"             % "4.1.0",
     "org.graalvm.js"             % "js"                % "22.0.0.2",
-    "com.fasterxml.jackson.core" % "jackson-databind"  % "2.13.4",
+    "com.fasterxml.jackson.core" % "jackson-databind"  % "2.14.1",
     "com.atlassian.sourcemap"    % "sourcemap"         % "2.0.0",
     "commons-io"                 % "commons-io"        % "2.11.0",
     "org.slf4j"                  % "slf4j-api"         % "1.7.36",
