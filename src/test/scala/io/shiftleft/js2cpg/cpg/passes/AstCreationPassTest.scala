@@ -4484,7 +4484,7 @@ class AstCreationPassTest extends AbstractPassTest {
         |import {a} from "depA";
         |import {b} from "depB";
         |""".stripMargin) { cpg =>
-      val List(x: Import, y: Import) = cpg.graph.V.label(NodeTypes.IMPORT).l
+      val List(x: Import, y: Import) = cpg.imports.l
       x.code shouldBe "import {a} from \"depA\""
       x.importedEntity shouldBe Some("depA")
       y.code shouldBe "import {b} from \"depB\""

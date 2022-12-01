@@ -7,13 +7,11 @@ import io.shiftleft.js2cpg.core.Report
 import io.shiftleft.semanticcpg.language._
 import io.joern.x2cpg.passes.controlflow.CfgCreationPass
 import io.joern.x2cpg.passes.controlflow.cfgcreation.Cfg._
-import overflowdb.traversal._
-import overflowdb._
-
+import io.shiftleft.codepropertygraph.generated.nodes.AstNodeBase
+import io.shiftleft.codepropertygraph.generated.nodes.Method
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-
-import scala.jdk.CollectionConverters._
+import overflowdb.Node
 
 class CfgCreationPassTest extends AnyWordSpec with Matchers {
 
@@ -1304,16 +1302,10 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
       new CfgCreationPass(cpg).createAndApply()
     }
 
-    private def matchCode(node: Node, code: String): Boolean = {
-      node.label() match {
-        // Method does not has a CODE property
-        case NodeTypes.METHOD =>
-          node.property(PropertyNames.NAME) == code
-        case _ =>
-          node.propertiesMap.asScala.exists { case (propertyKind, value) =>
-            propertyKind == PropertyNames.CODE && value == code
-          }
-      }
+    private def matchCode(node: Node, code: String): Boolean = node match {
+      case m: Method            => m.name == code
+      case astNode: AstNodeBase => astNode.code == code
+      case _                    => false
     }
 
     // index is zero based and describes which node to take if multiple node match the code string.
@@ -1345,29 +1337,16 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
 
     // index is zero based and describes which node to take if multiple node match the code string.
     def succOf(code: String, index: Int): Set[String] = {
-      val nodes = cpg.method.ast.isCfgNode.toSeq
-        .collect {
-          case node if matchCode(node, code) => node
-        }
-      val node = nodes
-        .lift(index)
-        .getOrElse(fail(s"No node found for code = '$code' and index '$index'!"))
-      val successors =
-        node._cfgOut.map(_.property(PropertyNames.CODE).toString)
+      val nodes      = cpg.method.ast.isCfgNode.collect { case node if matchCode(node, code) => node }.l
+      val node       = nodes.lift(index).getOrElse(fail(s"No node found for code = '$code' and index '$index'!"))
+      val successors = node._cfgOut.map(_.property(PropertyNames.CODE).toString)
       successors.toSetImmutable
     }
 
     def succOf(code: String, nodeType: String): Set[String] = {
-      val nodes = cpg.method.ast.isCfgNode
-        .label(nodeType)
-        .toVector
-        .collectFirst {
-          case node if matchCode(node, code) => node
-        }
-      val node = nodes
-        .getOrElse(fail(s"No node found for code = '$code' and type '$nodeType'!"))
-      val successors =
-        node._cfgOut.map(_.property(PropertyNames.CODE).toString)
+      val nodes = cpg.method.ast.isCfgNode.label(nodeType).collectFirst { case node if matchCode(node, code) => node }
+      val node  = nodes.getOrElse(fail(s"No node found for code = '$code' and type '$nodeType'!"))
+      val successors = node._cfgOut.map(_.property(PropertyNames.CODE).toString)
       successors.toSetImmutable
     }
 

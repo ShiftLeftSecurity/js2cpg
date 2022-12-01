@@ -28,16 +28,12 @@ object PassHelpers {
     currentVariableName
   }
 
-  private def unwrapBlockExpression(node: Node): Option[Node] = {
-    node match {
-      case expression: BlockExpression =>
-        val block = expression.getBlock
-        if (block.getStatementCount == 2 && block.getFirstStatement.isInstanceOf[VarNode]) {
-          return Some(block.getFirstStatement)
-        }
-      case _ =>
-    }
-    None
+  private def unwrapBlockExpression(node: Node): Option[Node] = node match {
+    case expression: BlockExpression
+        if expression.getBlock.getStatementCount == 2 &&
+          expression.getBlock.getFirstStatement.isInstanceOf[VarNode] =>
+      Some(expression.getBlock.getFirstStatement)
+    case _ => None
   }
 
   // capture the pattern used to represent class declarations using the 'class' keyword
@@ -363,24 +359,21 @@ object PassHelpers {
   }
 
   def calculateParameterIndex(identNode: IdentNode, statements: List[Statement]): Int = {
-    statements.collect {
-      case node: ExpressionStatement if isSynthetic(node, List(identNode)) =>
-        val index = getIndex(node, identNode)
-        if (index != -1) return index
+    val indices = statements.collect {
+      case node: ExpressionStatement if isSynthetic(node, List(identNode)) => getIndex(node, identNode)
       case node: VarNode if node.getName.getName == identNode.getName =>
-        node match {
-          case varNode: VarNode if varNode.getInit.isInstanceOf[TernaryNode] =>
-            val ternaryNode = varNode.getInit.asInstanceOf[TernaryNode]
+        node.getInit match {
+          case ternaryNode: TernaryNode =>
             ternaryNode.getTest match {
               case binaryNode: BinaryNode if binaryNode.getLhs.isInstanceOf[ParameterNode] =>
-                return binaryNode.getLhs.asInstanceOf[ParameterNode].getIndex
+                binaryNode.getLhs.asInstanceOf[ParameterNode].getIndex
+              case _ => -1
             }
-          case varNode: VarNode if varNode.getInit.isInstanceOf[ParameterNode] =>
-            return varNode.getInit.asInstanceOf[ParameterNode].getIndex
-          case _ =>
+          case paramNode: ParameterNode => paramNode.getIndex
+          case _                        => -1
         }
     }
-    -1
+    indices.find(_ != -1).getOrElse(-1)
   }
 
 }
