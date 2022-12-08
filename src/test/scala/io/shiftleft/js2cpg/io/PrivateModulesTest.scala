@@ -2,21 +2,17 @@ package io.shiftleft.js2cpg.io
 
 import better.files.File
 import io.shiftleft.codepropertygraph.Cpg
-import io.shiftleft.codepropertygraph.cpgloading.{CpgLoader, CpgLoaderConfig}
-import io.shiftleft.codepropertygraph.generated.{NodeTypes, PropertyNames}
 import io.shiftleft.js2cpg.core.Js2CpgMain
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import overflowdb._
-import overflowdb.traversal._
+import io.shiftleft.semanticcpg.language._
 
 import java.util.regex.Pattern
 
 class PrivateModulesTest extends AnyWordSpec with Matchers {
 
   private def fileNames(cpg: Cpg): List[String] = {
-    val result =
-      TraversalSource(cpg.graph).label(NodeTypes.FILE).property(PropertyNames.NAME).toList
+    val result = cpg.file.name.l
     result.size should not be 0
     result
   }

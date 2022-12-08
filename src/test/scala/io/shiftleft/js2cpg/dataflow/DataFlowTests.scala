@@ -7,7 +7,6 @@ import io.shiftleft.js2cpg.fixtures.DataFlowCode2CpgFixture
 import io.shiftleft.semanticcpg.language._
 
 class DataFlowTests extends DataFlowCode2CpgFixture {
-  private implicit val callResolver: NoResolve.type = NoResolve
 
   "Flow from function call read to multiple versions of the same variable" in {
     val cpg: Cpg = code("""

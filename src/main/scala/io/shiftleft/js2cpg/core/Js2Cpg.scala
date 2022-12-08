@@ -14,6 +14,7 @@ import io.joern.x2cpg.X2Cpg.newEmptyCpg
 import io.joern.x2cpg.utils.HashUtil
 import org.slf4j.LoggerFactory
 
+import java.nio.file.Paths
 import scala.util.{Failure, Success, Try}
 
 class Js2Cpg {
@@ -49,24 +50,34 @@ class Js2Cpg {
     project.streamedUnzip(tmpProjectDir) / "extension"
   }
 
+  private def copyProject(from: File, to: File, config: Config): File = {
+    logger.debug(s"Copying '$from' to temporary workspace '$to'.")
+    Try(FileUtils.copyToDirectory(from, to, config)) match {
+      case Failure(_) =>
+        logger.debug(s"Unable to copy project to temporary workspace '$to'. Does it contain broken symlinks?")
+        logger.debug(s"Retrying to copy '$from' to temporary workspace '$to' without symlinks.")
+        FileUtils.copyToDirectory(from, to, config)(copyOptions =
+          Seq(StandardCopyOption.REPLACE_EXISTING) ++ LinkOptions.noFollow
+        )
+      case Success(value) => value
+    }
+  }
+
+  private def localPaths(project: File, config: Config): Set[File] =
+    (DependenciesPass.dependenciesForPackageJsons(config) ++
+      DependenciesPass.dependenciesForFreshJsons(config)).collect {
+      case (_, path) if path.startsWith("file:") =>
+        val actualPath = path.stripPrefix("file:")
+        if (Paths.get(actualPath).isAbsolute) File(actualPath).canonicalFile
+        else (project / path.stripPrefix("file:")).canonicalFile
+    }.toSet
+
   private def handleStandardProject(project: File, tmpProjectDir: File, config: Config): File = {
     val realProjectPath = File(project.path.toRealPath())
-    if (realProjectPath == tmpProjectDir) {
-      realProjectPath
-    } else {
-      logger.debug(s"Copying '$realProjectPath' to temporary workspace '$tmpProjectDir'.")
-      Try(FileUtils.copyToDirectory(realProjectPath, tmpProjectDir, config)) match {
-        case Failure(_) =>
-          logger.debug(
-            s"Unable to copy project to temporary workspace '$tmpProjectDir'. Does it contain broken symlinks?"
-          )
-          logger.debug(s"Retrying to copy '$realProjectPath' to temporary workspace '$tmpProjectDir' without symlinks.")
-          FileUtils.copyToDirectory(realProjectPath, tmpProjectDir, config)(copyOptions =
-            Seq(StandardCopyOption.REPLACE_EXISTING) ++ LinkOptions.noFollow
-          )
-        case Success(value) => value
-      }
-    }
+    val path = if (realProjectPath == tmpProjectDir) { realProjectPath }
+    else { copyProject(realProjectPath, tmpProjectDir, config) }
+    localPaths(realProjectPath, config).foreach(copyProject(_, path, config))
+    path
   }
 
   private def findProjects(projectDir: File, config: Config): List[Path] = {

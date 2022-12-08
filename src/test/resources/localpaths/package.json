@@ -1,0 +1,7 @@
+{
+  "name": "localpaths",
+  "dependencies": {
+    "dep1": "file:../babel",
+    "dep2": "file:../typescript"
+  }
+}
