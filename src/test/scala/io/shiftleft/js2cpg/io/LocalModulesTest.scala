@@ -12,7 +12,7 @@ import org.scalatest.tags.Slow
 class LocalModulesTest extends AnyWordSpec with Matchers {
 
   private def fileNames(cpg: Cpg): List[String] = {
-    val result = cpg.file.name.l
+    val result = cpg.file.name.l.sorted
     result.size should not be 0
     result
   }
@@ -39,7 +39,7 @@ class LocalModulesTest extends AnyWordSpec with Matchers {
           s"dep2${java.io.File.separator}typescript${java.io.File.separator}a.ts",
           s"dep2${java.io.File.separator}typescript${java.io.File.separator}b.ts",
           s"local_path_dep1${java.io.File.separator}babel${java.io.File.separator}foo.js"
-        )
+        ).sorted
 
         cpg.close()
         cpgPath.deleteOnExit()
