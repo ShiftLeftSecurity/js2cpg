@@ -34,11 +34,13 @@ class LocalModulesTest extends AnyWordSpec with Matchers {
 
         val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
 
-        fileNames(cpg) should contain allElementsOf Set(
-          s"babel${java.io.File.separator}foo.js",
-          s"typescript${java.io.File.separator}a.ts",
-          s"typescript${java.io.File.separator}b.ts"
+        fileNames(cpg) shouldBe List(
+          s"dep1${java.io.File.separator}babel${java.io.File.separator}foo.js",
+          s"dep2${java.io.File.separator}typescript${java.io.File.separator}a.ts",
+          s"dep2${java.io.File.separator}typescript${java.io.File.separator}b.ts",
+          s"local_path_dep1${java.io.File.separator}babel${java.io.File.separator}foo.js"
         )
+
         cpg.close()
         cpgPath.deleteOnExit()
       }

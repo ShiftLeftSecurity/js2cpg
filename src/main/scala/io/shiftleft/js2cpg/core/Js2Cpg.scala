@@ -63,20 +63,41 @@ class Js2Cpg {
     }
   }
 
-  private def localPaths(project: File, config: Config): Set[File] =
-    (DependenciesPass.dependenciesForPackageJsons(config) ++
-      DependenciesPass.dependenciesForFreshJsons(config)).collect {
-      case (_, path) if path.startsWith("file:") =>
-        val actualPath = path.stripPrefix("file:")
-        if (Paths.get(actualPath).isAbsolute) File(actualPath).canonicalFile
-        else (project / path.stripPrefix("file:")).canonicalFile
-    }.toSet
+  private def toValidDirectory(project: File, path: String): Option[File] =
+    if (path.startsWith("file:")) {
+      Try(Paths.get(path.stripPrefix("file:")))
+        .collect {
+          case dir if dir.isAbsolute => File(dir).canonicalFile
+          case dir                   => (project / dir.toString).canonicalFile
+        }
+        .filter(_.exists)
+        .toOption
+    } else None
+
+  private def localPaths(project: File, config: Config): Set[(String, File)] = {
+    val deps = DependenciesPass.dependenciesForPackageJsons(config) ++
+      DependenciesPass.dependenciesForFreshJsons(config)
+    val result = for {
+      (depName, path) <- deps
+      localPath       <- toValidDirectory(project, path)
+    } yield (depName, localPath)
+    result.toSet
+  }
 
   private def handleStandardProject(project: File, tmpProjectDir: File, config: Config): File = {
     val realProjectPath = File(project.path.toRealPath())
+
     val path = if (realProjectPath == tmpProjectDir) { realProjectPath }
     else { copyProject(realProjectPath, tmpProjectDir, config) }
-    localPaths(realProjectPath, config).foreach(copyProject(_, path, config))
+
+    localPaths(realProjectPath, config).foreach { case (depName, localPath) =>
+      if ((path / depName).exists) {
+        copyProject(localPath, path / s"local_path_$depName", config)
+      } else {
+        copyProject(localPath, path / depName, config)
+      }
+    }
+
     path
   }
 

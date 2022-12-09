@@ -2,6 +2,8 @@
   "name": "localpaths",
   "dependencies": {
     "dep1": "file:../babel",
-    "dep2": "file:../typescript"
+    "dep2": "file:../typescript",
+    "dep3": "file:does/not/exist",
+    "dep4": "file:www.someurl.com"
   }
 }
