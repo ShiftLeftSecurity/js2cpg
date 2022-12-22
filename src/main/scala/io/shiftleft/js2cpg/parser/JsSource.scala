@@ -19,8 +19,8 @@ object JsSource {
   private val logger = LoggerFactory.getLogger(getClass)
 
   // maximum length of re-mapped code fields after transpilation in number of characters
-  val MAX_CODE_LENGTH: Int = 1000
-  val MIN_CODE_LENGTH: Int = 50
+  private val MAX_CODE_LENGTH: Int = 1000
+  private val MIN_CODE_LENGTH: Int = 50
 
   def shortenCode(code: String, length: Int = MAX_CODE_LENGTH): String =
     StringUtils.abbreviate(code, math.max(MIN_CODE_LENGTH, length))

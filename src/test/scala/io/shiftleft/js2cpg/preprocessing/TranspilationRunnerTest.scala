@@ -14,23 +14,11 @@ import org.scalatest.wordspec.AnyWordSpec
 @Slow
 class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
-  private def fileNames(cpg: Cpg): List[String] = {
-    val result = cpg.file.name.l
-    result.size should not be 0
-    result
-  }
+  private def fileNames(cpg: Cpg): List[String] = cpg.file.name.l
 
-  private def lineNumbers(cpg: Cpg): List[Integer] = {
-    val result = cpg.call.lineNumber.l
-    result.size should not be 0
-    result
-  }
+  private def callLineNumbers(cpg: Cpg): List[Integer] = cpg.call.lineNumber.l
 
-  private def codeFields(cpg: Cpg): List[String] = {
-    val result = cpg.call.code.l
-    result.size should not be 0
-    result
-  }
+  private def callCodeFields(cpg: Cpg): List[String] = cpg.call.code.l
 
   private object TranspilationFixture {
     def apply(project: String)(f: File => Unit): Unit = {
@@ -69,7 +57,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
 
         fileNames(cpg) should contain theSameElementsAs List("foo.js")
-        codeFields(cpg) should contain allElementsOf List(
+        callCodeFields(cpg) should contain allElementsOf List(
           "__ecma.Array.factory()",
           "_tmp_1 = __ecma.Array.factory()",
           "_tmp_1.push(1)",
@@ -96,7 +84,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
 
         fileNames(cpg) should contain theSameElementsAs List("a.ts", "b.ts")
-        lineNumbers(cpg) should contain allElementsOf List(1, 1)
+        callLineNumbers(cpg) should contain allElementsOf List(1, 1)
 
         cpg.close()
         cpgPath.deleteOnExit()
@@ -259,7 +247,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
 
         fileNames(cpg) should contain only "test.ejs"
-        lineNumbers(cpg) should contain allElementsOf List(5, 7, 15, 16, 21)
+        callLineNumbers(cpg) should contain allElementsOf List(5, 7, 15, 16, 21)
 
         cpg.close()
         cpgPath.deleteOnExit()
@@ -274,7 +262,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
         // Sadly, calling the pug transpiler via pug cli does not support source maps:
         fileNames(cpg) should contain only "test.js"
-        lineNumbers(cpg) should contain allElementsOf List(1, 2, 4, 7, 9)
+        callLineNumbers(cpg) should contain allElementsOf List(1, 2, 4, 7, 9)
 
         cpg.close()
         cpgPath.deleteOnExit()

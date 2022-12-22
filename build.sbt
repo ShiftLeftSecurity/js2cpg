@@ -1,5 +1,5 @@
 val cpgVersion   = "1.3.582"
-val joernVersion = "1.1.1310"
+val joernVersion = "1.1.1357"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
@@ -99,7 +99,6 @@ lazy val commonSettings = Seq(
     "commons-io"                 % "commons-io"        % "2.11.0",
     "org.slf4j"                  % "slf4j-api"         % "1.7.36",
     "org.apache.logging.log4j"   % "log4j-slf4j-impl"  % "2.18.0"     % Runtime,
-    "io.joern"                  %% "dataflowengineoss" % joernVersion % Test,
     "io.joern"                  %% "x2cpg"             % joernVersion % Test classifier "tests",
     "org.scalatest"             %% "scalatest"         % "3.2.14"     % Test
   )
