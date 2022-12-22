@@ -11,7 +11,9 @@ import scala.util.{Failure, Success}
 
 class PugTranspiler(override val config: Config, override val projectPath: Path) extends Transpiler {
 
-  private val logger = LoggerFactory.getLogger(getClass)
+  private val logger        = LoggerFactory.getLogger(getClass)
+  private val pug           = Paths.get(projectPath.toString, "node_modules", ".bin", "pug").toString
+  private val pugAndVersion = Versions.nameAndVersion("pug-cli")
 
   private def hasPugFiles: Boolean =
     FileUtils.getFileTree(projectPath, config, List(PUG_SUFFIX)).nonEmpty
@@ -20,11 +22,11 @@ class PugTranspiler(override val config: Config, override val projectPath: Path)
 
   private def installPugPlugins(): Boolean = {
     val command = if (pnpmAvailable(projectPath)) {
-      s"${TranspilingEnvironment.PNPM_ADD} pug-cli && ${TranspilingEnvironment.PNPM_INSTALL}"
+      s"${TranspilingEnvironment.PNPM_ADD} $pugAndVersion && ${TranspilingEnvironment.PNPM_INSTALL}"
     } else if (yarnAvailable()) {
-      s"${TranspilingEnvironment.YARN_ADD} pug-cli && ${TranspilingEnvironment.YARN_INSTALL}"
+      s"${TranspilingEnvironment.YARN_ADD} $pugAndVersion && ${TranspilingEnvironment.YARN_INSTALL}"
     } else {
-      s"${TranspilingEnvironment.NPM_INSTALL} pug-cli && ${TranspilingEnvironment.NPM_INSTALL}"
+      s"${TranspilingEnvironment.NPM_INSTALL} $pugAndVersion"
     }
     logger.info("Installing Pug dependencies and plugins. That will take a while.")
     logger.debug(s"\t+ Installing Pug plugins with command '$command' in path '$projectPath'")
@@ -40,9 +42,7 @@ class PugTranspiler(override val config: Config, override val projectPath: Path)
 
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
     if (installPugPlugins()) {
-      val pug = Paths.get(projectPath.toString, "node_modules", ".bin", "pug").toString
-      val command =
-        s"${ExternalCommand.toOSCommand(pug)} --client --no-debug --out $tmpTranspileDir ."
+      val command = s"${ExternalCommand.toOSCommand(pug)} --client --no-debug --out $tmpTranspileDir ."
       logger.debug(s"\t+ transpiling Pug templates in $projectPath to $tmpTranspileDir")
       ExternalCommand.run(command, projectPath.toString) match {
         case Success(_) =>

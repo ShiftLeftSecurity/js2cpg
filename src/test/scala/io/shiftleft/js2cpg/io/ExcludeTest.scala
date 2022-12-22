@@ -2,14 +2,12 @@ package io.shiftleft.js2cpg.io
 
 import better.files.File
 import io.shiftleft.codepropertygraph.Cpg
-import io.shiftleft.codepropertygraph.cpgloading.{CpgLoader, CpgLoaderConfig}
-import io.shiftleft.codepropertygraph.generated.{NodeTypes, PropertyNames}
 import io.shiftleft.js2cpg.core.{Js2cpgArgumentsParser, Js2CpgMain}
+import io.shiftleft.semanticcpg.language._
+
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.wordspec.AnyWordSpec
-import overflowdb._
-import overflowdb.traversal._
 
 import java.util.regex.Pattern
 
@@ -26,31 +24,27 @@ class ExcludeTest extends AnyWordSpec with Matchers with TableDrivenPropertyChec
 
   private val projectUnderTestPath = File(getClass.getResource("/excludes").toURI).pathAsString
 
-  private def fileNames(cpg: Cpg): List[String] =
-    TraversalSource(cpg.graph).label(NodeTypes.FILE).property(PropertyNames.NAME).toList
+  private def fileNames(cpg: Cpg): List[String] = cpg.file.name.l
 
   private def testWithArguments(
     args: Seq[String],
     expectedFiles: Set[String],
     defaultArgs: Set[String] = Set(NO_TS, NO_BABEL)
   ): Unit = {
-    File.usingTemporaryDirectory() { tmpDir =>
-      val cpgPath = (tmpDir / "cpg.bin.zip").path.toString
+    File.usingTemporaryDirectory("js2cpgTest") { tmpDir =>
+      val cpgPath = tmpDir / "cpg.bin.zip"
 
       Js2CpgMain.main(
-        Array(projectUnderTestPath, "--output", cpgPath) ++
+        Array(projectUnderTestPath, "--output", cpgPath.pathAsString) ++
           args.toArray ++
           defaultArgs.map(_.toArg).toArray
       )
 
-      val cpg =
-        CpgLoader
-          .loadFromOverflowDb(
-            CpgLoaderConfig.withDefaults
-              .withOverflowConfig(Config.withDefaults.withStorageLocation(cpgPath))
-          )
+      val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
 
       fileNames(cpg) should contain theSameElementsAs expectedFiles.map(_.replace("/", java.io.File.separator))
+      cpg.close()
+      cpgPath.deleteOnExit()
     }
   }
 

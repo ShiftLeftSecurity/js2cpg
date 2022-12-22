@@ -13,28 +13,15 @@ case class TranspilerGroup(override val config: Config, override val projectPath
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  private val BABEL_PLUGINS: String =
-    "@babel/core " +
-      "@babel/cli " +
-      "@babel/preset-env " +
-      "@babel/preset-flow " +
-      "@babel/preset-react " +
-      "@babel/preset-typescript " +
-      "@babel/plugin-proposal-class-properties " +
-      "@babel/plugin-proposal-private-methods " +
-      "@babel/plugin-proposal-object-rest-spread " +
-      "@babel/plugin-proposal-nullish-coalescing-operator " +
-      "@babel/plugin-transform-runtime " +
-      "@babel/plugin-transform-property-mutators"
+  private val BABEL_PLUGINS: String = Versions.babelVersions.keySet.map(Versions.nameAndVersion).mkString(" ")
 
   private def installPlugins(): Boolean = {
     val command = if (pnpmAvailable(projectPath)) {
       s"${TranspilingEnvironment.PNPM_ADD} $BABEL_PLUGINS && ${TranspilingEnvironment.PNPM_INSTALL}"
     } else if (yarnAvailable()) {
-      val verbose = if (logger.isDebugEnabled) " -v" else ""
-      s"${TranspilingEnvironment.YARN_ADD} $verbose $BABEL_PLUGINS && ${TranspilingEnvironment.YARN_INSTALL} $verbose"
+      s"${TranspilingEnvironment.YARN_ADD} $BABEL_PLUGINS && ${TranspilingEnvironment.YARN_INSTALL}"
     } else {
-      s"${TranspilingEnvironment.NPM_INSTALL} $BABEL_PLUGINS && ${TranspilingEnvironment.NPM_INSTALL}"
+      s"${TranspilingEnvironment.NPM_INSTALL} $BABEL_PLUGINS"
     }
     logger.info("Installing project dependencies and plugins. That will take a while.")
     logger.debug(s"\t+ Installing plugins with command '$command' in path '$projectPath'")

@@ -36,12 +36,12 @@ object FileDefaults {
 
   val CONFIG_FILES: List[String] = List(".json", ".config.js", ".conf.js")
 
-  val NUM_LINES_THRESHOLD: Long = 10000
+  val NUM_LINES_THRESHOLD: Int = 10000
+
+  val LINE_LENGTH_THRESHOLD: Int = 10000
 
   val EMSCRIPTEN_START_FUNCS: Regex = "// EMSCRIPTEN_START_FUNCS.*".r
   val EMSCRIPTEN_END_FUNCS: Regex   = "// EMSCRIPTEN_END_FUNCS.*".r
-
-  val BUILD_PATH_REGEX: Regex = ".*(www|dist|build|vendor).*\\.js".r
 
   val IGNORED_FILES_REGEX: Seq[Regex] = List(
     ".*jest\\.config.*".r,
@@ -64,19 +64,23 @@ object FileDefaults {
   val IGNORED_TESTS_REGEX: Seq[Regex] =
     List(".*[.-]spec\\.js".r, ".*[.-]mock\\.js".r, ".*[.-]e2e\\.js".r, ".*[.-]test\\.js".r)
 
-  val IGNORED_FOLDERS_REGEX: Seq[Regex] =
-    List(
-      "__.*__".r,
-      "\\..*".r,
-      "jest-cache".r,
-      "codemods".r,
-      "e2e".r,
-      "e2e-beta".r,
-      "eslint-rules".r,
-      "flow-typed".r,
-      (NODE_MODULES_DIR_NAME + ".*").r
-    )
+  val IGNORED_FOLDERS_REGEX: Seq[Regex] = List(
+    "__.*__".r,
+    "\\..*".r,
+    "jest-cache".r,
+    "codemods".r,
+    "e2e".r,
+    "e2e-beta".r,
+    "eslint-rules".r,
+    "flow-typed".r,
+    "i18n".r,
+    "vendor".r,
+    "www".r,
+    "dist".r,
+    "build".r,
+    (NODE_MODULES_DIR_NAME + ".*").r
+  )
 
-  val MINIFIED_PATH_REGEX: Regex = ".*([.-]min\\.js|bundle\\.js)".r
+  val MINIFIED_PATH_REGEX: Regex = ".*([.-]min\\..*js|bundle\\.js)".r
 
 }

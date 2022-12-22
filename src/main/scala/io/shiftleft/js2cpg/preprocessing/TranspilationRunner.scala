@@ -5,7 +5,6 @@ import better.files.File.LinkOptions
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import io.shiftleft.js2cpg.core.Config
-import io.shiftleft.js2cpg.io.ExternalCommand
 import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.js2cpg.io.FileDefaults._
 import io.shiftleft.js2cpg.io.FileUtils
@@ -23,7 +22,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
 
   private val transpilers: Seq[Transpiler] = createTranspilers()
 
-  private val DEPS_TO_KEEP: List[String] = List("@vue", "vue", "nuxt")
+  private val DEPS_TO_KEEP: List[String] = List("@vue", "vue", "nuxt", "eslint", "@typescript-eslint")
 
   private def createTranspilers(): Seq[Transpiler] = {
     // We always run the following transpilers by default when not stated otherwise in the Config.
@@ -172,7 +171,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
         val errorMsg =
           s"""npm is not available in your environment. Please install npm and node.js.
             |Also please check if it is set correctly in your systems PATH variable.
-            |Your PATH is: '${ExternalCommand.ENV_PATH_CONTENT}'
+            |Your PATH is: '${TranspilingEnvironment.ENV_PATH_CONTENT}'
             |""".stripMargin
         logger.error(errorMsg)
         System.exit(1)

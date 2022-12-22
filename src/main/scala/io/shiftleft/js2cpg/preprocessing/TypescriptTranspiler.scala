@@ -8,6 +8,8 @@ import io.shiftleft.js2cpg.io.FileDefaults.TS_SUFFIX
 import io.shiftleft.js2cpg.io.{ExternalCommand, FileUtils}
 import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.parser.TsConfigJsonParser
+import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DEFAULT_MODULE
+import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DENO_CONFIG
 import org.slf4j.LoggerFactory
 import org.apache.commons.io.{FileUtils => CommonsFileUtils}
 
@@ -16,14 +18,12 @@ import scala.util.{Failure, Success, Try}
 
 object TypescriptTranspiler {
 
-  val COMMONJS: String = "commonjs"
-  val ESNEXT: String   = "esnext"
-  val ES2020: String   = "es2020"
-
-  val DEFAULT_MODULE: String = COMMONJS
+  val DEFAULT_MODULE: String = "commonjs"
 
   private val tscTypingWarnings =
     List("error TS", ".d.ts", "The file is in the program because", "Entry point of type library")
+
+  val DENO_CONFIG: String = "deno.json"
 
 }
 
@@ -34,15 +34,19 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
 
   private val NODE_OPTIONS: Map[String, String] = Map("NODE_OPTIONS" -> "--max_old_space_size=4096")
 
-  private val tsc = Paths.get(projectPath.toString, "node_modules", ".bin", "tsc").toString
+  private val tsc                  = Paths.get(projectPath.toString, "node_modules", ".bin", "tsc").toString
+  private val typescriptAndVersion = Versions.nameAndVersion("typescript")
 
   private def hasTsFiles: Boolean =
     FileUtils.getFileTree(projectPath, config, List(TS_SUFFIX)).nonEmpty
 
+  private def isFreshProject: Boolean = (File(projectPath) / DENO_CONFIG).exists
+
+  private def isTsProject: Boolean =
+    (File(projectPath) / "tsconfig.json").exists || isFreshProject
+
   override def shouldRun(): Boolean =
-    config.tsTranspiling &&
-      (File(projectPath) / "tsconfig.json").exists &&
-      hasTsFiles
+    config.tsTranspiling && isTsProject && hasTsFiles
 
   private def moveIgnoredDirs(from: File, to: File): Unit = {
     val ignores = if (config.ignoreTests) {
@@ -89,14 +93,11 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
 
   private def installTsPlugins(): Boolean = {
     val command = if (pnpmAvailable(projectPath)) {
-      s"${TranspilingEnvironment.PNPM_ADD} typescript"
+      s"${TranspilingEnvironment.PNPM_ADD} $typescriptAndVersion"
     } else if (yarnAvailable()) {
-      if (logger.isDebugEnabled)
-        s"${TranspilingEnvironment.YARN_ADD} -v typescript"
-      else
-        s"${TranspilingEnvironment.YARN_ADD} typescript"
+      s"${TranspilingEnvironment.YARN_ADD} $typescriptAndVersion"
     } else {
-      s"${TranspilingEnvironment.NPM_INSTALL} typescript"
+      s"${TranspilingEnvironment.NPM_INSTALL} $typescriptAndVersion"
     }
     logger.info("Installing TypeScript dependencies and plugins. That will take a while.")
     logger.debug(s"\t+ Installing Typescript plugins with command '$command' in path '$projectPath'")
@@ -116,6 +117,13 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
     if (installTsPlugins()) {
       File.usingTemporaryDirectory() { tmpForIgnoredDirs =>
+        if (isFreshProject) {
+          // Fresh projects do not need a separate tsconfig, but tsc needs at least an empty one
+          (File(projectPath) / "tsconfig.json")
+            .touch()
+            .write("{}")
+            .deleteOnExit(swallowIOExceptions = true)
+        }
         // Sadly, tsc does not allow to exclude folders when being run from cli.
         // Hence, we have to move ignored folders to a temporary folder ...
         moveIgnoredDirs(File(projectPath), tmpForIgnoredDirs)
@@ -127,11 +135,8 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
           "" :: Nil
         }
 
-        val module = config.moduleMode.getOrElse(TsConfigJsonParser.module(projectPath, tsc))
-        val outDir =
-          subDir
-            .map(s => File(tmpTranspileDir.toString, s.toString))
-            .getOrElse(File(tmpTranspileDir))
+        val module = config.moduleMode.getOrElse(DEFAULT_MODULE)
+        val outDir = subDir.map(s => File(tmpTranspileDir.toString, s.toString)).getOrElse(File(tmpTranspileDir))
 
         for (proj <- projects) {
           val projCommand = if (proj.nonEmpty) {

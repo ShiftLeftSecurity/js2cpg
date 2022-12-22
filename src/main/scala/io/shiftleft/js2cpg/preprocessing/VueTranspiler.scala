@@ -33,11 +33,14 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
 
   private lazy val NODE_OPTIONS: Map[String, String] = nodeOptions()
 
+  private val vue           = Paths.get(projectPath.toString, "node_modules", ".bin", "vue-cli-service").toString
+  private val vueAndVersion = Versions.nameAndVersion("@vue/cli-service-global")
+
   override def shouldRun(): Boolean = config.vueTranspiling && isVueProject(config, projectPath)
 
   private def nodeOptions(): Map[String, String] = {
     // TODO: keep this until https://github.com/webpack/webpack/issues/14532 is fixed
-    if (nodeVersion().exists(_.startsWith("v17"))) {
+    if (nodeVersion().exists(v => v.startsWith("v17") || v.startsWith("v18") || v.startsWith("v19"))) {
       Map("NODE_OPTIONS" -> "--openssl-legacy-provider")
     } else {
       Map.empty
@@ -46,11 +49,11 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
 
   private def installVuePlugins(): Boolean = {
     val command = if (pnpmAvailable(projectPath)) {
-      s"${TranspilingEnvironment.PNPM_ADD} @vue/cli-service-global && ${TranspilingEnvironment.PNPM_INSTALL}"
+      s"${TranspilingEnvironment.PNPM_ADD} $vueAndVersion && ${TranspilingEnvironment.PNPM_INSTALL}"
     } else if (yarnAvailable()) {
-      s"${TranspilingEnvironment.YARN_ADD} @vue/cli-service-global && ${TranspilingEnvironment.YARN_INSTALL}"
+      s"${TranspilingEnvironment.YARN_ADD} $vueAndVersion && ${TranspilingEnvironment.YARN_INSTALL}"
     } else {
-      s"${TranspilingEnvironment.NPM_INSTALL} @vue/cli-service-global && ${TranspilingEnvironment.NPM_INSTALL}"
+      s"${TranspilingEnvironment.NPM_INSTALL} $vueAndVersion"
     }
     logger.info("Installing Vue.js dependencies and plugins. That will take a while.")
     logger.debug(s"\t+ Installing Vue.js plugins with command '$command' in path '$projectPath'")
@@ -78,9 +81,7 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
     if (installVuePlugins()) {
       createCustomBrowserslistFile()
-      val vue = Paths.get(projectPath.toString, "node_modules", ".bin", "vue-cli-service").toString
-      val command =
-        s"${ExternalCommand.toOSCommand(vue)} build --dest $tmpTranspileDir --mode development --no-clean"
+      val command = s"${ExternalCommand.toOSCommand(vue)} build --dest $tmpTranspileDir --mode development --no-clean"
       logger.debug(s"\t+ Vue.js transpiling $projectPath to $tmpTranspileDir")
       ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
         case Success(_)         => logger.debug("\t+ Vue.js transpiling finished")

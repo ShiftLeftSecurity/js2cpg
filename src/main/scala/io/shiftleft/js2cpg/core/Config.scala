@@ -13,26 +13,27 @@ import scala.util.matching.Regex
 
 object Config {
 
-  val SL_IGNORE_FILE: String                    = ".slignore"
-  val DEFAULT_TS_TYPES: Boolean                 = false
-  val DEFAULT_TS_TRANSPILING: Boolean           = true
-  val DEFAULT_BABEL_TRANSPILING: Boolean        = true
-  val DEFAULT_VUE_TRANSPILING: Boolean          = true
-  val DEFAULT_NUXT_TRANSPILING: Boolean         = true
-  val DEFAULT_TEMPLATE_TRANSPILING: Boolean     = true
-  val DEFAULT_CPG_OUT_FILE: String              = "cpg.bin.zip"
-  val DEFAULT_IGNORED_FILES_REGEX: Regex        = "".r
-  val DEFAULT_IGNORED_FILES: Seq[Path]          = Seq.empty
-  val DEFAULT_IGNORE_MINIFIED: Boolean          = true
-  val DEFAULT_IGNORE_TESTS: Boolean             = true
-  val DEFAULT_IGNORE_PRIVATE_DEPS: Boolean      = false
-  val DEFAULT_PRIVATE_DEPS: Seq[String]         = Seq.empty
-  val DEFAULT_INCLUDE_CONFIGS: Boolean          = false
-  val DEFAULT_INCLUDE_HTML: Boolean             = false
-  val DEFAULT_JVM_METRICS: Option[Int]          = None
-  val DEFAULT_MODULE_MODE: Option[String]       = None
-  val DEFAULT_WITH_NODE_MODULES_FOLDER: Boolean = false
-  val DEFAULT_OPTIMIZE_DEPENDENCIES: Boolean    = true
+  val SL_IGNORE_FILE: String                            = ".slignore"
+  val DEFAULT_TS_TYPES: Boolean                         = false
+  val DEFAULT_TS_TRANSPILING: Boolean                   = true
+  val DEFAULT_BABEL_TRANSPILING: Boolean                = true
+  val DEFAULT_VUE_TRANSPILING: Boolean                  = true
+  val DEFAULT_NUXT_TRANSPILING: Boolean                 = true
+  val DEFAULT_TEMPLATE_TRANSPILING: Boolean             = true
+  val DEFAULT_CPG_OUT_FILE: String                      = "cpg.bin.zip"
+  val DEFAULT_IGNORED_FILES_REGEX: Regex                = "".r
+  val DEFAULT_IGNORED_FILES: Seq[Path]                  = Seq.empty
+  val DEFAULT_IGNORE_MINIFIED: Boolean                  = true
+  val DEFAULT_IGNORE_TESTS: Boolean                     = true
+  val DEFAULT_IGNORE_PRIVATE_DEPS: Boolean              = false
+  val DEFAULT_PRIVATE_DEPS: Seq[String]                 = Seq.empty
+  val DEFAULT_INCLUDE_CONFIGS: Boolean                  = false
+  val DEFAULT_INCLUDE_HTML: Boolean                     = true
+  val DEFAULT_JVM_METRICS: Option[Int]                  = None
+  val DEFAULT_MODULE_MODE: Option[String]               = None
+  val DEFAULT_WITH_NODE_MODULES_FOLDER: Boolean         = false
+  val DEFAULT_OPTIMIZE_DEPENDENCIES: Boolean            = true
+  val DEFAULT_FIXED_TRANSPILATION_DEPENDENCIES: Boolean = false
 
 }
 
@@ -57,7 +58,8 @@ case class Config(
   jvmMetrics: Option[Int] = Config.DEFAULT_JVM_METRICS,
   moduleMode: Option[String] = Config.DEFAULT_MODULE_MODE,
   withNodeModuleFolder: Boolean = Config.DEFAULT_WITH_NODE_MODULES_FOLDER,
-  optimizeDependencies: Boolean = Config.DEFAULT_OPTIMIZE_DEPENDENCIES
+  optimizeDependencies: Boolean = Config.DEFAULT_OPTIMIZE_DEPENDENCIES,
+  fixedTranspilationDependencies: Boolean = Config.DEFAULT_FIXED_TRANSPILATION_DEPENDENCIES
 ) {
 
   def createPathForPackageJson(): Path = Paths.get(packageJsonLocation) match {
@@ -88,15 +90,15 @@ case class Config(
   override def toString: String =
     s"""
       |\t- Source project: '$srcDir'
+      |\t- package.json location: '${createPathForPackageJson()}'
       |\t- Module mode: '${moduleMode.getOrElse(TypescriptTranspiler.DEFAULT_MODULE)}'
       |\t- Optimize dependencies: $optimizeDependencies
+      |\t- Fixed transpilations dependencies: $fixedTranspilationDependencies
       |\t- Typescript transpiling: $tsTranspiling
       |\t- Babel transpiling: $babelTranspiling
       |\t- Vue.js transpiling: $vueTranspiling
       |\t- Nuxt.js transpiling: $nuxtTranspiling
       |\t- Template transpiling: $templateTranspiling
-      |\t- package.json location: '${createPathForPackageJson()}'
-      |\t- Typescript types: $withTsTypes
       |\t- Ignored files regex: '$ignoredFilesRegex'
       |\t- Ignored folders: ${ignoredFiles
         .filter(f => new File(f.toString).isDirectory)

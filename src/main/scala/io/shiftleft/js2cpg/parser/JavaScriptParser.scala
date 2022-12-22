@@ -2,7 +2,7 @@ package io.shiftleft.js2cpg.parser
 
 import com.oracle.js.parser.{ErrorManager, Parser, ParserException, ScriptEnvironment, Source}
 import com.oracle.js.parser.ir.{ErrorNode, FunctionNode}
-import io.shiftleft.js2cpg.util.SourceWrapper._
+import io.shiftleft.js2cpg.utils.SourceWrapper._
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
@@ -12,9 +12,9 @@ object JavaScriptParser {
 
   private val logger = LoggerFactory.getLogger(JavaScriptParser.getClass)
 
-  // 11 is internally used by graaljs for the ECMA script version 2020.
+  // A value >= 13 is internally used by graaljs for the ECMA script version 2022.
   // Sadly the do not provide a define for this.
-  private val ecmaVersion2020 = 11
+  private val ecmaVersion = 13
 
   private val moduleName = ":program"
 
@@ -70,7 +70,7 @@ object JavaScriptParser {
   }
 
   private def buildParser(jsSource: JsSource, errorManager: Js2CpgErrMgr): Parser = {
-    new Parser(ScriptEnvironment.builder().ecmaScriptVersion(ecmaVersion2020).build(), jsSource.source, errorManager)
+    new Parser(ScriptEnvironment.builder().ecmaScriptVersion(ecmaVersion).build(), jsSource.source, errorManager)
   }
 
   private def nodeJsFix(jsSource: JsSource): JsSource = {
