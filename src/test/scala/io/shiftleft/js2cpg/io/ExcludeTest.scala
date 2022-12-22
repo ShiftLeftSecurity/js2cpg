@@ -2,14 +2,12 @@ package io.shiftleft.js2cpg.io
 
 import better.files.File
 import io.shiftleft.codepropertygraph.Cpg
-import io.shiftleft.codepropertygraph.cpgloading.{CpgLoader, CpgLoaderConfig}
-import io.shiftleft.codepropertygraph.generated.{NodeTypes, PropertyNames}
 import io.shiftleft.js2cpg.core.{Js2cpgArgumentsParser, Js2CpgMain}
+import io.shiftleft.semanticcpg.language._
+
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.wordspec.AnyWordSpec
-import overflowdb._
-import overflowdb.traversal._
 
 import java.util.regex.Pattern
 
@@ -26,8 +24,7 @@ class ExcludeTest extends AnyWordSpec with Matchers with TableDrivenPropertyChec
 
   private val projectUnderTestPath = File(getClass.getResource("/excludes").toURI).pathAsString
 
-  private def fileNames(cpg: Cpg): List[String] =
-    TraversalSource(cpg.graph).label(NodeTypes.FILE).property(PropertyNames.NAME).toList
+  private def fileNames(cpg: Cpg): List[String] = cpg.file.name.l
 
   private def testWithArguments(
     args: Seq[String],

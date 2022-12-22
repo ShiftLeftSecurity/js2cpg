@@ -19,9 +19,9 @@ object TranspilingEnvironment {
   private var isYarnAvailable: Option[Boolean] = None
   private var isNpmAvailable: Option[Boolean]  = None
 
-  val PNPM: String = ExternalCommand.toOSCommand("pnpm")
-  val YARN: String = ExternalCommand.toOSCommand("yarn")
-  val NPM: String  = ExternalCommand.toOSCommand("npm")
+  private val PNPM: String = ExternalCommand.toOSCommand("pnpm")
+  private val YARN: String = ExternalCommand.toOSCommand("yarn")
+  private val NPM: String  = ExternalCommand.toOSCommand("npm")
 
   val YARN_ADD: String =
     s"$YARN --ignore-scripts --legacy-peer-deps --dev -W add"

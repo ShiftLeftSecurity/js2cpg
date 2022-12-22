@@ -3,13 +3,13 @@ package io.shiftleft.js2cpg.core
 import java.nio.file.{Path, StandardCopyOption}
 import better.files.File
 import better.files.File.LinkOptions
-import io.shiftleft.js2cpg.cpg.passes._
+import io.shiftleft.js2cpg.passes._
 import io.shiftleft.js2cpg.io.FileDefaults._
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.parser.{FreshJsonParser, PackageJsonParser}
 import io.shiftleft.js2cpg.preprocessing.NuxtTranspiler
 import io.shiftleft.js2cpg.preprocessing.TranspilationRunner
-import io.shiftleft.js2cpg.util.MemoryMetrics
+import io.shiftleft.js2cpg.utils.MemoryMetrics
 import io.joern.x2cpg.X2Cpg.newEmptyCpg
 import io.joern.x2cpg.utils.HashUtil
 import org.slf4j.LoggerFactory

@@ -2,7 +2,7 @@ package io.shiftleft.js2cpg.parser
 
 import com.oracle.js.parser.{ErrorManager, Parser, ParserException, ScriptEnvironment, Source}
 import com.oracle.js.parser.ir.{ErrorNode, FunctionNode}
-import io.shiftleft.js2cpg.util.SourceWrapper._
+import io.shiftleft.js2cpg.utils.SourceWrapper._
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable

@@ -10,7 +10,7 @@ import com.oracle.js.parser.ir.visitor.TranslatorNodeVisitor
   */
 class GeneralizingAstVisitor[T] extends TranslatorNodeVisitor[LexicalContext, T](new LexicalContext()) {
 
-  protected val globalBuiltins =
+  protected val globalBuiltins: Set[String] =
     Set(
       "Buffer.from",
       "decodeURI",
