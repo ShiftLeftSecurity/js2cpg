@@ -838,8 +838,7 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
           ("param1_0", 1, FalseEdge)
         )
         succOf("param1_0", 1) shouldBe expected(("param1_0 === void 0 ? {} : param1_0", AlwaysEdge))
-        succOf("_tmp_1") shouldBe expected(("{}", AlwaysEdge))
-        succOf("{}") shouldBe expected(("param1_0 === void 0 ? {} : param1_0", AlwaysEdge))
+        succOf("_tmp_1") shouldBe expected(("param1_0 === void 0 ? {} : param1_0", AlwaysEdge))
         succOf("param1_0 === void 0 ? {} : param1_0") shouldBe expected(
           ("_tmp_0 = param1_0 === void 0 ? {} : param1_0", AlwaysEdge)
         )
@@ -853,8 +852,7 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
           ("_tmp_2", TrueEdge), // holds {}
           ("_tmp_0", 2, FalseEdge)
         )
-        succOf("_tmp_2") shouldBe expected(("{}", 1, AlwaysEdge))
-        succOf("{}", 1) shouldBe expected(("_tmp_0.id === void 0 ? {} : _tmp_0.id", AlwaysEdge))
+        succOf("_tmp_2") shouldBe expected(("_tmp_0.id === void 0 ? {} : _tmp_0.id", AlwaysEdge))
         succOf("_tmp_0", 2) shouldBe expected(("id", 2, AlwaysEdge))
 
         succOf("_tmp_0.id === void 0 ? {} : _tmp_0.id") shouldBe expected(
