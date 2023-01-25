@@ -3,6 +3,7 @@ package io.shiftleft.js2cpg.preprocessing
 import better.files.File
 import better.files.File.LinkOptions
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileDefaults
@@ -130,14 +131,21 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
 
       // remove all project specific dependencies (only keep the ones required for transpiling)
       PackageJsonParser.PROJECT_DEPENDENCIES.foreach { dep =>
-        Option(jsonObject.get(dep).asInstanceOf[ObjectNode]).foreach { depNode =>
-          val fieldsToRemove =
-            depNode
+        Option(jsonObject.get(dep)) match {
+          case Some(depNode: ObjectNode) =>
+            val fieldsToRemove = depNode
               .fieldNames()
               .asScala
-              .toList
+              .toSet
               .filterNot(f => DEPS_TO_KEEP.exists(f.startsWith))
-          fieldsToRemove.foreach(depNode.remove)
+            fieldsToRemove.foreach(depNode.remove)
+          case Some(depNode: ArrayNode) =>
+            val allFields         = depNode.elements().asScala.toSet
+            val fieldsToRemove    = allFields.filterNot(f => DEPS_TO_KEEP.exists(f.asText().startsWith))
+            val remainingElements = allFields -- fieldsToRemove
+            depNode.removeAll()
+            remainingElements.foreach(depNode.add)
+          case _ => // this is fine; we ignore all other nodes intentionally
         }
       }
       // remove project specific engine restrictions and script hooks
