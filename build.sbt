@@ -1,5 +1,5 @@
 val cpgVersion   = "1.3.587"
-val joernVersion = "1.1.1403"
+val joernVersion = "1.1.1406"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
