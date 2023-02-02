@@ -2011,6 +2011,13 @@ class AstCreationPassTest extends AbstractPassTest {
       outerLocalXViaRef.head shouldBe outerLocalX.head
     }
 
+    "have correct closure binding (destructing parameter)" in AstFixture("""
+        |const WindowOpen = ({ value }) => {
+        |  return () => windowOpenButton(value);
+        |};""".stripMargin) { cpg =>
+      cpg.local.name("value").closureBindingId.l shouldBe List("test.js::program:anonymous:anonymous:value")
+    }
+
     "have correct closure binding (single variable)" in AstFixture("""
          | function foo()
          | {
