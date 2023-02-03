@@ -15,6 +15,7 @@ import io.shiftleft.codepropertygraph.generated.{
   Operators,
   PropertyNames
 }
+import io.shiftleft.codepropertygraph.generated.nodes.MethodParameterIn
 import io.shiftleft.js2cpg.core.{Config, Report}
 import io.shiftleft.js2cpg.io.FileDefaults.JS_SUFFIX
 import io.shiftleft.js2cpg.io.FileUtils
@@ -3129,6 +3130,16 @@ class AstCreationPassTest extends AbstractPassTest {
       def tmpReturnIdentifier = destructionBlock.expandAst(NodeTypes.IDENTIFIER)
       tmpReturnIdentifier.checkNodeCount(1)
       tmpReturnIdentifier.checkProperty(PropertyNames.NAME, "_tmp_0")
+    }
+
+    "have correct ref edge (destructing parameter)" in AstFixture("""
+        |const WindowOpen = ({ value }) => {
+        |  return () => windowOpenButton(value);
+        |};""".stripMargin) { cpg =>
+      val List(param) = cpg.identifier.name("param1_0").refsTo.collectAll[MethodParameterIn].l
+      param.name shouldBe "param1_0"
+      param.code shouldBe "{value}"
+      param.method.fullName shouldBe "test.js::program:anonymous"
     }
 
     "have correct structure for object deconstruction in function parameter" in AstFixture(
