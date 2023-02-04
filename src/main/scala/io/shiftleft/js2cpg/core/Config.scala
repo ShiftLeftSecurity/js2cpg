@@ -27,7 +27,7 @@ object Config {
   val DEFAULT_IGNORE_TESTS: Boolean                     = true
   val DEFAULT_IGNORE_PRIVATE_DEPS: Boolean              = false
   val DEFAULT_PRIVATE_DEPS: Seq[String]                 = Seq.empty
-  val DEFAULT_INCLUDE_CONFIGS: Boolean                  = false
+  val DEFAULT_INCLUDE_CONFIGS: Boolean                  = true
   val DEFAULT_INCLUDE_HTML: Boolean                     = true
   val DEFAULT_JVM_METRICS: Option[Int]                  = None
   val DEFAULT_MODULE_MODE: Option[String]               = None
