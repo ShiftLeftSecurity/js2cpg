@@ -172,7 +172,7 @@ class Js2cpgArgumentsParser {
       .text(s"additional private dependencies to be analyzed from '${FileDefaults.NODE_MODULES_DIR_NAME}/'")
     opt[Unit](INCLUDE_CONFIGS)
       .text("include configuration files (*.conf.js, *.config.js, *.json)")
-      .action((_, c) => c.copy(includeConfigs = true))
+      .hidden() // deprecated, it is the default
     opt[Unit](INCLUDE_HTML)
       .text("include HTML files (*.html)")
       .hidden() // deprecated, it is the default

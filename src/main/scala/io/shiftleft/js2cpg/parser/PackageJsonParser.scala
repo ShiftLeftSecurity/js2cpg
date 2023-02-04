@@ -20,6 +20,7 @@ object PackageJsonParser {
   val PACKAGE_JSON_FILENAME: String   = "package.json"
   val JSON_LOCK_FILENAME: String      = "package-lock.json"
   val NPM_SHRINKWRAP_FILENAME: String = "npm-shrinkwrap.json"
+  val ANGULAR_JSON_FILENAME: String   = "angular.json"
   val PNPM_WS_FILENAME: String        = "pnpm-workspace.yaml"
   val PNPM_LOCK_FILENAME: String      = "pnpm-lock.yaml"
   val PNPM_LOCK_FILENAME_BAK: String  = "pnpm-lock.yaml.bak"
@@ -34,7 +35,8 @@ object PackageJsonParser {
     // pnpm workspace config file is not required as we manually descent into sub-project:
     PNPM_WS_FILENAME,
     NPM_SHRINKWRAP_FILENAME,
-    WEBPACK_CONFIG_FILENAME
+    WEBPACK_CONFIG_FILENAME,
+    ANGULAR_JSON_FILENAME
   )
 
   val PROJECT_DEPENDENCIES: Seq[String] = Seq(
