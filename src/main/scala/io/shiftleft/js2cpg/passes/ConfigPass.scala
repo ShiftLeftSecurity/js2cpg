@@ -16,9 +16,6 @@ class ConfigPass(filenames: List[(Path, Path)], cpg: Cpg, report: Report)
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  private def isConfigFile(fileName: String): Boolean =
-    FileDefaults.CONFIG_FILES.exists(fileName.endsWith)
-
   protected def fileContent(filePath: Path): Iterable[String] =
     FileUtils.readLinesInFile(filePath)
 
@@ -30,20 +27,20 @@ class ConfigPass(filenames: List[(Path, Path)], cpg: Cpg, report: Report)
     val fileName                 = relativeFile.toString
     val content                  = fileContent(filePath)
     val fileStatistics           = FileUtils.fileStatistics(content.toSeq)
-    val isTooLarge = fileStatistics.linesOfCode > FileDefaults.NUM_LINES_THRESHOLD ||
-      fileStatistics.longestLineLength > FileDefaults.LINE_LENGTH_THRESHOLD
-    if (!isTooLarge) {
+    if (fileStatistics.linesOfCode > FileDefaults.NUM_LINES_THRESHOLD) {
+      logger.info(
+        s"Skip adding file '$relativeFile' as config file (more than ${FileDefaults.NUM_LINES_THRESHOLD} lines)"
+      )
+    } else if (fileStatistics.longestLineLength > FileDefaults.LINE_LENGTH_THRESHOLD) {
+      logger.info(
+        s"Skip adding file '$relativeFile' as config file (at least one line longer than ${FileDefaults.LINE_LENGTH_THRESHOLD} characters)"
+      )
+    } else {
       val (result, time) = TimeUtils.time {
         val localDiff = new DiffGraphBuilder
-        logger.debug(s"Adding file '$relativeFile' as config.")
+        logger.debug(s"Adding file '$relativeFile' as config file.")
         val configNode = NewConfigFile().name(fileName).content(content.mkString("\n"))
-        report.addReportInfo(
-          fileName,
-          fileStatistics.linesOfCode,
-          parsed = true,
-          cpgGen = true,
-          isConfig = isConfigFile(fileName)
-        )
+        report.addReportInfo(fileName, fileStatistics.linesOfCode, parsed = true, cpgGen = true, isConfig = true)
         localDiff.addNode(configNode)
         localDiff
       }

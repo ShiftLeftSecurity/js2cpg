@@ -196,12 +196,11 @@ class Js2Cpg {
       new ConfigPass(configFiles(config, List(HTML_SUFFIX)), cpg, report).createAndApply()
     }
 
-    val freshJsons = FreshJsonParser.findImportMapPaths(config, includeDenoConfig = true).map(_.normalize)
-
-    val cfgFiles =
-      configFiles(config, CONFIG_FILES)
-        .filter(p => config.includeConfigs || freshJsons.contains(p._1.normalize))
-    new ConfigPass(cfgFiles, cpg, report).createAndApply()
+    if (config.includeConfigs) {
+      val freshJsons  = FreshJsonParser.findImportMapPaths(config, includeDenoConfig = true).map(_.normalize)
+      val configFiles = this.configFiles(config, CONFIG_FILES).filter(p => freshJsons.contains(p._1.normalize))
+      new ConfigPass(configFiles, cpg, report).createAndApply()
+    }
 
     cpg.close()
   }
