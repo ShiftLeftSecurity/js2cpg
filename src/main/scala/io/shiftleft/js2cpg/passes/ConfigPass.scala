@@ -16,9 +16,6 @@ class ConfigPass(filenames: List[(Path, Path)], cpg: Cpg, report: Report)
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  private def isConfigFile(fileName: String): Boolean =
-    FileDefaults.CONFIG_FILES.exists(fileName.endsWith)
-
   protected def fileContent(filePath: Path): Iterable[String] =
     FileUtils.readLinesInFile(filePath)
 
@@ -28,23 +25,28 @@ class ConfigPass(filenames: List[(Path, Path)], cpg: Cpg, report: Report)
     val (filePath, fileRootPath) = file
     val relativeFile             = fileRootPath.relativize(filePath)
     val fileName                 = relativeFile.toString
-
-    logger.debug(s"Adding file '$relativeFile' as config.")
-
-    val (result, time) = TimeUtils.time {
-      val localDiff  = new DiffGraphBuilder
-      val content    = fileContent(filePath)
-      val loc        = content.size
-      val configNode = NewConfigFile().name(fileName).content(content.mkString("\n"))
-
-      report.addReportInfo(fileName, loc.toLong, parsed = true, cpgGen = true, isConfig = isConfigFile(fileName))
-
-      localDiff.addNode(configNode)
-      localDiff
+    val content                  = fileContent(filePath)
+    val fileStatistics           = FileUtils.fileStatistics(content.toSeq)
+    if (fileStatistics.linesOfCode > FileDefaults.NUM_LINES_THRESHOLD) {
+      logger.info(
+        s"Skip adding file '$relativeFile' as config file (more than ${FileDefaults.NUM_LINES_THRESHOLD} lines)"
+      )
+    } else if (fileStatistics.longestLineLength > FileDefaults.LINE_LENGTH_THRESHOLD) {
+      logger.info(
+        s"Skip adding file '$relativeFile' as config file (at least one line longer than ${FileDefaults.LINE_LENGTH_THRESHOLD} characters)"
+      )
+    } else {
+      val (result, time) = TimeUtils.time {
+        val localDiff = new DiffGraphBuilder
+        logger.debug(s"Adding file '$relativeFile' as config file.")
+        val configNode = NewConfigFile().name(fileName).content(content.mkString("\n"))
+        report.addReportInfo(fileName, fileStatistics.linesOfCode, parsed = true, cpgGen = true, isConfig = true)
+        localDiff.addNode(configNode)
+        localDiff
+      }
+      diffGraph.absorb(result)
+      report.updateReportDuration(fileName, time)
     }
-
-    diffGraph.absorb(result)
-    report.updateReportDuration(fileName, time)
   }
 
 }
