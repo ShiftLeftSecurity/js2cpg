@@ -63,7 +63,7 @@ class ConfigPassTest extends AnyWordSpec with Matchers {
         val fileB = dir / "b.json"
 
         fileA.write("x\n" * FileDefaults.NUM_LINES_THRESHOLD + 1) // too many lines
-        fileB.write("x" * FileDefaults.LINE_LENGTH_THRESHOLD + 1) // line too ling
+        fileB.write("x" * FileDefaults.LINE_LENGTH_THRESHOLD + 1) // line too long
 
         val cpg       = Cpg.emptyCpg
         val filenames = List((fileA.path, fileA.parent.path), (fileB.path, fileB.parent.path))
