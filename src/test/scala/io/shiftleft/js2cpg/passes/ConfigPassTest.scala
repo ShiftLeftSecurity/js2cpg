@@ -49,8 +49,8 @@ class ConfigPassTest extends AnyWordSpec with Matchers {
         new ConfigPass(filenames, cpg, new Report()).createAndApply()
 
         val List(configFileA) = cpg.configFile("a.conf.js").l
-        val List(configFileB) = cpg.configFile("b.conf.js").l
-        val List(configFileC) = cpg.configFile("c.conf.js").l
+        val List(configFileB) = cpg.configFile("b.config.js").l
+        val List(configFileC) = cpg.configFile("c.json").l
         configFileA.content shouldBe "a"
         configFileB.content shouldBe "b"
         configFileC.content shouldBe "c"
