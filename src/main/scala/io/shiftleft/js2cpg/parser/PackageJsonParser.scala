@@ -78,41 +78,24 @@ object PackageJsonParser {
         val lockDepsPath = packageJsonPath.resolveSibling(Paths.get(JSON_LOCK_FILENAME))
 
         val lockDeps = Try {
-          val content      = IOUtils.readLinesInFile(lockDepsPath).mkString("\n")
-          val objectMapper = new ObjectMapper
-          val packageJson  = objectMapper.readTree(content)
-
-          var depToVersion = Map.empty[String, String]
-          val dependencyIt = Option(packageJson.get("dependencies"))
-            .map(_.fields().asScala)
-            .getOrElse(Iterator.empty)
-          dependencyIt.foreach { entry =>
+          val content      = IOUtils.readLinesInFile(lockDepsPath).mkString
+          val packageJson  = new ObjectMapper().readTree(content)
+          val dependencyIt = Option(packageJson.get("dependencies")).map(_.fields().asScala).getOrElse(Iterator.empty)
+          dependencyIt.flatMap { entry =>
             val depName     = entry.getKey
             val versionNode = entry.getValue.get("version")
-            if (versionNode != null) {
-              depToVersion = depToVersion.updated(depName, versionNode.asText())
-            }
-          }
-          depToVersion
+            if (versionNode != null) Some(depName -> versionNode.asText()) else None
+          }.toMap
         }.toOption
 
         // lazy val because we only evaluate this in case no package lock file is available.
         lazy val deps = Try {
-          val content      = IOUtils.readLinesInFile(depsPath).mkString("\n")
-          val objectMapper = new ObjectMapper
-          val packageJson  = objectMapper.readTree(content)
-
-          var depToVersion = Map.empty[String, String]
-          PROJECT_DEPENDENCIES
-            .foreach { dependency =>
-              val dependencyIt = Option(packageJson.get(dependency))
-                .map(_.fields().asScala)
-                .getOrElse(Iterator.empty)
-              dependencyIt.foreach { entry =>
-                depToVersion = depToVersion.updated(entry.getKey, entry.getValue.asText())
-              }
-            }
-          depToVersion
+          val content     = IOUtils.readLinesInFile(depsPath).mkString
+          val packageJson = new ObjectMapper().readTree(content)
+          PROJECT_DEPENDENCIES.flatMap { dependency =>
+            val dependencyIt = Option(packageJson.get(dependency)).map(_.fields().asScala).getOrElse(Iterator.empty)
+            dependencyIt.map { entry => entry.getKey -> entry.getValue.asText() }
+          }.toMap
         }.toOption
 
         if (lockDeps.isDefined && lockDeps.get.nonEmpty) {
