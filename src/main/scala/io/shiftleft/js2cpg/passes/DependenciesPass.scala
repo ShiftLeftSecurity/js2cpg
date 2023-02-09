@@ -21,18 +21,13 @@ class DependenciesPass(cpg: Cpg, config: Config) extends CpgPass(cpg) {
   }
 
   private def dependenciesForFreshJsons(): Map[String, String] = {
-    FreshJsonParser
-      .findImportMapPaths(config, includeDenoConfig = false)
-      .flatMap(p => FreshJsonParser.dependencies(p))
-      .toMap
+    FreshJsonParser.findImportMapPaths(config).flatMap(p => FreshJsonParser.dependencies(p)).toMap
   }
 
   override def run(diffGraph: DiffGraphBuilder): Unit = {
     val dependencies = dependenciesForPackageJsons() ++ dependenciesForFreshJsons()
     dependencies.foreach { case (name, version) =>
-      val dep = NewDependency()
-        .name(name)
-        .version(version)
+      val dep = NewDependency().name(name).version(version)
       diffGraph.addNode(dep)
     }
   }
