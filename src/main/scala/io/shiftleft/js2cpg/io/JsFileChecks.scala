@@ -32,13 +32,13 @@ object JsFileChecks {
   def isMinifiedFile(path: Path): Boolean = path.toString match {
     case p if MINIFIED_PATH_REGEX.matches(p) => true
     case p if p.endsWith(".js") =>
-      val fileStatistics = FileUtils.fileStatistics(IOUtils.readLinesInFile(path))
+      val fileStatistics = FileUtils.fileStatistics(path)
       fileStatistics.longestLineLength >= LINE_LENGTH_THRESHOLD && fileStatistics.linesOfCode <= 50
     case _ => false
   }
 
   def check(relPath: String, lines: Seq[String]): FileStatistics = {
-    val fileStatistics = FileUtils.fileStatistics(lines)
+    val fileStatistics = FileUtils.fileStatistics(lines.iterator)
     val reasons        = mutable.ArrayBuffer.empty[String]
 
     // check for very large files (many lines):

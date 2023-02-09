@@ -4,11 +4,11 @@ import io.shiftleft.js2cpg.io.FileDefaults.VSIX_SUFFIX
 
 import java.io.File
 import java.nio.file.{Path, Paths}
-import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler
+import io.shiftleft.utils.IOUtils
 
-import scala.util.{Try, Failure, Success}
+import scala.util.{Failure, Success, Try}
 import scala.util.matching.Regex
 
 object Config {
@@ -80,7 +80,7 @@ case class Config(
 
   def withLoadedIgnores(): Config = {
     val slIngoreFilePath = Paths.get(srcDir, Config.SL_IGNORE_FILE)
-    Try(FileUtils.readLinesInFile(slIngoreFilePath)) match {
+    Try(IOUtils.readLinesInFile(slIngoreFilePath)) match {
       case Failure(_) => this
       case Success(lines) =>
         this.copy(ignoredFiles = ignoredFiles ++ lines.map(createPathForIgnore))
