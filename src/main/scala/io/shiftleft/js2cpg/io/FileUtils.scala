@@ -8,9 +8,15 @@ import io.shiftleft.js2cpg.io.FileDefaults._
 import io.shiftleft.utils.IOUtils
 import org.slf4j.LoggerFactory
 
+import java.nio.charset.CharsetDecoder
+import java.nio.charset.CodingErrorAction
 import java.nio.file.attribute.BasicFileAttributes
 import scala.collection.concurrent.TrieMap
 import scala.collection.{mutable, SortedMap}
+import scala.io.Codec
+import scala.io.Source
+import scala.jdk.CollectionConverters.IteratorHasAsScala
+import scala.util.Using
 
 object FileUtils {
 
@@ -146,15 +152,12 @@ object FileUtils {
 
   final case class FileStatistics(linesOfCode: Long, longestLineLength: Int, containsMarker: Boolean)
 
-  /** Calculates various statistics of the source.
-    *   - lines of code
-    *   - longest line of code
-    *   - containment of a given marker
-    *
-    * This implementation is just as fast as the unix word count program `wc -l`. By using Scala BufferedSource we gain
-    * a lot of performance as it uses a Java PushbackReader and BufferedReader.
-    */
-  def fileStatistics(lines: Seq[String]): FileStatistics = {
+  private def createDecoder(): CharsetDecoder =
+    Codec.UTF8.decoder
+      .onMalformedInput(CodingErrorAction.REPLACE)
+      .onUnmappableCharacter(CodingErrorAction.REPLACE)
+
+  def fileStatistics(lines: Iterator[String]): FileStatistics = {
     var linesOfCode       = 0L
     var longestLineLength = 0
     var containsMarker    = false
@@ -171,5 +174,15 @@ object FileUtils {
     }
     FileStatistics(linesOfCode, longestLineLength, containsMarker)
   }
+
+  /** Calculates various statistics of the source. This implementation is just as fast as the unix word count program
+    * `wc -l`. By using Scala BufferedSource we gain a lot of performance as it uses a Java PushbackReader and
+    * BufferedReader.
+    */
+  def fileStatistics(filePath: Path): FileStatistics =
+    Using.resource(Source.fromFile(filePath.toFile)(createDecoder())) { source =>
+      val lines = source.bufferedReader().lines().iterator().asScala
+      fileStatistics(lines)
+    }
 
 }

@@ -3,9 +3,9 @@ package io.shiftleft.js2cpg.parser
 import com.fasterxml.jackson.core.JsonParser
 
 import java.nio.file.{Path, Paths}
-import io.shiftleft.js2cpg.io.FileUtils
 import org.slf4j.LoggerFactory
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.shiftleft.utils.IOUtils
 import org.apache.commons.lang.StringUtils
 
 import scala.collection.concurrent.TrieMap
@@ -60,7 +60,7 @@ object PackageJsonParser {
 
   def isValidProjectPackageJson(packageJsonPath: Path): Boolean = {
     if (packageJsonPath.toString.endsWith(PackageJsonParser.PACKAGE_JSON_FILENAME)) {
-      val isNotEmpty = Try(FileUtils.readLinesInFile(packageJsonPath)) match {
+      val isNotEmpty = Try(IOUtils.readLinesInFile(packageJsonPath)) match {
         case Success(content) =>
           content.forall(l => StringUtils.isNotBlank(StringUtils.normalizeSpace(l)))
         case Failure(_) => false
@@ -78,7 +78,7 @@ object PackageJsonParser {
         val lockDepsPath = packageJsonPath.resolveSibling(Paths.get(JSON_LOCK_FILENAME))
 
         val lockDeps = Try {
-          val content      = FileUtils.readLinesInFile(lockDepsPath).mkString("\n")
+          val content      = IOUtils.readLinesInFile(lockDepsPath).mkString("\n")
           val objectMapper = new ObjectMapper
           val packageJson  = objectMapper.readTree(content)
 
@@ -98,7 +98,7 @@ object PackageJsonParser {
 
         // lazy val because we only evaluate this in case no package lock file is available.
         lazy val deps = Try {
-          val content      = FileUtils.readLinesInFile(depsPath).mkString("\n")
+          val content      = IOUtils.readLinesInFile(depsPath).mkString("\n")
           val objectMapper = new ObjectMapper
           val packageJson  = objectMapper.readTree(content)
 

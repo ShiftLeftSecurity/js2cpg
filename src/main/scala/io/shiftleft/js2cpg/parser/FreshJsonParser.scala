@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler
+import io.shiftleft.utils.IOUtils
 
 import scala.collection.concurrent.TrieMap
 import scala.util.Try
@@ -49,7 +50,7 @@ object FreshJsonParser {
     cachedDependencies.getOrElseUpdate(
       freshJsonPath, {
         val deps = Try {
-          val content      = FileUtils.readLinesInFile(freshJsonPath).mkString("\n")
+          val content      = IOUtils.readLinesInFile(freshJsonPath).mkString("\n")
           val objectMapper = new ObjectMapper
           val json         = objectMapper.readTree(content)
 

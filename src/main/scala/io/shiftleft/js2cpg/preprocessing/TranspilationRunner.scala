@@ -10,6 +10,7 @@ import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.js2cpg.io.FileDefaults._
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.parser.PackageJsonParser
+import io.shiftleft.utils.IOUtils
 import org.slf4j.LoggerFactory
 
 import java.nio.file.{Path, StandardCopyOption}
@@ -55,7 +56,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
 
   private def extractNpmRcModules(npmrc: File): Seq[String] = {
     if (npmrc.exists) {
-      val npmrcContent = FileUtils.readLinesInFile(npmrc.path)
+      val npmrcContent = IOUtils.readLinesInFile(npmrc.path)
       npmrcContent.collect {
         case line if line.contains(FileDefaults.REGISTRY_MARKER) =>
           line.substring(0, line.indexOf(FileDefaults.REGISTRY_MARKER))
@@ -124,7 +125,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
         .foreach(file => file.renameTo(file.pathAsString + ".bak"))
 
       // create a temporary package.json without dependencies
-      val originalContent = FileUtils.readLinesInFile(packageJson.path).mkString("\n")
+      val originalContent = IOUtils.readLinesInFile(packageJson.path).mkString("\n")
       val mapper          = new ObjectMapper()
       val json            = mapper.readTree(PackageJsonParser.removeComments(originalContent))
       val jsonObject      = json.asInstanceOf[ObjectNode]

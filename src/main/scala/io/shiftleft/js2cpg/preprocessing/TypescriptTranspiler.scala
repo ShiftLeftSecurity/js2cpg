@@ -10,6 +10,7 @@ import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.parser.TsConfigJsonParser
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DEFAULT_MODULE
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DENO_CONFIG
+import io.shiftleft.utils.IOUtils
 import org.slf4j.LoggerFactory
 import org.apache.commons.io.{FileUtils => CommonsFileUtils}
 
@@ -73,7 +74,7 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
   private def createCustomTsConfigFile(): Try[File] = {
     val customTsConfigFilePath = (File(projectPath) / "tsconfig.json").path
     Try {
-      val content = FileUtils.readLinesInFile(customTsConfigFilePath).mkString("\n")
+      val content = IOUtils.readLinesInFile(customTsConfigFilePath).mkString("\n")
       val mapper  = new ObjectMapper()
       val json    = mapper.readTree(PackageJsonParser.removeComments(content))
       Option(json.get("compilerOptions")).foreach { options =>

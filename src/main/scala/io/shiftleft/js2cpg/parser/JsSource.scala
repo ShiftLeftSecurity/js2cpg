@@ -8,6 +8,7 @@ import com.oracle.js.parser.ir.Node
 import io.shiftleft.js2cpg.io.FileDefaults._
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.preprocessing.NuxtTranspiler
+import io.shiftleft.utils.IOUtils
 import org.apache.commons.lang.StringUtils
 import org.slf4j.LoggerFactory
 
@@ -118,7 +119,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
       logger.debug(s"No source map file available for '$originalFilePath'")
       None
     } else {
-      val sourceMapContent = FileUtils.readLinesInFile(Paths.get(mapFilePath)).mkString("\n")
+      val sourceMapContent = IOUtils.readLinesInFile(Paths.get(mapFilePath)).mkString("\n")
       // We apply a Try here as some source maps are indeed un-parsable by ReadableSourceMap:
       Try(ReadableSourceMapImpl.fromSource(sourceMapContent)) match {
         case Failure(exception) =>
