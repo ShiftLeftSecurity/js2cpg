@@ -39,9 +39,8 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
   override def shouldRun(): Boolean = config.vueTranspiling && isVueProject(config, projectPath)
 
   private def nodeOptions(): Map[String, String] = {
-    // TODO: keep this until https://github.com/webpack/webpack/issues/14532 is fixed.
-    // It is no longer available in v18 and above.
-    if (nodeVersion().exists(v => v.startsWith("v16") || v.startsWith("v17"))) {
+    // TODO: keep this until https://github.com/webpack/webpack/issues/14532 is fixed
+    if (nodeVersion().exists(v => v.startsWith("v17") || v.startsWith("v18") || v.startsWith("v19"))) {
       Map("NODE_OPTIONS" -> "--openssl-legacy-provider")
     } else {
       Map.empty
