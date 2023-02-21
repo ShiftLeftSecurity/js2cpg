@@ -152,6 +152,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
       // remove project specific engine restrictions and script hooks
       jsonObject.remove("engines")
       jsonObject.remove("scripts")
+      jsonObject.remove("comments")
 
       packageJson.writeText(mapper.writeValueAsString(json))
 
