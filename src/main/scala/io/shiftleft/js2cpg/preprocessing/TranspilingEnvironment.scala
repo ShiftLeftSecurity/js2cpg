@@ -79,7 +79,7 @@ trait TranspilingEnvironment {
         logger.debug(s"\t+ pnpm is available: $result")
         true
       case Failure(_) =>
-        logger.error("\t- pnpm is not installed. Transpiling sources will not be available.")
+        logger.debug("\t- pnpm is not installed.")
         false
     }
   }
@@ -91,7 +91,7 @@ trait TranspilingEnvironment {
         logger.debug(s"\t+ yarn is available: $result")
         true
       case Failure(_) =>
-        logger.error("\t- yarn is not installed. Transpiling sources will not be available.")
+        logger.debug("\t- yarn is not installed.")
         false
     }
   }
