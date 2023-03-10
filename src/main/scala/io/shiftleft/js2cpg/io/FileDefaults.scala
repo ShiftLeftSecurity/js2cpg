@@ -56,13 +56,17 @@ object FileDefaults {
     ".*\\.tslint.*".r,
     ".*\\.stylelintrc\\.js".r,
     ".*rollup\\.config.*".r,
-    ".*\\.types\\.js".r,
+    ".*\\.types\\.(js|tsx|ts)".r,
     ".*\\.cjs\\.js".r,
     ".*eslint-local-rules\\.js".r
   )
 
-  val IGNORED_TESTS_REGEX: Seq[Regex] =
-    List(".*[.-]spec\\.js".r, ".*[.-]mock\\.js".r, ".*[.-]e2e\\.js".r, ".*[.-]test\\.js".r)
+  val IGNORED_TESTS_REGEX: Seq[Regex] = List(
+    ".*[.-]spec\\.(js|tsx|ts)".r,
+    ".*[.-]mock\\.(js|tsx|ts)".r,
+    ".*[.-]e2e\\.(js|tsx|ts)".r,
+    ".*[.-]test\\.(js|tsx|ts)".r
+  )
 
   val IGNORED_FOLDERS_REGEX: Seq[Regex] = List(
     "__.*__".r,
