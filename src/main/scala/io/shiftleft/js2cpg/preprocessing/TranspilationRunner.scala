@@ -24,7 +24,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
 
   private val transpilers: Seq[Transpiler] = createTranspilers()
 
-  private val DEPS_TO_KEEP: List[String] = List("@vue", "vue", "nuxt", "eslint", "@typescript-eslint")
+  private val DEPS_TO_KEEP: List[String] = List("@vue", "vue", "nuxt")
 
   private def createTranspilers(): Seq[Transpiler] = {
     // We always run the following transpilers by default when not stated otherwise in the Config.
@@ -115,6 +115,9 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
     }
   }
 
+  private def shouldKeepDependency(dep: String): Boolean =
+    DEPS_TO_KEEP.exists(dep.startsWith) && !dep.contains("eslint")
+
   private def withTemporaryPackageJson(workUnit: () => Unit): Unit = {
     val packageJson = File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME
     if (config.optimizeDependencies && packageJson.exists) {
@@ -138,11 +141,11 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
               .fieldNames()
               .asScala
               .toSet
-              .filterNot(f => DEPS_TO_KEEP.exists(f.startsWith))
+              .filterNot(shouldKeepDependency)
             fieldsToRemove.foreach(depNode.remove)
           case Some(depNode: ArrayNode) =>
             val allFields         = depNode.elements().asScala.toSet
-            val fieldsToRemove    = allFields.filterNot(f => DEPS_TO_KEEP.exists(f.asText().startsWith))
+            val fieldsToRemove    = allFields.filterNot(f => shouldKeepDependency(f.asText()))
             val remainingElements = allFields -- fieldsToRemove
             depNode.removeAll()
             remainingElements.foreach(depNode.add)
