@@ -29,6 +29,7 @@ case class PathFilter(
   private def filterDir(dir: Path): FilterResult = {
     val relDir = rootPath.relativize(dir)
     Paths.get(dir.toString.replace(rootPath.toString, projectDir)) match {
+      case dirPath if dirPath.toString == projectDir => Accepted()
       case dirPath
           if IGNORED_FOLDERS_REGEX.exists(_.matches(File(dirPath).name)) &&
             !acceptFromNodeModulesFolder(dirPath) =>

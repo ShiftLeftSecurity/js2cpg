@@ -27,6 +27,7 @@ object PackageJsonParser {
   val YARN_LOCK_FILENAME: String      = "yarn.lock"
   val YARN_LOCK_FILENAME_BAK: String  = "yarn.lock.bak"
   val WEBPACK_CONFIG_FILENAME: String = "webpack.config.js"
+  val ES_LINT_RC_FILENAME: String     = ".eslintrc.js"
 
   val PROJECT_CONFIG_FILES: List[String] = List(
     JSON_LOCK_FILENAME,
@@ -36,7 +37,8 @@ object PackageJsonParser {
     PNPM_WS_FILENAME,
     NPM_SHRINKWRAP_FILENAME,
     WEBPACK_CONFIG_FILENAME,
-    ANGULAR_JSON_FILENAME
+    ANGULAR_JSON_FILENAME,
+    ES_LINT_RC_FILENAME
   )
 
   val PROJECT_DEPENDENCIES: Seq[String] = Seq(

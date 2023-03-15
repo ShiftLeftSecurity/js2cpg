@@ -72,9 +72,9 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
   }
 
   private def createCustomTsConfigFile(): Try[File] = {
-    val customTsConfigFilePath = (File(projectPath) / "tsconfig.json").path
+    val tsConfigFilePath = (File(projectPath) / "tsconfig.json").path
     Try {
-      val content = IOUtils.readLinesInFile(customTsConfigFilePath).mkString("\n")
+      val content = IOUtils.readLinesInFile(tsConfigFilePath).mkString("\n")
       val mapper  = new ObjectMapper()
       val json    = mapper.readTree(PackageJsonParser.removeComments(content))
       Option(json.get("compilerOptions")).foreach { options =>
@@ -84,10 +84,7 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
       }
       // --include is not available as tsc CLI argument; we set it manually:
       json.asInstanceOf[ObjectNode].putArray("include").add("**/*")
-      val customTsConfigFile =
-        File
-          .newTemporaryFile("js2cpgTsConfig", ".json", parent = Some(projectPath))
-          .deleteOnExit(swallowIOExceptions = true)
+      val customTsConfigFile = File.newTemporaryFile("js2cpgTsConfig", ".json", parent = Some(projectPath))
       customTsConfigFile.writeText(mapper.writeValueAsString(json))
     }
   }
@@ -178,6 +175,11 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
 
         // ... and copy them back afterward.
         moveIgnoredDirs(tmpForIgnoredDirs, File(projectPath))
+        // ... and remove the temporary tsconfig.json
+        File(projectPath)
+          .walk(maxDepth = 1)
+          .find(_.toString().contains("js2cpgTsConfig"))
+          .foreach(_.delete(swallowIOExceptions = true))
       }
     }
     true
