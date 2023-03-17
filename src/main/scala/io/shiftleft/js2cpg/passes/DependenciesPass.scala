@@ -3,6 +3,7 @@ package io.shiftleft.js2cpg.passes
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.codepropertygraph.generated.nodes.NewDependency
 import io.shiftleft.js2cpg.core.Config
+import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.parser.{FreshJsonParser, PackageJsonParser}
 import io.shiftleft.passes.CpgPass
@@ -15,7 +16,7 @@ class DependenciesPass(cpg: Cpg, config: Config) extends CpgPass(cpg) {
     val packagesJsons =
       (FileUtils
         .getFileTree(Paths.get(config.srcDir), config, List(".json"))
-        .filter(_.toString.endsWith(PackageJsonParser.PACKAGE_JSON_FILENAME)) :+
+        .filter(_.toString.endsWith(FileDefaults.PACKAGE_JSON_FILENAME)) :+
         config.createPathForPackageJson()).toSet
     packagesJsons.flatMap(p => PackageJsonParser.dependencies(p)).toMap
   }

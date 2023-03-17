@@ -56,6 +56,8 @@ Usage: js2cpg.sh [options] <srcdir>
                            additional private dependencies to be analyzed from 'node_modules/'
   --exclude-html           excludes HTML files (*.html)
   --all-dependencies       install all project dependencies during transpilation (defaults to 'false')
+  --fixed-transpilation-dependencies
+                           install fixed versions of transpilation dependencies during transpilation (defaults to 'true')
 ```
 
 `js2cpg` requires at least one argument `<srcdir>`. `srcdir` is path to the project directory from which you would like to generate a CPG.

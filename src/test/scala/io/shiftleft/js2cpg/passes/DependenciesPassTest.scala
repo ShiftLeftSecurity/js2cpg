@@ -4,6 +4,7 @@ import better.files.File
 import io.joern.x2cpg.X2Cpg.newEmptyCpg
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.js2cpg.core.{Config, Report}
+import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler
 import io.shiftleft.semanticcpg.language._
@@ -14,7 +15,7 @@ class DependenciesPassTest extends AbstractPassTest {
 
     "ignore empty package.json" in {
       File.usingTemporaryDirectory("js2cpgTest") { dir =>
-        val json = dir / PackageJsonParser.PACKAGE_JSON_FILENAME
+        val json = dir / FileDefaults.PACKAGE_JSON_FILENAME
         json.write("")
         PackageJsonParser.isValidProjectPackageJson(json.path) shouldBe false
       }
@@ -22,7 +23,7 @@ class DependenciesPassTest extends AbstractPassTest {
 
     "ignore package.json without any useful content" in {
       File.usingTemporaryDirectory("js2cpgTest") { dir =>
-        val json = dir / PackageJsonParser.PACKAGE_JSON_FILENAME
+        val json = dir / FileDefaults.PACKAGE_JSON_FILENAME
         json.write("""
             |{
             |  "name": "something",
@@ -38,7 +39,7 @@ class DependenciesPassTest extends AbstractPassTest {
 
     "ignore package.json without dependencies" in {
       File.usingTemporaryDirectory("js2cpgTest") { dir =>
-        val json = dir / PackageJsonParser.PACKAGE_JSON_FILENAME
+        val json = dir / FileDefaults.PACKAGE_JSON_FILENAME
         json.write("{}")
         PackageJsonParser.isValidProjectPackageJson(json.path) shouldBe false
       }
@@ -74,7 +75,7 @@ class DependenciesPassTest extends AbstractPassTest {
           |  }
           |}
           |""".stripMargin,
-      jsonFilename = PackageJsonParser.JSON_LOCK_FILENAME
+      jsonFilename = FileDefaults.JSON_LOCK_FILENAME
     ) { cpg =>
       val deps = getDependencies(cpg).l
       deps.size shouldBe 2
@@ -188,7 +189,7 @@ class DependenciesPassTest extends AbstractPassTest {
       }
     }
 
-    def apply(code: String, jsonContent: String, jsonFilename: String = PackageJsonParser.PACKAGE_JSON_FILENAME)(
+    def apply(code: String, jsonContent: String, jsonFilename: String = FileDefaults.PACKAGE_JSON_FILENAME)(
       f: Cpg => Unit
     ): Unit = {
       DependencyFixture(code, Iterable((jsonFilename, jsonContent)))(f)
