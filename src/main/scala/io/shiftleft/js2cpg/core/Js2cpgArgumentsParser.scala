@@ -77,7 +77,7 @@ class Js2cpgArgumentsParser {
       })
     opt[String](PACKAGE_JSON)
       .text(
-        s"path to the projects package.json (path relative to $SRCDIR or absolute path; defaults to '${SRCDIR + java.io.File.separator + PackageJsonParser.PACKAGE_JSON_FILENAME}')"
+        s"path to the projects package.json (path relative to $SRCDIR or absolute path; defaults to '${SRCDIR + java.io.File.separator + FileDefaults.PACKAGE_JSON_FILENAME}')"
       )
       .action((x, c) => c.copy(packageJsonLocation = x))
       .validate(path => {

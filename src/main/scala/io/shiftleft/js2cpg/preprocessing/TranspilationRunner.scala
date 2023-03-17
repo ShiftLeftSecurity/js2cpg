@@ -119,10 +119,10 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
     DEPS_TO_KEEP.exists(dep.startsWith) && !dep.contains("eslint")
 
   private def withTemporaryPackageJson(workUnit: () => Unit): Unit = {
-    val packageJson = File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME
+    val packageJson = File(projectPath) / FileDefaults.PACKAGE_JSON_FILENAME
     if (config.optimizeDependencies && packageJson.exists) {
       // move config files out of the way
-      PackageJsonParser.PROJECT_CONFIG_FILES
+      FileDefaults.PROJECT_CONFIG_FILES
         .map(File(projectPath, _))
         .filter(_.exists)
         .foreach(file => file.renameTo(file.pathAsString + ".bak"))
@@ -163,13 +163,13 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
       workUnit()
 
       // remove freshly created files from transpiler runs
-      PackageJsonParser.PROJECT_CONFIG_FILES.map(File(projectPath, _)).foreach(_.delete(swallowIOExceptions = true))
+      FileDefaults.PROJECT_CONFIG_FILES.map(File(projectPath, _)).foreach(_.delete(swallowIOExceptions = true))
 
       // restore the original package.json
       packageJson.writeText(originalContent)
 
       // restore config files
-      PackageJsonParser.PROJECT_CONFIG_FILES
+      FileDefaults.PROJECT_CONFIG_FILES
         .map(f => File(projectPath, f + ".bak"))
         .filter(_.exists)
         .foreach(file => file.renameTo(file.pathAsString.stripSuffix(".bak")))
