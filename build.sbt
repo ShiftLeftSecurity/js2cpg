@@ -96,7 +96,7 @@ lazy val commonSettings = Seq(
     "com.fasterxml.jackson.core" % "jackson-databind"  % "2.14.1",
     "com.atlassian.sourcemap"    % "sourcemap"         % "2.0.0",
     "commons-io"                 % "commons-io"        % "2.11.0",
-    "org.slf4j"                  % "slf4j-api"         % "2.0.6",
+    "org.slf4j"                  % "slf4j-api"         % "2.0.7",
     "org.apache.logging.log4j"   % "log4j-slf4j2-impl" % "2.20.0"     % Optional,
     "org.apache.logging.log4j"   % "log4j-core"        % "2.20.0"     % Optional,
     "io.joern"                  %% "x2cpg"             % joernVersion % Test classifier "tests",
