@@ -4,6 +4,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import scala.sys.process.{Process, ProcessLogger}
 import scala.util.{Failure, Success, Try}
 import scala.jdk.CollectionConverters._
+import org.apache.commons.lang.StringUtils
 
 object ExternalCommand {
 
@@ -19,7 +20,7 @@ object ExternalCommand {
     val processLogger = ProcessLogger(stdOutOutput.add, stdErrOutput.add)
     val commands      = command.split(COMMAND_AND).toSeq
     commands.map { cmd =>
-      val cmdWithQuotesAroundDir = cmd.replaceAll(inDir, s"'$inDir'")
+      val cmdWithQuotesAroundDir = StringUtils.replace(cmd, inDir, s"'$inDir'")
       Try(Process(cmdWithQuotesAroundDir, dir, extraEnv.toList: _*).!(processLogger)).getOrElse(1)
     }.sum match {
       case 0 =>
