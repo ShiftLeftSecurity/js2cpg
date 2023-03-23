@@ -1,14 +1,14 @@
 package io.shiftleft.js2cpg.core
 
+import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.js2cpg.io.FileDefaults.VSIX_SUFFIX
 
 import java.io.File
 import java.nio.file.{Path, Paths}
-import io.shiftleft.js2cpg.io.FileUtils
-import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler
+import io.shiftleft.utils.IOUtils
 
-import scala.util.{Try, Failure, Success}
+import scala.util.{Failure, Success, Try}
 import scala.util.matching.Regex
 
 object Config {
@@ -27,7 +27,7 @@ object Config {
   val DEFAULT_IGNORE_TESTS: Boolean                     = true
   val DEFAULT_IGNORE_PRIVATE_DEPS: Boolean              = false
   val DEFAULT_PRIVATE_DEPS: Seq[String]                 = Seq.empty
-  val DEFAULT_INCLUDE_CONFIGS: Boolean                  = false
+  val DEFAULT_INCLUDE_CONFIGS: Boolean                  = true
   val DEFAULT_INCLUDE_HTML: Boolean                     = true
   val DEFAULT_JVM_METRICS: Option[Int]                  = None
   val DEFAULT_MODULE_MODE: Option[String]               = None
@@ -44,7 +44,7 @@ case class Config(
   vueTranspiling: Boolean = Config.DEFAULT_VUE_TRANSPILING,
   nuxtTranspiling: Boolean = Config.DEFAULT_NUXT_TRANSPILING,
   templateTranspiling: Boolean = Config.DEFAULT_TEMPLATE_TRANSPILING,
-  packageJsonLocation: String = PackageJsonParser.PACKAGE_JSON_FILENAME,
+  packageJsonLocation: String = FileDefaults.PACKAGE_JSON_FILENAME,
   outputFile: String = Config.DEFAULT_CPG_OUT_FILE,
   withTsTypes: Boolean = Config.DEFAULT_TS_TYPES,
   ignoredFilesRegex: Regex = Config.DEFAULT_IGNORED_FILES_REGEX,
@@ -80,7 +80,7 @@ case class Config(
 
   def withLoadedIgnores(): Config = {
     val slIngoreFilePath = Paths.get(srcDir, Config.SL_IGNORE_FILE)
-    Try(FileUtils.readLinesInFile(slIngoreFilePath)) match {
+    Try(IOUtils.readLinesInFile(slIngoreFilePath)) match {
       case Failure(_) => this
       case Success(lines) =>
         this.copy(ignoredFiles = ignoredFiles ++ lines.map(createPathForIgnore))

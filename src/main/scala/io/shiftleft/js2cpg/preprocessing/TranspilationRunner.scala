@@ -10,6 +10,7 @@ import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.js2cpg.io.FileDefaults._
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.parser.PackageJsonParser
+import io.shiftleft.utils.IOUtils
 import org.slf4j.LoggerFactory
 
 import java.nio.file.{Path, StandardCopyOption}
@@ -23,7 +24,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
 
   private val transpilers: Seq[Transpiler] = createTranspilers()
 
-  private val DEPS_TO_KEEP: List[String] = List("@vue", "vue", "nuxt", "eslint", "@typescript-eslint")
+  private val DEPS_TO_KEEP: List[String] = List("@vue", "vue", "nuxt")
 
   private def createTranspilers(): Seq[Transpiler] = {
     // We always run the following transpilers by default when not stated otherwise in the Config.
@@ -55,7 +56,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
 
   private def extractNpmRcModules(npmrc: File): Seq[String] = {
     if (npmrc.exists) {
-      val npmrcContent = FileUtils.readLinesInFile(npmrc.path)
+      val npmrcContent = IOUtils.readLinesInFile(npmrc.path)
       npmrcContent.collect {
         case line if line.contains(FileDefaults.REGISTRY_MARKER) =>
           line.substring(0, line.indexOf(FileDefaults.REGISTRY_MARKER))
@@ -114,17 +115,20 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
     }
   }
 
+  private def shouldKeepDependency(dep: String): Boolean =
+    DEPS_TO_KEEP.exists(dep.startsWith) && !dep.contains("eslint")
+
   private def withTemporaryPackageJson(workUnit: () => Unit): Unit = {
-    val packageJson = File(projectPath) / PackageJsonParser.PACKAGE_JSON_FILENAME
+    val packageJson = File(projectPath) / FileDefaults.PACKAGE_JSON_FILENAME
     if (config.optimizeDependencies && packageJson.exists) {
       // move config files out of the way
-      PackageJsonParser.PROJECT_CONFIG_FILES
+      FileDefaults.PROJECT_CONFIG_FILES
         .map(File(projectPath, _))
         .filter(_.exists)
         .foreach(file => file.renameTo(file.pathAsString + ".bak"))
 
       // create a temporary package.json without dependencies
-      val originalContent = FileUtils.readLinesInFile(packageJson.path).mkString("\n")
+      val originalContent = IOUtils.readLinesInFile(packageJson.path).mkString("\n")
       val mapper          = new ObjectMapper()
       val json            = mapper.readTree(PackageJsonParser.removeComments(originalContent))
       val jsonObject      = json.asInstanceOf[ObjectNode]
@@ -137,11 +141,11 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
               .fieldNames()
               .asScala
               .toSet
-              .filterNot(f => DEPS_TO_KEEP.exists(f.startsWith))
+              .filterNot(shouldKeepDependency)
             fieldsToRemove.foreach(depNode.remove)
           case Some(depNode: ArrayNode) =>
             val allFields         = depNode.elements().asScala.toSet
-            val fieldsToRemove    = allFields.filterNot(f => DEPS_TO_KEEP.exists(f.asText().startsWith))
+            val fieldsToRemove    = allFields.filterNot(f => shouldKeepDependency(f.asText()))
             val remainingElements = allFields -- fieldsToRemove
             depNode.removeAll()
             remainingElements.foreach(depNode.add)
@@ -151,6 +155,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
       // remove project specific engine restrictions and script hooks
       jsonObject.remove("engines")
       jsonObject.remove("scripts")
+      jsonObject.remove("comments")
 
       packageJson.writeText(mapper.writeValueAsString(json))
 
@@ -158,13 +163,13 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
       workUnit()
 
       // remove freshly created files from transpiler runs
-      PackageJsonParser.PROJECT_CONFIG_FILES.map(File(projectPath, _)).foreach(_.delete(swallowIOExceptions = true))
+      FileDefaults.PROJECT_CONFIG_FILES.map(File(projectPath, _)).foreach(_.delete(swallowIOExceptions = true))
 
       // restore the original package.json
       packageJson.writeText(originalContent)
 
       // restore config files
-      PackageJsonParser.PROJECT_CONFIG_FILES
+      FileDefaults.PROJECT_CONFIG_FILES
         .map(f => File(projectPath, f + ".bak"))
         .filter(_.exists)
         .foreach(file => file.renameTo(file.pathAsString.stripSuffix(".bak")))

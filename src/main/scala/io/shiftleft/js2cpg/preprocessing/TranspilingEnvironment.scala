@@ -2,7 +2,7 @@ package io.shiftleft.js2cpg.preprocessing
 
 import better.files.File
 import io.shiftleft.js2cpg.io.ExternalCommand
-import io.shiftleft.js2cpg.parser.PackageJsonParser
+import io.shiftleft.js2cpg.io.FileDefaults
 import org.slf4j.LoggerFactory
 
 import java.nio.file.Path
@@ -79,7 +79,7 @@ trait TranspilingEnvironment {
         logger.debug(s"\t+ pnpm is available: $result")
         true
       case Failure(_) =>
-        logger.error("\t- pnpm is not installed. Transpiling sources will not be available.")
+        logger.debug("\t- pnpm is not installed.")
         false
     }
   }
@@ -91,7 +91,7 @@ trait TranspilingEnvironment {
         logger.debug(s"\t+ yarn is available: $result")
         true
       case Failure(_) =>
-        logger.error("\t- yarn is not installed. Transpiling sources will not be available.")
+        logger.debug("\t- yarn is not installed.")
         false
     }
   }
@@ -139,11 +139,11 @@ trait TranspilingEnvironment {
   protected def pnpmAvailable(dir: Path): Boolean = isPnpmAvailable match {
     case Some(value) =>
       val hasLockFile =
-        anyLockFileExists(dir, List(PackageJsonParser.PNPM_LOCK_FILENAME_BAK, PackageJsonParser.PNPM_LOCK_FILENAME))
+        anyLockFileExists(dir, List(FileDefaults.PNPM_LOCK_FILENAME_BAK, FileDefaults.PNPM_LOCK_FILENAME))
       value && hasLockFile
     case None =>
       val hasLockFile =
-        anyLockFileExists(dir, List(PackageJsonParser.PNPM_LOCK_FILENAME_BAK, PackageJsonParser.PNPM_LOCK_FILENAME))
+        anyLockFileExists(dir, List(FileDefaults.PNPM_LOCK_FILENAME_BAK, FileDefaults.PNPM_LOCK_FILENAME))
       isPnpmAvailable = Some(hasLockFile && checkForPnpm())
       isPnpmAvailable.get
   }
@@ -152,10 +152,8 @@ trait TranspilingEnvironment {
     case Some(value) =>
       value
     case None =>
-      val hasLockFile = anyLockFileExists(
-        projectPath,
-        List(PackageJsonParser.YARN_LOCK_FILENAME_BAK, PackageJsonParser.YARN_LOCK_FILENAME)
-      )
+      val hasLockFile =
+        anyLockFileExists(projectPath, List(FileDefaults.YARN_LOCK_FILENAME_BAK, FileDefaults.YARN_LOCK_FILENAME))
       isYarnAvailable = Some(hasLockFile && checkForYarn())
       isYarnAvailable.get
   }

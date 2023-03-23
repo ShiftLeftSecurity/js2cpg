@@ -3,6 +3,7 @@ package io.shiftleft.js2cpg.preprocessing
 import better.files.File
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.ExternalCommand
+import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.js2cpg.io.FileDefaults.VUE_SUFFIX
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.parser.PackageJsonParser
@@ -19,7 +20,7 @@ object VueTranspiler {
   def isVueProject(config: Config, projectPath: Path): Boolean = {
     val hasVueDep =
       PackageJsonParser
-        .dependencies((File(config.srcDir) / PackageJsonParser.PACKAGE_JSON_FILENAME).path)
+        .dependencies((File(config.srcDir) / FileDefaults.PACKAGE_JSON_FILENAME).path)
         .contains("vue")
     hasVueDep && hasVueFiles(config, projectPath)
   }
@@ -39,8 +40,12 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
   override def shouldRun(): Boolean = config.vueTranspiling && isVueProject(config, projectPath)
 
   private def nodeOptions(): Map[String, String] = {
-    // TODO: keep this until https://github.com/webpack/webpack/issues/14532 is fixed
-    if (nodeVersion().exists(v => v.startsWith("v17") || v.startsWith("v18") || v.startsWith("v19"))) {
+    // TODO: keep this until https://github.com/webpack/webpack/issues/14532 is fixed.
+    // This hack is not required on MacOS.
+    if (
+      !scala.util.Properties.isMac &&
+      nodeVersion().exists(v => v.startsWith("v17") || v.startsWith("v18") || v.startsWith("v19"))
+    ) {
       Map("NODE_OPTIONS" -> "--openssl-legacy-provider")
     } else {
       Map.empty

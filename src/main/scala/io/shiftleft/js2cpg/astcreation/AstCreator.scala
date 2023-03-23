@@ -230,8 +230,13 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
           val paramName    = param.getName
           val localParamId = createIdentifierNode(paramName, param)
           val paramId      = createIdentifierNode(name, param)
-          val keyId        = astNodeBuilder.createFieldIdentifierNode(paramName, param)
-          val accessId     = astNodeBuilder.createFieldAccessNode(paramId, keyId, astNodeBuilder.lineAndColumn(param))
+          scope.addVariableReference(name, paramId)
+
+          val localParamLocal = astNodeBuilder.createLocalNode(paramName, Defines.ANY.label)
+          addLocalToAst(localParamLocal)
+          scope.addVariable(paramName, localParamLocal, MethodScope)
+          val keyId    = astNodeBuilder.createFieldIdentifierNode(paramName, param)
+          val accessId = astNodeBuilder.createFieldAccessNode(paramId, keyId, astNodeBuilder.lineAndColumn(param))
           val assignmentCallId =
             astNodeBuilder.createAssignmentNode(localParamId, accessId, astNodeBuilder.lineAndColumn(param))
           astEdgeBuilder.addAstEdge(assignmentCallId, blockId, blockOrder)
@@ -254,13 +259,9 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     astNodeBuilder.createParameterInNode(name, code, methodId, parameter, new OrderTracker(index))
     initStatement match {
       case Some(initExpr: VarNode) =>
-        val paramName = initExpr.getName.getName
-
+        val paramName    = initExpr.getName.getName
         val localParamId = createIdentifierNode(paramName, initExpr)
-
-        val rhs =
-          createRhsForConditionalParameterInit(initExpr.getAssignmentSource, name, initExpr)
-
+        val rhs          = createRhsForConditionalParameterInit(initExpr.getAssignmentSource, name, initExpr)
         val assignmentCallId =
           astNodeBuilder.createAssignmentNode(localParamId, rhs, astNodeBuilder.lineAndColumn(initExpr))
         astEdgeBuilder.addAstEdge(assignmentCallId, blockId, blockOrder)
@@ -269,14 +270,14 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
           convertDestructingAssignment(initExpr.getExpression.asInstanceOf[BinaryNode], Some(name))
         astEdgeBuilder.addAstEdge(destructingAssignmentId, blockId, blockOrder)
       case None =>
-        val paramName = name
-
-        val localParam = astNodeBuilder.createLocalNode(paramName, Defines.ANY.label)
-        addLocalToAst(localParam)
-
-        val localParamId = createIdentifierNode(paramName, parameter)
+        val paramName       = name
+        val localParamId    = createIdentifierNode(paramName, parameter)
+        val localParamLocal = astNodeBuilder.createLocalNode(paramName, Defines.ANY.label)
+        addLocalToAst(localParamLocal)
+        scope.addVariable(paramName, localParamLocal, MethodScope)
 
         val paramId = createIdentifierNode(name, parameter)
+        scope.addVariableReference(name, paramId)
 
         val keyId = astNodeBuilder.createFieldIdentifierNode(paramName, parameter)
 

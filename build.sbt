@@ -1,5 +1,5 @@
-val cpgVersion   = "1.3.587"
-val joernVersion = "1.1.1406"
+val cpgVersion   = "1.3.592"
+val joernVersion = "1.1.1442"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
@@ -17,7 +17,7 @@ Global / excludeLintKeys += gitCommitString
 
 lazy val commonSettings = Seq(
   scalaVersion       := "2.13.10",
-  crossScalaVersions := Seq("2.13.10", "3.2.1"),
+  crossScalaVersions := Seq("2.13.10", "3.2.2"),
   organization       := "io.shiftleft",
   scalacOptions ++= Seq(
   ) ++ (
@@ -91,14 +91,14 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     "io.shiftleft"              %% "codepropertygraph" % cpgVersion,
     "io.joern"                  %% "x2cpg"             % joernVersion,
-    ("com.github.pathikrit"     %% "better-files"      % "3.9.1").cross(CrossVersion.for3Use2_13),
     "com.github.scopt"          %% "scopt"             % "4.1.0",
     "org.graalvm.js"             % "js"                % "22.0.0.2",
     "com.fasterxml.jackson.core" % "jackson-databind"  % "2.14.2",
     "com.atlassian.sourcemap"    % "sourcemap"         % "2.0.0",
     "commons-io"                 % "commons-io"        % "2.11.0",
-    "org.slf4j"                  % "slf4j-api"         % "1.7.36",
-    "org.apache.logging.log4j"   % "log4j-slf4j-impl"  % "2.18.0"     % Runtime,
+    "org.slf4j"                  % "slf4j-api"         % "2.0.7",
+    "org.apache.logging.log4j"   % "log4j-slf4j2-impl" % "2.20.0"     % Optional,
+    "org.apache.logging.log4j"   % "log4j-core"        % "2.20.0"     % Optional,
     "io.joern"                  %% "x2cpg"             % joernVersion % Test classifier "tests",
     "org.scalatest"             %% "scalatest"         % "3.2.15"     % Test
   )

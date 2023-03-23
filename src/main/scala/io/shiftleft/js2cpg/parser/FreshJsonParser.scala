@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler
+import io.shiftleft.utils.IOUtils
 
 import scala.collection.concurrent.TrieMap
 import scala.util.Try
@@ -29,17 +30,14 @@ object FreshJsonParser {
     dropped.substring(dropped.lastIndexOf("@") + 1, dropped.length)
   }
 
-  def findImportMapPaths(config: Config, includeDenoConfig: Boolean): Set[Path] = {
+  def findImportMapPaths(config: Config): Set[Path] = {
     val objectMapper = new ObjectMapper
     FileUtils
       .getFileTree(Paths.get(config.srcDir), config, List(".json"))
       .filter(_.endsWith(TypescriptTranspiler.DENO_CONFIG))
       .flatMap { file =>
-        val packageJson = objectMapper.readTree(Files.readAllBytes(file))
-        val importMap   = Option(packageJson.path("importMap").asText()).map(file.resolveSibling)
-
-        if (includeDenoConfig) Iterable(file) ++ importMap
-        else importMap
+        val packageJson = objectMapper.readTree(IOUtils.readLinesInFile(file).mkString)
+        Option(packageJson.path("importMap").asText()).map(file.resolveSibling)
       }
       .filter(Files.exists(_))
       .toSet
@@ -49,22 +47,16 @@ object FreshJsonParser {
     cachedDependencies.getOrElseUpdate(
       freshJsonPath, {
         val deps = Try {
-          val content      = FileUtils.readLinesInFile(freshJsonPath).mkString("\n")
-          val objectMapper = new ObjectMapper
-          val json         = objectMapper.readTree(content)
-
-          var depToVersion = Map.empty[String, String]
+          val content = IOUtils.readLinesInFile(freshJsonPath).mkString
+          val json    = new ObjectMapper().readTree(content)
           val dependencyIt = Option(json.get("imports"))
             .map(_.fields().asScala)
             .getOrElse(Iterator.empty)
-          dependencyIt.foreach {
-            case entry if entry.getKey.startsWith("@") => // ignored
-            case entry =>
-              depToVersion = depToVersion.updated(cleanKey(entry.getKey), extractVersion(entry.getValue.asText()))
-          }
-          depToVersion
+          dependencyIt.collect {
+            case entry if !entry.getKey.startsWith("@") =>
+              cleanKey(entry.getKey) -> extractVersion(entry.getValue.asText())
+          }.toMap
         }.toOption
-
         if (deps.isDefined) {
           logger.debug(s"Loaded dependencies from '$freshJsonPath'.")
           deps.get

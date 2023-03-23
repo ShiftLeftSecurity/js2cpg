@@ -91,8 +91,6 @@ class Js2Cpg {
     }
   }
 
-  private def isInCi: Boolean = sys.env.get("CI").contains("true")
-
   private def collectJsFiles(jsFiles: List[(Path, Path)], dir: Path, config: Config): List[(Path, Path)] = {
     val transpiledJsFiles = FileUtils
       .getFileTree(dir, config, List(JS_SUFFIX, MJS_SUFFIX))
@@ -164,12 +162,8 @@ class Js2Cpg {
     logger.info(s"Generating CPG from Javascript sources in: '$absoluteProjectPath'")
     logger.debug(s"Configuration:$configWithAbsolutProjectPath")
 
-    if (isInCi) {
-      prepareAndGenerateCpg(project, File(absoluteProjectPath), configWithAbsolutProjectPath)
-    } else {
-      File.usingTemporaryDirectory(project.name) { tmpProjectDir =>
-        prepareAndGenerateCpg(project, tmpProjectDir, configWithAbsolutProjectPath)
-      }
+    File.usingTemporaryDirectory(project.name) { tmpProjectDir =>
+      prepareAndGenerateCpg(project, tmpProjectDir, configWithAbsolutProjectPath)
     }
 
     logger.info("Generation of CPG is complete.")
@@ -196,12 +190,9 @@ class Js2Cpg {
       new ConfigPass(configFiles(config, List(HTML_SUFFIX)), cpg, report).createAndApply()
     }
 
-    val freshJsons = FreshJsonParser.findImportMapPaths(config, includeDenoConfig = true).map(_.normalize)
-
-    val cfgFiles =
-      configFiles(config, CONFIG_FILES)
-        .filter(p => config.includeConfigs || freshJsons.contains(p._1.normalize))
-    new ConfigPass(cfgFiles, cpg, report).createAndApply()
+    if (config.includeConfigs) {
+      new ConfigPass(configFiles(config, CONFIG_FILES), cpg, report).createAndApply()
+    }
 
     cpg.close()
   }
