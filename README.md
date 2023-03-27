@@ -7,7 +7,7 @@ This is a [CPG](https://docs.joern.io/code-property-graph/) frontend based on Ja
 ## Setup
 
 Requirements:
-- \>= JDK 8. We recommend OpenJDK 8 or AdoptJDK 8.
+- \>= JDK 8. We recommend OpenJDK 11 or AdoptJDK 11.
 - sbt (https://www.scala-sbt.org/)
 
 ## Installation
