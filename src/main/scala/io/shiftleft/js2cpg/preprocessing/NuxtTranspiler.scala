@@ -1,6 +1,7 @@
 package io.shiftleft.js2cpg.preprocessing
 
 import better.files.File
+import io.joern.x2cpg.SourceFiles
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileDefaults.JS_SUFFIX
 import io.shiftleft.js2cpg.io.{ExternalCommand, FileUtils}
@@ -27,11 +28,11 @@ object NuxtTranspiler {
 
   def collectJsFiles(dir: Path, config: Config): List[(Path, Path)] = {
     if (wasExecuted) {
-      val nuxtFolder     = dir.resolve(NUXT_FOLDER)
-      val nuxtDistFolder = nuxtFolder.resolve("dist")
-      FileUtils
-        .getFileTree(nuxtFolder, config.copy(ignoredFiles = config.ignoredFiles :+ nuxtDistFolder), List(JS_SUFFIX))
-        .map(f => (f, dir))
+      val nuxtFolder       = dir.resolve(NUXT_FOLDER)
+      val nuxtServerFolder = File(nuxtFolder, "dist", "server").path
+      val files            = FileUtils.getFileTree(nuxtFolder, config, List(JS_SUFFIX)).map(f => (f, dir))
+      val serverFiles = SourceFiles.determine(nuxtServerFolder.toString, Set(JS_SUFFIX)).map(f => (Paths.get(f), dir))
+      files ++ serverFiles
     } else { Nil }
   }
 }
@@ -51,7 +52,7 @@ class NuxtTranspiler(override val config: Config, override val projectPath: Path
   override def shouldRun(): Boolean = config.nuxtTranspiling && isNuxtProject
 
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
-    val command = s"${ExternalCommand.toOSCommand(nuxt)} --force-exit"
+    val command = s"${ExternalCommand.toOSCommand(nuxt)} generate --force-exit"
     logger.debug(s"\t+ Nuxt.js transpiling $projectPath")
     ExternalCommand.run(command, projectPath.toString) match {
       case Success(_) =>

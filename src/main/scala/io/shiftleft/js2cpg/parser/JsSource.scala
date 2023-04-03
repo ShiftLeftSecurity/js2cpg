@@ -83,11 +83,14 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
   }
 
   private def constructSourceFilePath(sourceFileName: String): File = sourceFileName match {
-    case _
-        if absoluteFilePath
-          .contains(NuxtTranspiler.NUXT_FOLDER) && srcDir.path.compareTo(projectDir) == 0 =>
+    case _ if absoluteFilePath.contains(NuxtTranspiler.NUXT_FOLDER) && srcDir.path.compareTo(projectDir) == 0 =>
       // For nuxt-js transpilation we have the same src and project dir and we need some special handling here
-      File(absoluteFilePath).parent / sourceFileName
+      if (sourceFileName.startsWith(WEBPACK_PREFIX)) {
+        val replacedName = FileUtils.cleanPath(sourceFileName.replace(WEBPACK_PREFIX, ""))
+        srcDir / replacedName.substring(replacedName.indexOf("/") + 1)
+      } else {
+        File(absoluteFilePath).parent / sourceFileName
+      }
     case _ if sourceFileName.startsWith(WEBPACK_PREFIX) =>
       // Additionally, source map files coming from webpack (e.g., from Vue transpilation) are somewhat hidden
       val replacedName = sourceFileName.replace(WEBPACK_PREFIX, "")
@@ -131,7 +134,11 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
           // but is not delivered and still referenced in the source map
           // (fix for: https://github.com/ShiftLeftSecurity/product/issues/4994)
           val sourceFile = sourceFileNames
-            .find(_.toLowerCase.endsWith(File(absoluteFilePath).nameWithoutExtension + VUE_SUFFIX))
+            .find { f =>
+              val fAsVue = File(absoluteFilePath).nameWithoutExtension + VUE_SUFFIX
+              val fAsJs  = File(absoluteFilePath).nameWithoutExtension + JS_SUFFIX
+              f.toLowerCase.endsWith(fAsVue) || f.endsWith(s"/$fAsJs")
+            }
             .orElse(sourceFileNames.headOption)
 
           sourceFile.flatMap { sourceFileName =>
