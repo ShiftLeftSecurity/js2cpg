@@ -49,6 +49,26 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         }
       }
 
+    "generate js files correctly for a simple Babel project in folder with whitespace" in
+      TranspilationFixture("babel") { tmpDir =>
+        File.usingTemporaryDirectory("js2cpgTest folder") { transpileOutDir =>
+          val config = Config(srcDir = transpileOutDir.pathAsString, tsTranspiling = false)
+
+          new TranspilationRunner(tmpDir.path, transpileOutDir.path, config).execute()
+
+          val transpiledJsFiles = FileUtils
+            .getFileTree(transpileOutDir.path, config, List(JS_SUFFIX))
+            .map(f => (f, transpileOutDir.path))
+
+          val expectedJsFiles = List(((transpileOutDir / "foo.js").path, transpileOutDir.path))
+          transpiledJsFiles should contain theSameElementsAs expectedJsFiles
+
+          transpiledJsFiles
+            .map(f => File(f._1).contentAsString.stripLineEnd)
+            .mkString should endWith("//# sourceMappingURL=foo.js.map")
+        }
+      }
+
     "contain correctly re-mapped code fields in simple Babel project" in
       TranspilationFixture("babel") { tmpDir =>
         val cpgPath = tmpDir / "cpg.bin.zip"

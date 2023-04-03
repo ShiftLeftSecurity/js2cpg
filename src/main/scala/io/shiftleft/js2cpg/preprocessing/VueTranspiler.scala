@@ -86,8 +86,8 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
     if (installVuePlugins()) {
       createCustomBrowserslistFile()
-      val command = s"${ExternalCommand.toOSCommand(vue)} build --dest $tmpTranspileDir --mode development --no-clean"
-      logger.debug(s"\t+ Vue.js transpiling $projectPath to $tmpTranspileDir")
+      val command = s"${ExternalCommand.toOSCommand(vue)} build --dest '$tmpTranspileDir' --mode development --no-clean"
+      logger.debug(s"\t+ Vue.js transpiling $projectPath to '$tmpTranspileDir'")
       ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
         case Success(_)         => logger.debug("\t+ Vue.js transpiling finished")
         case Failure(exception) => logger.debug("\t- Vue.js transpiling failed", exception)
