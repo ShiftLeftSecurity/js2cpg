@@ -42,8 +42,8 @@ class PugTranspiler(override val config: Config, override val projectPath: Path)
 
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
     if (installPugPlugins()) {
-      val command = s"${ExternalCommand.toOSCommand(pug)} --client --no-debug --out $tmpTranspileDir ."
-      logger.debug(s"\t+ transpiling Pug templates in $projectPath to $tmpTranspileDir")
+      val command = s"${ExternalCommand.toOSCommand(pug)} --client --no-debug --out '$tmpTranspileDir' ."
+      logger.debug(s"\t+ transpiling Pug templates in $projectPath to '$tmpTranspileDir'")
       ExternalCommand.run(command, projectPath.toString) match {
         case Success(_) =>
           logger.debug("\t+ transpiling Pug templates finished")

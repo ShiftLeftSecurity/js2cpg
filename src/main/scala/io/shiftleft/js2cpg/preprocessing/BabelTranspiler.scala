@@ -46,8 +46,8 @@ class BabelTranspiler(
       "--no-babelrc " +
       s"--source-root '${in.toString}' " +
       "--source-maps true " + babelPresets + babelPlugins +
-      s"--out-dir $outDir $constructIgnoreDirArgs"
-    logger.debug(s"\t+ Babel transpiling $projectPath to $outDir with command '$command'")
+      s"--out-dir '$outDir' $constructIgnoreDirArgs"
+    logger.debug(s"\t+ Babel transpiling '$projectPath' to '$outDir' with command '$command'")
     ExternalCommand.run(command, in.toString) match {
       case Success(_)         => logger.debug("\t+ Babel transpiling finished")
       case Failure(exception) => logger.debug("\t- Babel transpiling failed", exception)
