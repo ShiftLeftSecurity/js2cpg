@@ -37,7 +37,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
   private val sourceMap        = sourceMapOrigin()
 
   private val (positionToLineNumberMapping, positionToFirstPositionInLineMapping) =
-    FileUtils.positionLookupTables(source.getString)
+    FileUtils.positionLookupTables(source.getContent)
 
   private case class SourceMapOrigin(
     sourceFilePath: Path,

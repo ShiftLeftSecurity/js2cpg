@@ -172,7 +172,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
             }
           }
         case module =>
-          astNodeBuilder.createDependencyNode(module.getValue, groupId, VERSION_IMPORT)
+          astNodeBuilder.createDependencyNode(module.getString, groupId, VERSION_IMPORT)
           createImportNodeAndAttachToAst(importNode)
       }
     }
@@ -1134,20 +1134,20 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
       case arrayLiteralNode: ArrayLiteralNode =>
         createArrayLiteralNode(arrayLiteralNode)
       case _ =>
-        val (code, dynamicTypeOption) = literalNode.getObject match {
-          case bool: java.lang.Boolean =>
+        val (code, dynamicTypeOption) = literalNode match {
+          case bool if literalNode.getValue.isInstanceOf[Boolean] =>
             // For boolean nodes we here enforce that we get a "true" or "false".
             // This is required because source.getCode(literalNode) can be an empty string
             // for constructs like: for(;;)
-            (bool.toString, Some(Defines.BOOLEAN.label))
-          case stringValue: String =>
+            (bool.getString, Some(Defines.BOOLEAN.label))
+          case string if literalNode.isString =>
             // Some string values are artificially created and thus source.getCode() would
             // result in misleading code fields.
-            ("\"" + stringValue + "\"", Some(Defines.STRING.label))
-          case null =>
+            ("\"" + string.getString + "\"", Some(Defines.STRING.label))
+          case _ if literalNode.getValue == null =>
             ("null", Some(Defines.NULL.label))
           case obj =>
-            (obj.toString, None)
+            (obj.getString, None)
         }
         astNodeBuilder.createLiteralNode(code, astNodeBuilder.lineAndColumn(literalNode), dynamicTypeOption)
     }
