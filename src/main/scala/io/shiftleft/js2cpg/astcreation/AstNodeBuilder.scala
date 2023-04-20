@@ -40,8 +40,8 @@ class AstNodeBuilder(
 
   def groupIdFromImportNode(importNode: ImportNode): String = {
     importNode.getFrom match {
-      case null => importNode.getModuleSpecifier.getValue
-      case from => from.getModuleSpecifier.getValue
+      case null => importNode.getModuleSpecifier.getString
+      case from => from.getModuleSpecifier.getString
     }
   }
 
