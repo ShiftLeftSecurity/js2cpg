@@ -93,7 +93,7 @@ lazy val commonSettings = Seq(
     "io.joern"                  %% "x2cpg"             % joernVersion,
     "com.github.scopt"          %% "scopt"             % "4.1.0",
     "org.graalvm.js"             % "js"                % "22.3.2",
-    "com.fasterxml.jackson.core" % "jackson-databind"  % "2.14.2",
+    "com.fasterxml.jackson.core" % "jackson-databind"  % "2.14.3",
     "com.atlassian.sourcemap"    % "sourcemap"         % "2.0.0",
     "commons-io"                 % "commons-io"        % "2.11.0",
     "org.slf4j"                  % "slf4j-api"         % "2.0.7",
