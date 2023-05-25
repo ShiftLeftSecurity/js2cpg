@@ -95,7 +95,7 @@ lazy val commonSettings = Seq(
     "org.graalvm.js"             % "js"                % "22.3.2",
     "com.fasterxml.jackson.core" % "jackson-databind"  % "2.14.2",
     "com.atlassian.sourcemap"    % "sourcemap"         % "2.0.0",
-    "commons-io"                 % "commons-io"        % "2.11.0",
+    "commons-io"                 % "commons-io"        % "2.12.0",
     "org.slf4j"                  % "slf4j-api"         % "2.0.7",
     "org.apache.logging.log4j"   % "log4j-slf4j2-impl" % "2.20.0"     % Optional,
     "org.apache.logging.log4j"   % "log4j-core"        % "2.20.0"     % Optional,
