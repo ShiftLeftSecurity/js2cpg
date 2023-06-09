@@ -53,6 +53,7 @@ trait TranspilingEnvironment {
       "@babel/preset-typescript"                           -> "7.18.6",
       "@babel/plugin-proposal-class-properties"            -> "7.18.6",
       "@babel/plugin-proposal-private-methods"             -> "7.18.6",
+      "@babel/plugin-proposal-private-property-in-object"  -> "7.21.11",
       "@babel/plugin-proposal-object-rest-spread"          -> "7.20.2",
       "@babel/plugin-proposal-nullish-coalescing-operator" -> "7.18.6",
       "@babel/plugin-transform-runtime"                    -> "7.19.6",
