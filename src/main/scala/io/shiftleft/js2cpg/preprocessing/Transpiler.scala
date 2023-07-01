@@ -6,6 +6,10 @@ import java.nio.file.Path
 
 trait Transpiler extends TranspilingEnvironment {
 
+  protected val NODE_OPTIONS: Map[String, String] = Map(
+    "NODE_OPTIONS" -> s"--max_old_space_size=${TranspilingEnvironment.maxMemoryParameter}"
+  )
+
   protected val DEFAULT_IGNORED_DIRS: List[String] = List(
     "build",
     "dist",

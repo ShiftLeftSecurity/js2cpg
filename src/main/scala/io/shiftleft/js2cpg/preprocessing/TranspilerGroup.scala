@@ -25,7 +25,7 @@ case class TranspilerGroup(override val config: Config, override val projectPath
     }
     logger.info("Installing project dependencies and plugins. That will take a while.")
     logger.debug(s"\t+ Installing plugins with command '$command' in path '$projectPath'")
-    ExternalCommand.run(command, projectPath.toString) match {
+    ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
       case Success(_) =>
         logger.info("\t+ Plugins installed")
         true

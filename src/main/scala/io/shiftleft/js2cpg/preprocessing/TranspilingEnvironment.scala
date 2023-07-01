@@ -12,6 +12,11 @@ object TranspilingEnvironment {
 
   val ENV_PATH_CONTENT: String = scala.util.Properties.envOrElse("PATH", "")
 
+  lazy val maxMemoryParameter: String = {
+    val maxValueInMegabytes = Runtime.getRuntime.maxMemory / 1024 / 1024 - 512
+    maxValueInMegabytes.toString
+  }
+
   // These are singleton objects because we want to check the environment only once
   // even if multiple transpilers require this specific environment:
   private var isValid: Option[Boolean]         = None
@@ -127,6 +132,7 @@ trait TranspilingEnvironment {
     case None =>
       nodeVersion()
       isValid = Some(pnpmAvailable(dir) || yarnAvailable() || npmAvailable())
+      logger.debug(s"\t+ transpilation will run with: '${NODE_OPTIONS.mkString}'")
       isValid.get
   }
 

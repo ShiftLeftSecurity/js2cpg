@@ -33,8 +33,6 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  private val NODE_OPTIONS: Map[String, String] = Map("NODE_OPTIONS" -> "--max_old_space_size=4096")
-
   private val tsc                  = Paths.get(projectPath.toString, "node_modules", ".bin", "tsc").toString
   private val typescriptAndVersion = Versions.nameAndVersion("typescript")
 
