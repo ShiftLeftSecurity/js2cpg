@@ -12,11 +12,6 @@ object TranspilingEnvironment {
 
   val ENV_PATH_CONTENT: String = scala.util.Properties.envOrElse("PATH", "")
 
-  lazy val maxMemoryParameter: String = {
-    val maxValueInMegabytes = Runtime.getRuntime.maxMemory / 1024 / 1024 - 512
-    maxValueInMegabytes.toString
-  }
-
   // These are singleton objects because we want to check the environment only once
   // even if multiple transpilers require this specific environment:
   private var isValid: Option[Boolean]         = None

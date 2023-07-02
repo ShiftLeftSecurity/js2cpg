@@ -32,7 +32,7 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  private lazy val VUE_NODE_OPTIONS: Map[String, String] = nodeOptions()
+  private lazy val VUE_NODE_OPTIONS: Map[String, String] = nodeOptions() ++ NODE_OPTIONS
 
   private val vue           = Paths.get(projectPath.toString, "node_modules", ".bin", "vue-cli-service").toString
   private val vueAndVersion = Versions.nameAndVersion("@vue/cli-service-global")
