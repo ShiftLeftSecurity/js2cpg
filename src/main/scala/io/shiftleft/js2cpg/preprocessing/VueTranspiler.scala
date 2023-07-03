@@ -32,7 +32,7 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  private lazy val NODE_OPTIONS: Map[String, String] = nodeOptions()
+  private lazy val VUE_NODE_OPTIONS: Map[String, String] = nodeOptions()
 
   private val vue           = Paths.get(projectPath.toString, "node_modules", ".bin", "vue-cli-service").toString
   private val vueAndVersion = Versions.nameAndVersion("@vue/cli-service-global")
@@ -62,7 +62,7 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
     }
     logger.info("Installing Vue.js dependencies and plugins. That will take a while.")
     logger.debug(s"\t+ Installing Vue.js plugins with command '$command' in path '$projectPath'")
-    ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
+    ExternalCommand.run(command, projectPath.toString, extraEnv = VUE_NODE_OPTIONS) match {
       case Success(_) =>
         logger.info("\t+ Vue.js plugins installed")
         true
@@ -88,7 +88,7 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
       createCustomBrowserslistFile()
       val command = s"${ExternalCommand.toOSCommand(vue)} build --dest '$tmpTranspileDir' --mode development --no-clean"
       logger.debug(s"\t+ Vue.js transpiling $projectPath to '$tmpTranspileDir'")
-      ExternalCommand.run(command, projectPath.toString, extraEnv = NODE_OPTIONS) match {
+      ExternalCommand.run(command, projectPath.toString, extraEnv = VUE_NODE_OPTIONS) match {
         case Success(_)         => logger.debug("\t+ Vue.js transpiling finished")
         case Failure(exception) => logger.debug("\t- Vue.js transpiling failed", exception)
       }

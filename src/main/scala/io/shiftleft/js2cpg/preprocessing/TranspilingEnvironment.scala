@@ -127,6 +127,7 @@ trait TranspilingEnvironment {
     case None =>
       nodeVersion()
       isValid = Some(pnpmAvailable(dir) || yarnAvailable() || npmAvailable())
+      logger.debug(s"\t+ additional node ENV settings: '${NODE_OPTIONS.mkString}'")
       isValid.get
   }
 

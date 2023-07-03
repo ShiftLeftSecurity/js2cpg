@@ -6,6 +6,8 @@ import java.nio.file.Path
 
 trait Transpiler extends TranspilingEnvironment {
 
+  protected val NODE_OPTIONS: Map[String, String] = Map("NODE_OPTIONS" -> "--max-old-space-size=8192")
+
   protected val DEFAULT_IGNORED_DIRS: List[String] = List(
     "build",
     "dist",
