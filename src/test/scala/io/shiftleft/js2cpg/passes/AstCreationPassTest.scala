@@ -21,7 +21,6 @@ import io.shiftleft.js2cpg.io.FileDefaults.JS_SUFFIX
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.semanticcpg.language._
 import overflowdb.Node
-import overflowdb.traversal._
 
 class AstCreationPassTest extends AbstractPassTest {
 
@@ -4613,7 +4612,7 @@ class AstCreationPassTest extends AbstractPassTest {
   }
 
   private def checkObjectInitialization(node: Node, member: (String, String)): Unit = {
-    def block = Traversal.fromSingle(node)
+    def block = Iterator.single(node)
     block.checkNodeCount(1)
 
     def keyName       = member._1
@@ -4650,7 +4649,7 @@ class AstCreationPassTest extends AbstractPassTest {
   }
 
   private def checkForInOrOf(node: Node): Unit = {
-    def loopBlock = Traversal.fromSingle(node)
+    def loopBlock = Iterator.single(node)
     loopBlock.checkNodeCount(1)
 
     def localIterator =
@@ -4793,7 +4792,7 @@ class AstCreationPassTest extends AbstractPassTest {
   }
 
   private def checkLiterals(node: Node, element: Int): Unit = {
-    def pushBlock = Traversal.fromSingle(node)
+    def pushBlock = Iterator.single(node)
     def pushCall =
       pushBlock.expandAst(NodeTypes.CALL).filter(PropertyNames.CODE, s"_tmp_0.push($element)")
     pushCall.checkNodeCount(1)
