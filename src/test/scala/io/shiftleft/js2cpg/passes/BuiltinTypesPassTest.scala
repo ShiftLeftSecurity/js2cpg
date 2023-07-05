@@ -10,26 +10,24 @@ class BuiltinTypesPassTest extends AbstractPassTest {
     new BuiltinTypesPass(cpg).createAndApply()
 
     "create a '<global>' NamespaceBlock" in {
-      cpg.namespaceBlock.name.l shouldBe List(Defines.GLOBAL_NAMESPACE)
+      cpg.namespaceBlock.name.l shouldBe List(Defines.GlobalNamespace)
     }
 
     "create types and type decls correctly" in {
-      Defines.values.foreach { case typeName: Defines.Tpe =>
-        val typeNameLabel = typeName.label
-
-        val typeDeclNodes = cpg.typeDecl(typeNameLabel).l
+      Defines.JsTypes.foreach { case typeName: String =>
+        val typeDeclNodes = cpg.typeDecl(typeName).l
         typeDeclNodes should have length 1
         val typeDeclNode = typeDeclNodes.head
-        typeDeclNode.fullName shouldBe typeNameLabel
+        typeDeclNode.fullName shouldBe typeName
         typeDeclNode.isExternal shouldBe false
         typeDeclNode.filename shouldBe "builtintypes"
 
         cpg.namespaceBlock.astChildren.l should contain(typeDeclNode)
 
-        val typeNodes = cpg.typ(typeNameLabel).l
+        val typeNodes = cpg.typ(typeName).l
         typeNodes should have length 1
         val typeNode = typeNodes.head
-        typeNode.fullName shouldBe typeNameLabel
+        typeNode.fullName shouldBe typeName
       }
     }
 

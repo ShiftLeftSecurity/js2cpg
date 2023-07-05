@@ -114,7 +114,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     val fileNode = astNodeBuilder.createFileNode(fileName)
 
     val namespaceBlock =
-      astNodeBuilder.createNamespaceBlockNode(fileName + ":" + Defines.GLOBAL_NAMESPACE)
+      astNodeBuilder.createNamespaceBlockNode(fileName + ":" + Defines.GlobalNamespace)
 
     astEdgeBuilder.addAstEdge(namespaceBlock, fileNode)
     namespaceBlock
@@ -198,9 +198,9 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
       case "this" =>
         dynamicInstanceTypeStack.headOption
       case "console" =>
-        Some(Defines.CONSOLE.label)
+        Some(Defines.Console)
       case "Math" =>
-        Some(Defines.MATH.label)
+        Some(Defines.Math)
       case _ =>
         None
     }
@@ -232,7 +232,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
           val paramId      = createIdentifierNode(name, param)
           scope.addVariableReference(name, paramId)
 
-          val localParamLocal = astNodeBuilder.createLocalNode(paramName, Defines.ANY.label)
+          val localParamLocal = astNodeBuilder.createLocalNode(paramName, Defines.Any)
           addLocalToAst(localParamLocal)
           scope.addVariable(paramName, localParamLocal, MethodScope)
           val keyId    = astNodeBuilder.createFieldIdentifierNode(paramName, param)
@@ -272,7 +272,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
       case None =>
         val paramName       = name
         val localParamId    = createIdentifierNode(paramName, parameter)
-        val localParamLocal = astNodeBuilder.createLocalNode(paramName, Defines.ANY.label)
+        val localParamLocal = astNodeBuilder.createLocalNode(paramName, Defines.Any)
         addLocalToAst(localParamLocal)
         scope.addVariable(paramName, localParamLocal, MethodScope)
 
@@ -432,13 +432,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     val astParentFullName = parentNodeId.properties("FULL_NAME").toString
 
     val functionTypeDeclId =
-      astNodeBuilder.createTypeDeclNode(
-        methodName,
-        methodFullName,
-        astParentType,
-        astParentFullName,
-        Some(Defines.ANY.label)
-      )
+      astNodeBuilder.createTypeDeclNode(methodName, methodFullName, astParentType, astParentFullName, Some(Defines.Any))
     addTypeDeclToAst(functionTypeDeclId)
 
     // Problem for https://github.com/ShiftLeftSecurity/codescience/issues/3626 here.
@@ -735,12 +729,12 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
       case null =>
         // If the for condition is empty, this ensures that there is always a condition (true) present.
         val testNodeId =
-          astNodeBuilder.createLiteralNode("true", astNodeBuilder.lineAndColumn(forNode), Some(Defines.BOOLEAN.label))
+          astNodeBuilder.createLiteralNode("true", astNodeBuilder.lineAndColumn(forNode), Some(Defines.Boolean))
         testNodeId
       case testNode if testNode.getExpression == null =>
         // If the for condition is empty, this ensures that there is always a condition (true) present.
         val testNodeId =
-          astNodeBuilder.createLiteralNode("true", astNodeBuilder.lineAndColumn(forNode), Some(Defines.BOOLEAN.label))
+          astNodeBuilder.createLiteralNode("true", astNodeBuilder.lineAndColumn(forNode), Some(Defines.Boolean))
         testNodeId
       // The test of a forNode can be a JoinPredecessorExpression which does not wrap any expression.
       // This only happens for "for (x in y)" style loops.
@@ -786,7 +780,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     // _iterator assignment:
     val iteratorName =
       PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, "_iterator")
-    val iteratorLocalId = astNodeBuilder.createLocalNode(iteratorName, Defines.ANY.label)
+    val iteratorLocalId = astNodeBuilder.createLocalNode(iteratorName, Defines.Any)
     addLocalToAst(iteratorLocalId)
 
     val iteratorId = createIdentifierNode(iteratorName, forNode)
@@ -853,14 +847,14 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     // _result:
     val resultName =
       PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, "_result")
-    val resultLocalId = astNodeBuilder.createLocalNode(resultName, Defines.ANY.label)
+    val resultLocalId = astNodeBuilder.createLocalNode(resultName, Defines.Any)
     addLocalToAst(resultLocalId)
     val resultId = createIdentifierNode(resultName, forNode)
     astEdgeBuilder.addAstEdge(resultId, blockId, blockOrder)
 
     // loop variable:
     val loopVariableName    = forNode.getInit.toString()
-    val loopVariableLocalId = astNodeBuilder.createLocalNode(loopVariableName, Defines.ANY.label)
+    val loopVariableLocalId = astNodeBuilder.createLocalNode(loopVariableName, Defines.Any)
     addLocalToAst(loopVariableLocalId)
     val loopVariableId = createIdentifierNode(loopVariableName, forNode)
     astEdgeBuilder.addAstEdge(loopVariableId, blockId, blockOrder)
@@ -1068,7 +1062,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
       val tmpName =
         PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, "_tmp")
-      val localTmpId = astNodeBuilder.createLocalNode(tmpName, Defines.ANY.label)
+      val localTmpId = astNodeBuilder.createLocalNode(tmpName, Defines.Any)
       addLocalToAst(localTmpId)
 
       val tmpArrayId = createIdentifierNode(tmpName, arrayLiteralNode)
@@ -1139,13 +1133,13 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
             // For boolean nodes we here enforce that we get a "true" or "false".
             // This is required because source.getCode(literalNode) can be an empty string
             // for constructs like: for(;;)
-            (bool.getString, Some(Defines.BOOLEAN.label))
+            (bool.getString, Some(Defines.Boolean))
           case string if literalNode.isString =>
             // Some string values are artificially created and thus source.getCode() would
             // result in misleading code fields.
-            ("\"" + string.getString + "\"", Some(Defines.STRING.label))
+            ("\"" + string.getString + "\"", Some(Defines.String))
           case _ if literalNode.getValue == null =>
-            ("null", Some(Defines.NULL.label))
+            ("null", Some(Defines.Null))
           case obj =>
             (obj.getString, None)
         }
@@ -1217,7 +1211,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     val indexId = astNodeBuilder.createLiteralNode(
       parameterNode.getIndex.toString,
       astNodeBuilder.lineAndColumn(parameterNode),
-      Some(Defines.NUMBER.label)
+      Some(Defines.Number)
     )
 
     val accessId =
@@ -1287,7 +1281,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
         val (_, methodFullName) = calcMethodNameAndFullName(functionNode)
         (methodFullName, varNode.toString())
       } else {
-        (Defines.ANY.label, "")
+        (Defines.Any, "")
       }
 
     val varId = astNodeBuilder.createLocalNode(varNode.getName.getName, typeFullName)
@@ -1367,7 +1361,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     scope.pushNewBlockScope(blockId)
     localAstParentStack.push(blockId)
 
-    val localId = astNodeBuilder.createLocalNode(localTmpName, Defines.ANY.label)
+    val localId = astNodeBuilder.createLocalNode(localTmpName, Defines.Any)
     addLocalToAst(localId)
 
     val tmpId = createIdentifierNode(localTmpName, rhs)
@@ -1404,7 +1398,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
           val indexId = astNodeBuilder.createLiteralNode(
             index.toString,
             astNodeBuilder.lineAndColumn(identNode),
-            Some(Defines.NUMBER.label)
+            Some(Defines.Number)
           )
           val accessId =
             astNodeBuilder.createIndexAccessNode(fieldAccessTmpId, indexId, astNodeBuilder.lineAndColumn(identNode))
@@ -1449,7 +1443,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
             val indexId = astNodeBuilder.createLiteralNode(
               index.toString,
               astNodeBuilder.lineAndColumn(binaryNode),
-              Some(Defines.NUMBER.label)
+              Some(Defines.Number)
             )
 
             val accessId =
@@ -1473,7 +1467,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
             val indexId = astNodeBuilder.createLiteralNode(
               index.toString,
               astNodeBuilder.lineAndColumn(binaryNode),
-              Some(Defines.NUMBER.label)
+              Some(Defines.Number)
             )
 
             val accessId =
@@ -1616,7 +1610,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
     val tmpAllocName =
       PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, "_tmp")
-    val localTmpAllocId = astNodeBuilder.createLocalNode(tmpAllocName, Defines.ANY.label)
+    val localTmpAllocId = astNodeBuilder.createLocalNode(tmpAllocName, Defines.Any)
     addLocalToAst(localTmpAllocId)
 
     val tmpAllocId1 = createIdentifierNode(tmpAllocName, unaryNode)
@@ -1830,7 +1824,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
     val tmpName =
       PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, "_tmp")
-    val localId = astNodeBuilder.createLocalNode(tmpName, Defines.ANY.label)
+    val localId = astNodeBuilder.createLocalNode(tmpName, Defines.Any)
     addLocalToAst(localId)
 
     objectNode.getElements.forEach {
@@ -1912,11 +1906,8 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
                   .updateWith(closureBindingIdProperty) {
                     case None =>
                       val methodScopeNodeId = methodScope.scopeNode
-                      val localId = astNodeBuilder.createLocalNode(
-                        origin.variableName,
-                        Defines.ANY.label,
-                        Some(closureBindingIdProperty)
-                      )
+                      val localId =
+                        astNodeBuilder.createLocalNode(origin.variableName, Defines.Any, Some(closureBindingIdProperty))
                       astEdgeBuilder.addAstEdge(localId, methodScopeNodeId, 0)
                       val closureBindingId =
                         astNodeBuilder.createClosureBindingNode(closureBindingIdProperty, origin.variableName)
@@ -1952,7 +1943,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     variableName: String
   ): (NewNode, ScopeType) = {
     val varId =
-      astNodeBuilder.createLocalNode(variableName, Defines.ANY.label)
+      astNodeBuilder.createLocalNode(variableName, Defines.Any)
     astEdgeBuilder.addAstEdge(varId, methodScopeNodeId, 0)
     (varId, MethodScope)
   }

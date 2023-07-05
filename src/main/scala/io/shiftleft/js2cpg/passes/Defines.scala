@@ -1,22 +1,18 @@
 package io.shiftleft.js2cpg.passes
 
-class DefineTypes extends Enumeration {
-  type Defines = Value
+import io.shiftleft.semanticcpg.language.types.structure.NamespaceTraversal
 
-  val ANY: Tpe     = Tpe("ANY")
-  val NUMBER: Tpe  = Tpe("__ecma.Number")
-  val STRING: Tpe  = Tpe("__ecma.String")
-  val BOOLEAN: Tpe = Tpe("__ecma.Boolean")
-  val NULL: Tpe    = Tpe("__ecma.Null")
-  val MATH: Tpe    = Tpe("__ecma.Math")
-  val CONSOLE: Tpe = Tpe("__whatwg.console")
+object Defines {
+  val Any: String     = "ANY"
+  val Number: String  = "__ecma.Number"
+  val String: String  = "__ecma.String"
+  val Boolean: String = "__ecma.Boolean"
+  val Null: String    = "__ecma.Null"
+  val Math: String    = "__ecma.Math"
+  val Console: String = "__whatwg.console"
 
-  val GLOBAL_NAMESPACE = "<global>"
+  val GlobalNamespace: String = NamespaceTraversal.globalNamespaceName
 
-  class Tpe(val label: String) extends super.Val
-  private object Tpe {
-    def apply(label: String): Tpe = new Tpe(label)
-  }
+  val JsTypes: List[String] =
+    List(Any, Number, String, Boolean, Null, Math, Console)
 }
-
-object Defines extends DefineTypes

@@ -62,7 +62,7 @@ class AstNodeBuilder(
       .lineNumber(line)
       .columnNumber(column)
       .order(orderTracker.order)
-      .typeFullName(Defines.ANY.label)
+      .typeFullName(Defines.Any)
 
     diffGraph.addNode(param)
     orderTracker.inc()
@@ -113,7 +113,7 @@ class AstNodeBuilder(
       .lineNumber(lineColumn.line)
       .columnNumber(lineColumn.column)
       .code(shortenCode(code))
-      .typeFullName(Defines.ANY.label)
+      .typeFullName(Defines.Any)
 
     diffGraph.addNode(unknown)
     unknown
@@ -152,7 +152,7 @@ class AstNodeBuilder(
       .code(shortenCode(name))
       .lineNumber(line)
       .columnNumber(column)
-      .typeFullName(Defines.ANY.label)
+      .typeFullName(Defines.Any)
       .dynamicTypeHintFullName(dynamicTypeOption.toList)
     diffGraph.addNode(identifier)
     identifier
@@ -205,7 +205,7 @@ class AstNodeBuilder(
       .signature("")
       .lineNumber(line)
       .columnNumber(column)
-      .typeFullName(Defines.ANY.label)
+      .typeFullName(Defines.Any)
 
     diffGraph.addNode(call)
     call
@@ -278,7 +278,7 @@ class AstNodeBuilder(
     val column = lineAndColumn.column
     val literal = NewLiteral()
       .code(shortenCode(code))
-      .typeFullName(Defines.ANY.label)
+      .typeFullName(Defines.Any)
       .lineNumber(line)
       .columnNumber(column)
       .dynamicTypeHintFullName(dynamicTypeOption.toList)
@@ -328,7 +328,7 @@ class AstNodeBuilder(
       .dispatchType(dispatchType)
       .lineNumber(line)
       .columnNumber(column)
-      .typeFullName(Defines.ANY.label)
+      .typeFullName(Defines.Any)
 
     diffGraph.addNode(call)
     call
@@ -343,7 +343,7 @@ class AstNodeBuilder(
 
   def createNamespaceBlockNode(fullName: String): NewNamespaceBlock = {
     val namespaceBlock = NewNamespaceBlock()
-      .name(Defines.GLOBAL_NAMESPACE)
+      .name(Defines.GlobalNamespace)
       .fullName(fullName)
       .filename(source.filePath)
       .order(1)
@@ -423,7 +423,7 @@ class AstNodeBuilder(
       shortenCode(customCode.getOrElse(sanitizeCode(node)))
     }
     val block = NewBlock()
-      .typeFullName(Defines.ANY.label)
+      .typeFullName(Defines.Any)
       .code(code)
       .lineNumber(line)
       .columnNumber(column)
@@ -439,7 +439,7 @@ class AstNodeBuilder(
     val ret = NewMethodReturn()
       .code(shortenCode(code))
       .evaluationStrategy(EvaluationStrategies.BY_VALUE)
-      .typeFullName(Defines.ANY.label)
+      .typeFullName(Defines.Any)
       .lineNumber(line)
       .columnNumber(column)
     diffGraph.addNode(ret)
@@ -484,7 +484,7 @@ class AstNodeBuilder(
     val member = NewMember()
       .code(shortenCode(source.getString(node)))
       .name(name)
-      .typeFullName(Defines.ANY.label)
+      .typeFullName(Defines.Any)
       .dynamicTypeHintFullName(dynamicTypeOption.toList)
     diffGraph.addNode(member)
     member
