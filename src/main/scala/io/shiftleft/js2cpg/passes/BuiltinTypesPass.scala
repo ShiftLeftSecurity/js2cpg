@@ -15,27 +15,25 @@ class BuiltinTypesPass(cpg: Cpg) extends CpgPass(cpg) {
     logger.debug("Generating builtin types.")
 
     val namespaceBlock = NewNamespaceBlock()
-      .name(Defines.GLOBAL_NAMESPACE)
-      .fullName(Defines.GLOBAL_NAMESPACE)
+      .name(Defines.GlobalNamespace)
+      .fullName(Defines.GlobalNamespace)
 
     diffGraph.addNode(namespaceBlock)
 
     val orderTracker = new OrderTracker()
-    Defines.values.foreach { case typeName: Defines.Tpe =>
-      val typeNameLabel = typeName.label
-
+    Defines.JsTypes.foreach { case typeName: String =>
       val tpe = NewType()
-        .name(typeNameLabel)
-        .fullName(typeNameLabel)
-        .typeDeclFullName(typeNameLabel)
+        .name(typeName)
+        .fullName(typeName)
+        .typeDeclFullName(typeName)
       diffGraph.addNode(tpe)
 
       val typeDecl = NewTypeDecl()
-        .name(typeNameLabel)
-        .fullName(typeNameLabel)
+        .name(typeName)
+        .fullName(typeName)
         .isExternal(false)
         .astParentType(NodeTypes.NAMESPACE_BLOCK)
-        .astParentFullName(Defines.GLOBAL_NAMESPACE)
+        .astParentFullName(Defines.GlobalNamespace)
         .order(orderTracker.order)
         .filename("builtintypes")
 

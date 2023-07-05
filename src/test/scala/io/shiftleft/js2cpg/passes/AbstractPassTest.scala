@@ -1,16 +1,18 @@
 package io.shiftleft.js2cpg.passes
 
-import io.shiftleft.codepropertygraph.Cpg
+import better.files.File
+import io.joern.x2cpg.X2Cpg.newEmptyCpg
 import io.shiftleft.codepropertygraph.generated.EdgeTypes
 import io.shiftleft.codepropertygraph.generated.nodes.Dependency
-import io.shiftleft.semanticcpg.language._
+import io.shiftleft.codepropertygraph.Cpg
+import io.shiftleft.js2cpg.core.Report
+import io.shiftleft.semanticcpg.language.*
 import overflowdb.Node
-import overflowdb.traversal._
-
+import overflowdb.traversal.*
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 abstract class AbstractPassTest extends AnyWordSpec with Matchers {
 
@@ -18,51 +20,27 @@ abstract class AbstractPassTest extends AnyWordSpec with Matchers {
 
   protected def getDependencies(cpg: Cpg): Traversal[Dependency] = cpg.dependency
 
-  protected implicit class NodeWrapper[T <: Node](nodes: Traversal[T]) {
-    def expandAst(filterLabels: String*): Traversal[T] = {
-      expand(EdgeTypes.AST, filterLabels: _*)
-    }
-
-    def expandRef(filterLabels: String*): Traversal[T] = {
-      expand(EdgeTypes.REF, filterLabels: _*)
-    }
-
-    def expandCapture(filterLabels: String*): Traversal[T] = {
-      expand(EdgeTypes.CAPTURE, filterLabels: _*)
-    }
-
-    def expandReceiver(filterLabels: String*): Traversal[T] = {
-      expand(EdgeTypes.RECEIVER, filterLabels: _*)
-    }
-
-    def expand(edgeKind: String, filterLabels: String*): Traversal[T] = {
-      nodes
-        .outE(edgeKind)
-        .collect {
-          case e if filterLabels.isEmpty || filterLabels.contains(e.inNode().label()) =>
-            e.inNode().asInstanceOf[T]
-        }
-    }
-
-    def checkNodeCount(count: Int): Traversal[T] = {
-      nodes.size shouldBe count
-      nodes
-    }
-
-    def checkProperty[P](nodeProperty: String, value: P): Traversal[T] = {
-      nodes.foreach { node =>
-        node.property(nodeProperty) shouldBe value
-      }
-      nodes
-    }
-
-    def filter[P](nodeProperty: String, value: P): Traversal[T] = {
-      nodes.filter { node =>
-        node.propertiesMap.asScala.exists { case (property, propertyValue) =>
-          property == nodeProperty && propertyValue == value
-        }
+  protected object AstFixture extends Fixture {
+    def apply(code: String)(f: Cpg => Unit): Unit = {
+      File.usingTemporaryDirectory("js2cpgTest") { dir =>
+        val file = dir / "code.js"
+        file.write(code)
+        val cpg       = newEmptyCpg()
+        val filenames = List((file.path, file.parent.path))
+        new AstCreationPass(dir, filenames, cpg, new Report()).createAndApply()
+        f(cpg)
+        file.delete()
       }
     }
+
+    def apply(testFile: File)(f: Cpg => Unit): Unit = {
+      val file      = testFile
+      val cpg       = newEmptyCpg()
+      val filenames = List((file.path, file.parent.path))
+      new AstCreationPass(file.parent, filenames, cpg, new Report()).createAndApply()
+      f(cpg)
+    }
+
   }
 
 }
