@@ -16,8 +16,8 @@ Global / excludeLintKeys += Fast / configuration
 Global / excludeLintKeys += gitCommitString
 
 lazy val commonSettings = Seq(
-  scalaVersion  := "3.3.0",
-  organization  := "io.shiftleft",
+  scalaVersion := "3.3.0",
+  organization := "io.shiftleft",
   scalacOptions ++= Seq("-Xtarget:8"),
   resolvers ++= Seq(
     Resolver.mavenLocal,
@@ -27,7 +27,7 @@ lazy val commonSettings = Seq(
     "io.shiftleft"              %% "codepropertygraph" % cpgVersion,
     "io.joern"                  %% "x2cpg"             % joernVersion,
     "com.github.scopt"          %% "scopt"             % "4.1.0",
-    "org.graalvm.js"             % "js"                % "22.3.2",
+    "org.graalvm.js"             % "js"                % "22.3.3",
     "com.fasterxml.jackson.core" % "jackson-databind"  % "2.14.2",
     "com.atlassian.sourcemap"    % "sourcemap"         % "2.0.0",
     "commons-io"                 % "commons-io"        % "2.13.0",
