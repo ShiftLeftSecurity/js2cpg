@@ -8,8 +8,8 @@ import io.shiftleft.js2cpg.io.FileDefaults.TS_SUFFIX
 import io.shiftleft.js2cpg.io.{ExternalCommand, FileUtils}
 import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.parser.TsConfigJsonParser
-import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DEFAULT_MODULE
-import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DENO_CONFIG
+import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DefaultModule
+import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler.DenoConfig
 import io.shiftleft.utils.IOUtils
 import org.slf4j.LoggerFactory
 import org.apache.commons.io.{FileUtils => CommonsFileUtils}
@@ -19,12 +19,22 @@ import scala.util.{Failure, Success, Try}
 
 object TypescriptTranspiler {
 
-  val DEFAULT_MODULE: String = "commonjs"
+  val DefaultModule: String = "commonjs"
 
-  private val tscTypingWarnings =
-    List("error TS", ".d.ts", "The file is in the program because", "Entry point of type library")
+  private val TscTypingWarnings = List(
+    "error TS",
+    ".d.ts",
+    "The file is in the program because",
+    "Entry point of type library",
+    "does not exist on type",
+    "properties from type",
+    "are incompatible",
+    "was found on type",
+    "not assignable to",
+    "Overload "
+  )
 
-  val DENO_CONFIG: String = "deno.json"
+  val DenoConfig: String = "deno.json"
 
 }
 
@@ -39,7 +49,7 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
   private def hasTsFiles: Boolean =
     FileUtils.getFileTree(projectPath, config, List(TS_SUFFIX)).nonEmpty
 
-  private def isFreshProject: Boolean = (File(projectPath) / DENO_CONFIG).exists
+  private def isFreshProject: Boolean = (File(projectPath) / DenoConfig).exists
 
   private def isTsProject: Boolean =
     (File(projectPath) / "tsconfig.json").exists || isFreshProject
@@ -108,7 +118,7 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
   }
 
   private def isCleanTrace(exception: Throwable): Boolean =
-    exception.getMessage.linesIterator.forall(l => TypescriptTranspiler.tscTypingWarnings.exists(l.contains))
+    exception.getMessage.linesIterator.forall(l => TypescriptTranspiler.TscTypingWarnings.exists(l.contains))
 
   override protected def transpile(tmpTranspileDir: Path): Boolean = {
     if (installTsPlugins()) {
@@ -131,7 +141,7 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
           "" :: Nil
         }
 
-        val module = config.moduleMode.getOrElse(DEFAULT_MODULE)
+        val module = config.moduleMode.getOrElse(DefaultModule)
         val outDir = subDir.map(s => File(tmpTranspileDir.toString, s.toString)).getOrElse(File(tmpTranspileDir))
 
         for (proj <- projects) {

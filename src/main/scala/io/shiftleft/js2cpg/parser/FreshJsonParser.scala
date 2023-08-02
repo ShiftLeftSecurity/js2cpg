@@ -34,7 +34,7 @@ object FreshJsonParser {
     val objectMapper = new ObjectMapper
     FileUtils
       .getFileTree(Paths.get(config.srcDir), config, List(".json"))
-      .filter(_.endsWith(TypescriptTranspiler.DENO_CONFIG))
+      .filter(_.endsWith(TypescriptTranspiler.DenoConfig))
       .flatMap { file =>
         val packageJson = objectMapper.readTree(IOUtils.readLinesInFile(file).mkString)
         Option(packageJson.path("importMap").asText()).map(file.resolveSibling)

@@ -91,7 +91,7 @@ case class Config(
     s"""
       |\t- Source project: '$srcDir'
       |\t- package.json location: '${createPathForPackageJson()}'
-      |\t- Module mode: '${moduleMode.getOrElse(TypescriptTranspiler.DEFAULT_MODULE)}'
+      |\t- Module mode: '${moduleMode.getOrElse(TypescriptTranspiler.DefaultModule)}'
       |\t- Optimize dependencies: $optimizeDependencies
       |\t- Fixed transpilations dependencies: $fixedTranspilationDependencies
       |\t- Typescript transpiling: $tsTranspiling

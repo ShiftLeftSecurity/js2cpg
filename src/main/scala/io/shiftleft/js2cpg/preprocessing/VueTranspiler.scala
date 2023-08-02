@@ -41,11 +41,7 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
 
   private def nodeOptions(): Map[String, String] = {
     // TODO: keep this until https://github.com/webpack/webpack/issues/14532 is fixed.
-    // This hack is not required on MacOS.
-    if (
-      !scala.util.Properties.isMac &&
-      nodeVersion().exists(v => v.startsWith("v17") || v.startsWith("v18") || v.startsWith("v19"))
-    ) {
+    if (nodeVersion().exists(v => v.startsWith("v17") || v.startsWith("v18") || v.startsWith("v19"))) {
       Map("NODE_OPTIONS" -> "--openssl-legacy-provider")
     } else {
       Map.empty
