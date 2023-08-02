@@ -105,7 +105,7 @@ class DependenciesPassTest extends AbstractPassTest {
                |  "envalid": "https://deno.land/x/envalid@0.1.2/mod.ts"
                |}}""".stripMargin
         ),
-        (TypescriptTranspiler.DENO_CONFIG, """{"importMap": "./import_map.json"}""")
+        (TypescriptTranspiler.DenoConfig, """{"importMap": "./import_map.json"}""")
       )
     ) { cpg =>
       val deps = getDependencies(cpg).l
