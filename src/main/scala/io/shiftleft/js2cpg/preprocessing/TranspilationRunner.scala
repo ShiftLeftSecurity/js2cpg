@@ -156,6 +156,9 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
       jsonObject.remove("engines")
       jsonObject.remove("scripts")
       jsonObject.remove("comments")
+      // remove project specific version restrictions and pnpm settings
+      jsonObject.remove("resolutions")
+      jsonObject.remove("pnpm")
 
       packageJson.writeText(mapper.writeValueAsString(json))
 
