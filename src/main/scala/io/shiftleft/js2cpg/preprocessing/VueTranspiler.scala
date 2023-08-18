@@ -20,9 +20,9 @@ object VueTranspiler {
   private val Vue2Config: String =
     """
       |module.exports = {
-      |    configureWebpack: {
-      |        devtool: 'source-map'
-      |    }
+      |  configureWebpack: {
+      |    devtool: 'source-map'
+      |  }
       |}
       |""".stripMargin
   private val Vue3Config: String =
