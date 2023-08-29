@@ -4,7 +4,7 @@ import better.files.File
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.ExternalCommand
 import io.shiftleft.js2cpg.io.FileDefaults
-import io.shiftleft.js2cpg.io.FileDefaults.VUE_SUFFIX
+import io.shiftleft.js2cpg.io.FileDefaults._
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.parser.PackageJsonParser
 import org.slf4j.LoggerFactory
@@ -75,13 +75,17 @@ class VueTranspiler(override val config: Config, override val projectPath: Path)
     }
   }
 
+  private def hasTsFiles: Boolean =
+    FileUtils.getFileTree(projectPath, config, List(TS_SUFFIX)).nonEmpty
+
   private def installVuePlugins(): Boolean = {
+    val additionalPlugins = if (hasTsFiles) "typescript @vue/cli-plugin-typescript" else ""
     val command = if (pnpmAvailable(projectPath)) {
-      s"${TranspilingEnvironment.PNPM_ADD} $vueAndVersion && ${TranspilingEnvironment.PNPM_INSTALL}"
+      s"${TranspilingEnvironment.PNPM_ADD} $vueAndVersion $additionalPlugins && ${TranspilingEnvironment.PNPM_INSTALL}"
     } else if (yarnAvailable()) {
-      s"${TranspilingEnvironment.YARN_ADD} $vueAndVersion && ${TranspilingEnvironment.YARN_INSTALL}"
+      s"${TranspilingEnvironment.YARN_ADD} $vueAndVersion $additionalPlugins && ${TranspilingEnvironment.YARN_INSTALL}"
     } else {
-      s"${TranspilingEnvironment.NPM_INSTALL} $vueAndVersion"
+      s"${TranspilingEnvironment.NPM_INSTALL} $vueAndVersion $additionalPlugins"
     }
     logger.info("Installing Vue.js dependencies and plugins. That will take a while.")
     logger.debug(s"\t+ Installing Vue.js plugins with command '$command' in path '$projectPath'")
