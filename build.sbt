@@ -16,8 +16,8 @@ Global / excludeLintKeys += Fast / configuration
 Global / excludeLintKeys += gitCommitString
 
 lazy val commonSettings = Seq(
-  scalaVersion  := "3.3.0",
-  organization  := "io.shiftleft",
+  scalaVersion := "3.3.1",
+  organization := "io.shiftleft",
   scalacOptions ++= Seq("-Xtarget:8"),
   resolvers ++= Seq(
     Resolver.mavenLocal,
