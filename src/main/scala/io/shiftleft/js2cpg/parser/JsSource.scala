@@ -99,7 +99,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
       val cleanedPath = FileUtils.cleanPath(sourceFileName)
       // having "/" here is fine as JS source maps always have platform independent path separators
       val lookupPath = if (cleanedPath.contains("/" + srcDir.name + "/")) {
-        cleanedPath.substring(cleanedPath.lastIndexOf("/" + srcDir.name + "/") + srcDir.name.length + 2)
+        cleanedPath.substring(cleanedPath.indexOf("/" + srcDir.name + "/") + srcDir.name.length + 2)
       } else {
         cleanedPath
       }
