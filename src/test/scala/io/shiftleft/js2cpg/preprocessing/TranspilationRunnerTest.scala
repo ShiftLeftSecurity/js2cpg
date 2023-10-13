@@ -164,6 +164,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
           s"subb${java.io.File.separator}nested${java.io.File.separator}a.ts",
           s"subb${java.io.File.separator}nested${java.io.File.separator}b.ts",
           s"subb${java.io.File.separator}nested${java.io.File.separator}other.js",
+          s"subc${java.io.File.separator}typescriptsub${java.io.File.separator}c.ts",
           s"subb${java.io.File.separator}a.ts",
           s"subb${java.io.File.separator}b.ts"
         )
