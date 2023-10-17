@@ -16,8 +16,8 @@ Global / excludeLintKeys += Fast / configuration
 Global / excludeLintKeys += gitCommitString
 
 lazy val commonSettings = Seq(
-  scalaVersion  := "3.3.0",
-  organization  := "io.shiftleft",
+  scalaVersion := "3.3.0",
+  organization := "io.shiftleft",
   scalacOptions ++= Seq("-Xtarget:8"),
   resolvers ++= Seq(
     Resolver.mavenLocal,
@@ -32,8 +32,8 @@ lazy val commonSettings = Seq(
     "com.atlassian.sourcemap"    % "sourcemap"         % "2.0.0",
     "commons-io"                 % "commons-io"        % "2.13.0",
     "org.slf4j"                  % "slf4j-api"         % "2.0.7",
-    "org.apache.logging.log4j"   % "log4j-slf4j2-impl" % "2.20.0"     % Optional,
-    "org.apache.logging.log4j"   % "log4j-core"        % "2.20.0"     % Optional,
+    "org.apache.logging.log4j"   % "log4j-slf4j2-impl" % "2.21.0"     % Optional,
+    "org.apache.logging.log4j"   % "log4j-core"        % "2.21.0"     % Optional,
     "io.joern"                  %% "x2cpg"             % joernVersion % Test classifier "tests",
     "org.scalatest"             %% "scalatest"         % "3.2.16"     % Test
   )
