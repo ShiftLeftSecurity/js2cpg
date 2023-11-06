@@ -90,6 +90,8 @@ class TypescriptTranspiler(override val config: Config, override val projectPath
         options.asInstanceOf[ObjectNode].putArray("types")
         options.asInstanceOf[ObjectNode].putArray("typeRoots")
       }
+      // also remove the extends settings; if transpiling subprojects they may not be present
+      json.asInstanceOf[ObjectNode].remove("extends")
       // --include is not available as tsc CLI argument; we set it manually:
       json.asInstanceOf[ObjectNode].putArray("include").add("**/*")
       val customTsConfigFile = File.newTemporaryFile("js2cpgTsConfig", ".json", parent = Some(projectPath))

@@ -40,7 +40,9 @@ object VueTranspiler {
 
   def isVueProject(config: Config, projectPath: Path): Boolean = {
     val hasVueDep =
-      PackageJsonParser.dependencies((File(config.srcDir) / FileDefaults.PACKAGE_JSON_FILENAME).path).contains("vue")
+      PackageJsonParser
+        .dependencies((File(config.srcDir) / FileDefaults.PACKAGE_JSON_FILENAME).path)
+        .exists(_._1.startsWith("vue"))
     hasVueDep && hasVueFiles(config, projectPath)
   }
 
