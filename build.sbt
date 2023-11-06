@@ -1,5 +1,5 @@
-val cpgVersion   = "1.4.10"
-val joernVersion = "2.0.44"
+val cpgVersion   = "1.4.25"
+val joernVersion = "2.0.140"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
@@ -16,7 +16,7 @@ Global / excludeLintKeys += Fast / configuration
 Global / excludeLintKeys += gitCommitString
 
 lazy val commonSettings = Seq(
-  scalaVersion  := "3.3.0",
+  scalaVersion  := "3.3.1",
   organization  := "io.shiftleft",
   scalacOptions ++= Seq("-Xtarget:8"),
   resolvers ++= Seq(
@@ -28,14 +28,14 @@ lazy val commonSettings = Seq(
     "io.joern"                  %% "x2cpg"             % joernVersion,
     "com.github.scopt"          %% "scopt"             % "4.1.0",
     "org.graalvm.js"             % "js"                % "22.3.3",
-    "com.fasterxml.jackson.core" % "jackson-databind"  % "2.15.2",
+    "com.fasterxml.jackson.core" % "jackson-databind"  % "2.15.3",
     "com.atlassian.sourcemap"    % "sourcemap"         % "2.0.0",
     "commons-io"                 % "commons-io"        % "2.13.0",
     "org.slf4j"                  % "slf4j-api"         % "2.0.7",
     "org.apache.logging.log4j"   % "log4j-slf4j2-impl" % "2.20.0"     % Optional,
     "org.apache.logging.log4j"   % "log4j-core"        % "2.20.0"     % Optional,
     "io.joern"                  %% "x2cpg"             % joernVersion % Test classifier "tests",
-    "org.scalatest"             %% "scalatest"         % "3.2.16"     % Test
+    "org.scalatest"             %% "scalatest"         % "3.2.17"     % Test
   )
 )
 
