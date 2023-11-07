@@ -83,6 +83,8 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
   }
 
   private def constructSourceFilePath(sourceFileName: String): File = sourceFileName match {
+    case _ if sourceFileName.isEmpty =>
+      srcDir / source.getName
     case _ if absoluteFilePath.contains(NuxtTranspiler.NUXT_FOLDER) && srcDir.path.compareTo(projectDir) == 0 =>
       // For nuxt-js transpilation we have the same src and project dir and we need some special handling here
       if (sourceFileName.startsWith(WEBPACK_PREFIX)) {
