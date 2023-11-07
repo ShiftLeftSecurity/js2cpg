@@ -82,8 +82,10 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
     }
   }
 
-  private def constructSourceFilePath(sourceFileName: String): File = sourceFileName match {
-    case _ if absoluteFilePath.contains(NuxtTranspiler.NUXT_FOLDER) && srcDir.path.compareTo(projectDir) == 0 =>
+  private def constructSourceFilePath(sourceFileName: String): File = {
+    if (sourceFileName.isEmpty) {
+      srcDir / source.getName
+    } else if (absoluteFilePath.contains(NuxtTranspiler.NUXT_FOLDER) && srcDir.path.compareTo(projectDir) == 0) {
       // For nuxt-js transpilation we have the same src and project dir and we need some special handling here
       if (sourceFileName.startsWith(WEBPACK_PREFIX)) {
         val replacedName = FileUtils.cleanPath(sourceFileName.replace(WEBPACK_PREFIX, ""))
@@ -91,11 +93,11 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
       } else {
         File(absoluteFilePath).parent / sourceFileName
       }
-    case _ if sourceFileName.startsWith(WEBPACK_PREFIX) =>
+    } else if (sourceFileName.startsWith(WEBPACK_PREFIX)) {
       // Additionally, source map files coming from webpack (e.g., from Vue transpilation) are somewhat hidden
       val replacedName = sourceFileName.replace(WEBPACK_PREFIX, "")
       srcDir / replacedName.substring(replacedName.indexOf("/") + 1)
-    case _ =>
+    } else {
       val cleanedPath = FileUtils.cleanPath(sourceFileName)
       // having "/" here is fine as JS source maps always have platform independent path separators
       val lookupPath = if (cleanedPath.contains("/" + srcDir.name + "/")) {
@@ -115,6 +117,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
         }
       }
       srcFilePath
+    }
   }
 
   private def sourceMapOrigin(): Option[SourceMapOrigin] = {
