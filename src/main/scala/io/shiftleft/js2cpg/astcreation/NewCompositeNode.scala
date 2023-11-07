@@ -28,4 +28,9 @@ class NewCompositeNode(underlying: ListBuffer[NewNode] = ListBuffer.empty[NewNod
   def iterate[T](func: NewNode => T): Unit = {
     underlying.foreach(func)
   }
+
+  def isValidInNeighbor(edgeLabel: String, node: NewNode): Boolean = ??? // we do not need this
+
+  def isValidOutNeighbor(edgeLabel: String, node: NewNode): Boolean = ??? // we do not need this
+
 }
