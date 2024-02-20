@@ -35,7 +35,7 @@ lazy val commonSettings = Seq(
     "org.apache.logging.log4j"   % "log4j-slf4j2-impl" % "2.20.0"     % Optional,
     "org.apache.logging.log4j"   % "log4j-core"        % "2.20.0"     % Optional,
     "io.joern"                  %% "x2cpg"             % joernVersion % Test classifier "tests",
-    "org.scalatest"             %% "scalatest"         % "3.2.17"     % Test
+    "org.scalatest"             %% "scalatest"         % "3.2.18"     % Test
   )
 )
 
