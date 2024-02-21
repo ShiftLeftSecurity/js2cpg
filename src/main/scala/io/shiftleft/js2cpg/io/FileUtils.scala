@@ -8,9 +8,11 @@ import io.shiftleft.js2cpg.io.FileDefaults._
 import io.shiftleft.utils.IOUtils
 import org.slf4j.LoggerFactory
 
+import java.io.IOException
 import java.nio.charset.CharsetDecoder
 import java.nio.charset.CodingErrorAction
 import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.FileSystemLoopException
 import scala.collection.concurrent.TrieMap
 import scala.collection.{mutable, SortedMap}
 import scala.io.Codec
@@ -101,6 +103,16 @@ object FileUtils {
               Files.copy(file, newPath(file), copyOptions: _*)
             }
             result
+          }
+
+          override def visitFileFailed(file: Path, exc: IOException): FileVisitResult = {
+            exc match {
+              case loop: FileSystemLoopException =>
+                logger.debug(s"Cyclic symbolic link detected for file '$file'", loop)
+              case _ =>
+                logger.debug(s"Unable to visit file '$file'", exc)
+            }
+            FileVisitResult.CONTINUE
           }
         }
       )
