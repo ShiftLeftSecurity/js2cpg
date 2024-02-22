@@ -32,8 +32,8 @@ lazy val commonSettings = Seq(
     "com.atlassian.sourcemap"    % "sourcemap"         % "2.0.0",
     "commons-io"                 % "commons-io"        % "2.13.0",
     "org.slf4j"                  % "slf4j-api"         % "2.0.7",
-    "org.apache.logging.log4j"   % "log4j-slf4j2-impl" % "2.20.0"     % Optional,
-    "org.apache.logging.log4j"   % "log4j-core"        % "2.20.0"     % Optional,
+    "org.apache.logging.log4j"   % "log4j-slf4j2-impl" % "2.23.0"     % Optional,
+    "org.apache.logging.log4j"   % "log4j-core"        % "2.23.0"     % Optional,
     "io.joern"                  %% "x2cpg"             % joernVersion % Test classifier "tests",
     "org.scalatest"             %% "scalatest"         % "3.2.17"     % Test
   )
