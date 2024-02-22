@@ -4,13 +4,16 @@ import better.files.File
 
 import java.nio.file.{Files, FileVisitResult, Path, SimpleFileVisitor}
 import io.shiftleft.js2cpg.core.Config
-import io.shiftleft.js2cpg.io.FileDefaults._
+import io.shiftleft.js2cpg.io.FileDefaults.*
 import io.shiftleft.utils.IOUtils
 import org.slf4j.LoggerFactory
 
+import java.io.IOException
 import java.nio.charset.CharsetDecoder
 import java.nio.charset.CodingErrorAction
 import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.FileSystemLoopException
+import java.nio.file.FileVisitOption
 import scala.collection.concurrent.TrieMap
 import scala.collection.{mutable, SortedMap}
 import scala.io.Codec
@@ -63,7 +66,7 @@ object FileUtils {
     filterIgnoredFiles: Boolean = true
   ): List[Path] = {
     val fileCollector = FileCollector(PathFilter(rootPath, config, filterIgnoredFiles, extensions))
-    Files.walkFileTree(rootPath, fileCollector)
+    Files.walkFileTree(rootPath, java.util.Set.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, fileCollector)
     excludedPaths.addAll(fileCollector.excludedPaths)
     fileCollector.files
   }
@@ -83,6 +86,8 @@ object FileUtils {
     if (from.isDirectory) {
       Files.walkFileTree(
         from.path,
+        java.util.Set.of(FileVisitOption.FOLLOW_LINKS),
+        Integer.MAX_VALUE,
         new SimpleFileVisitor[Path] {
           private def newPath(subPath: Path): Path =
             destination.path.resolve(from.path.relativize(subPath))
@@ -101,6 +106,16 @@ object FileUtils {
               Files.copy(file, newPath(file), copyOptions: _*)
             }
             result
+          }
+
+          override def visitFileFailed(file: Path, exc: IOException): FileVisitResult = {
+            exc match {
+              case _: FileSystemLoopException =>
+                logger.warn(s"Cyclic symbolic link detected for file '$file' - ignoring")
+              case _ =>
+                logger.warn(s"Unable to visit file '$file'", exc)
+            }
+            FileVisitResult.CONTINUE
           }
         }
       )
