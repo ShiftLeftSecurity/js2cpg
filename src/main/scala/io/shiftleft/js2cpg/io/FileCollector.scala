@@ -51,8 +51,8 @@ class FileCollector private (pathFilter: PathFilter) extends SimpleFileVisitor[P
 
   override def visitFileFailed(file: Path, exc: IOException): FileVisitResult = {
     exc match {
-      case loop: FileSystemLoopException =>
-        logger.warn(s"Cyclic symbolic link detected for file '$file'", loop)
+      case _: FileSystemLoopException =>
+        logger.warn(s"Cyclic symbolic link detected for file '$file' - ignoring")
       case _ =>
         logger.warn(s"Unable to visit file '$file'", exc)
     }
