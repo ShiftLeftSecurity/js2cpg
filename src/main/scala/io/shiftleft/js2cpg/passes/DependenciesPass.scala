@@ -15,7 +15,7 @@ class DependenciesPass(cpg: Cpg, config: Config) extends CpgPass(cpg) {
   private def dependenciesForPackageJsons(): Map[String, String] = {
     val packagesJsons =
       (FileUtils
-        .getFileTree(Paths.get(config.srcDir), config, List(".json"))
+        .getFileTree(Paths.get(config.inputPath), config, List(".json"))
         .filter(_.toString.endsWith(FileDefaults.PACKAGE_JSON_FILENAME)) :+
         config.createPathForPackageJson()).toSet
     packagesJsons.flatMap(p => PackageJsonParser.dependencies(p)).toMap

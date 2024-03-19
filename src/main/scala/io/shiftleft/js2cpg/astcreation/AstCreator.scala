@@ -58,9 +58,18 @@ import io.shiftleft.codepropertygraph.generated.nodes.{
   NewTypeRef
 }
 import io.shiftleft.codepropertygraph.generated.{ControlStructureTypes, DispatchTypes, ModifierTypes, Operators}
-import io.shiftleft.js2cpg.datastructures.Stack._
-import io.shiftleft.js2cpg.datastructures._
-import io.shiftleft.js2cpg.datastructures.scope._
+import io.shiftleft.js2cpg.datastructures.Stack.*
+import io.shiftleft.js2cpg.datastructures.scope.Scope
+import io.shiftleft.js2cpg.datastructures.OrderTracker
+import io.shiftleft.js2cpg.datastructures.scope.MethodScope
+import io.shiftleft.js2cpg.datastructures.Parameter
+import io.shiftleft.js2cpg.datastructures.scope.BlockScope
+import io.shiftleft.js2cpg.datastructures.scope.BlockScopeElement
+import io.shiftleft.js2cpg.datastructures.scope.MethodScopeElement
+import io.shiftleft.js2cpg.datastructures.scope.ResolvedReference
+import io.shiftleft.js2cpg.datastructures.scope.ScopeElement
+import io.shiftleft.js2cpg.datastructures.scope.ScopeElementIterator
+import io.shiftleft.js2cpg.datastructures.scope.ScopeType
 import io.shiftleft.js2cpg.passes.{Defines, EcmaBuiltins, PassHelpers}
 import io.shiftleft.js2cpg.passes.PassHelpers.ParamNodeInitKind
 import io.shiftleft.js2cpg.parser.{GeneralizingAstVisitor, JsSource}
@@ -68,7 +77,7 @@ import overflowdb.BatchedUpdate.DiffGraphBuilder
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object AstCreator {
 
@@ -80,16 +89,14 @@ object AstCreator {
 
 }
 
-class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: Set[String])
-    extends GeneralizingAstVisitor[NewNode] {
+class AstCreator(val diffGraph: DiffGraphBuilder, val source: JsSource, val usedIdentNodes: Set[String])
+    extends GeneralizingAstVisitor[NewNode]
+    with AstNodeBuilder
+    with AstEdgeBuilder {
 
   import AstCreator._
 
-  private val scope = new Scope()
-
-  private val astEdgeBuilder = new AstEdgeBuilder(diffGraph)
-
-  private val astNodeBuilder = new AstNodeBuilder(diffGraph, astEdgeBuilder, source, scope)
+  protected val scope = new Scope()
 
   // Nested methods are not put in the AST where they are defined.
   // Instead we put them directly under the METHOD in which they are
@@ -110,26 +117,23 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   private val usedVariableNames = mutable.HashMap.empty[String, Int]
 
   private def prepareFileWrapperFunction(): NewNamespaceBlock = {
-    val fileName = source.filePath
-    val fileNode = astNodeBuilder.createFileNode(fileName)
-
-    val namespaceBlock =
-      astNodeBuilder.createNamespaceBlockNode(fileName + ":" + Defines.GlobalNamespace)
-
-    astEdgeBuilder.addAstEdge(namespaceBlock, fileNode)
+    val fileName       = source.filePath
+    val fileNode       = createFileNode(fileName)
+    val namespaceBlock = createNamespaceBlockNode(fileName + ":" + Defines.GlobalNamespace)
+    addAstEdge(namespaceBlock, fileNode)
     namespaceBlock
   }
 
   private def addLocalToAst(local: NewLocal): Unit = {
-    astEdgeBuilder.addAstEdge(local, localAstParentStack.head, 0)
+    addAstEdge(local, localAstParentStack.head, 0)
   }
 
   private def addMethodToAst(method: NewMethod): Unit = {
-    astEdgeBuilder.addAstEdge(method, methodAstParentStack.head, 0)
+    addAstEdge(method, methodAstParentStack.head, 0)
   }
 
   private def addTypeDeclToAst(typeDecl: NewTypeDecl): Unit = {
-    astEdgeBuilder.addAstEdge(typeDecl, methodAstParentStack.head, 0)
+    addAstEdge(typeDecl, methodAstParentStack.head, 0)
   }
 
   /** Entry point for converting ASTs with this class.
@@ -151,46 +155,46 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     }
 
     module.getImports.forEach { importNode =>
-      val groupId = astNodeBuilder.groupIdFromImportNode(importNode)
+      val groupId = groupIdFromImportNode(importNode)
       importNode.getModuleSpecifier match {
         case null =>
           val defaultBinding = importNode.getImportClause.getDefaultBinding
           if (defaultBinding != null) {
-            astNodeBuilder.createDependencyNode(defaultBinding.getName, groupId, VERSION_IMPORT)
+            createDependencyNode(defaultBinding.getName, groupId, VERSION_IMPORT)
             createImportNodeAndAttachToAst(importNode)
           }
 
           val nameSpaceImport = importNode.getImportClause.getNameSpaceImport
           val namedImports    = importNode.getImportClause.getNamedImports
           if (nameSpaceImport != null) {
-            astNodeBuilder.createDependencyNode(nameSpaceImport.getBindingIdentifier.getName, groupId, VERSION_IMPORT)
+            createDependencyNode(nameSpaceImport.getBindingIdentifier.getName, groupId, VERSION_IMPORT)
             createImportNodeAndAttachToAst(importNode)
           } else if (namedImports != null) {
             namedImports.getImportSpecifiers.forEach { namedImport =>
-              astNodeBuilder.createDependencyNode(namedImport.getBindingIdentifier.getName, groupId, VERSION_IMPORT)
+              createDependencyNode(namedImport.getBindingIdentifier.getName, groupId, VERSION_IMPORT)
               createImportNodeAndAttachToAst(importNode)
             }
           }
         case module =>
-          astNodeBuilder.createDependencyNode(module.getString, groupId, VERSION_IMPORT)
+          createDependencyNode(module.getString, groupId, VERSION_IMPORT)
           createImportNodeAndAttachToAst(importNode)
       }
     }
   }
 
   private def createImportNodeAndAttachToAst(importNode: ImportNode) = {
-    val impNode = astNodeBuilder.createImportNode(importNode)
+    val impNode = createImportNode(importNode)
     methodAstParentStack.headOption.collect { case namespaceBlockNode: NewNamespaceBlock =>
-      astEdgeBuilder.addAstEdge(impNode, namespaceBlockNode)
+      addAstEdge(impNode, namespaceBlockNode)
     }
   }
 
   override def visit(breakNode: BreakNode): NewNode = {
-    astNodeBuilder.createControlStructureNode(breakNode, ControlStructureTypes.BREAK)
+    createControlStructureNode(breakNode, ControlStructureTypes.BREAK)
   }
 
   override def visit(continueNode: ContinueNode): NewNode = {
-    astNodeBuilder.createControlStructureNode(continueNode, ControlStructureTypes.CONTINUE)
+    createControlStructureNode(continueNode, ControlStructureTypes.CONTINUE)
   }
 
   private def createIdentifierNode(name: String, lineAndColumnProvider: Node): NewIdentifier = {
@@ -205,7 +209,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
         None
     }
 
-    astNodeBuilder.createIdentifierNode(name, lineAndColumnProvider, dynamicInstanceTypeOption)
+    createIdentifierNode(name, lineAndColumnProvider, dynamicInstanceTypeOption)
   }
 
   private def handleDestructingParameter(
@@ -218,13 +222,13 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   ): Unit = {
     val name =
       PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, s"param$index")
-    val code = paramComponents.map(source.getCode).mkString("{", ", ", "}")
-    astNodeBuilder.createParameterInNode(name, code, methodId, paramComponents.head, new OrderTracker(index))
+    val code_ = paramComponents.map(code).mkString("{", ", ", "}")
+    createParameterInNode(name, code_, methodId, paramComponents.head, new OrderTracker(index))
     initStatements match {
       case Some(initExpr: ExpressionStatement) =>
         val destructingAssignmentId =
           convertDestructingAssignment(initExpr.getExpression.asInstanceOf[BinaryNode], Some(name))
-        astEdgeBuilder.addAstEdge(destructingAssignmentId, blockId, blockOrder)
+        addAstEdge(destructingAssignmentId, blockId, blockOrder)
       case None =>
         paramComponents.foreach { param =>
           val paramName    = param.getName
@@ -232,14 +236,14 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
           val paramId      = createIdentifierNode(name, param)
           scope.addVariableReference(name, paramId)
 
-          val localParamLocal = astNodeBuilder.createLocalNode(paramName, Defines.Any)
+          val localParamLocal = createLocalNode(paramName, Defines.Any)
           addLocalToAst(localParamLocal)
           scope.addVariable(paramName, localParamLocal, MethodScope)
-          val keyId    = astNodeBuilder.createFieldIdentifierNode(paramName, param)
-          val accessId = astNodeBuilder.createFieldAccessNode(paramId, keyId, astNodeBuilder.lineAndColumn(param))
+          val keyId    = createFieldIdentifierNode(paramName, param)
+          val accessId = createFieldAccessCallNode(paramId, keyId, param)
           val assignmentCallId =
-            astNodeBuilder.createAssignmentNode(localParamId, accessId, astNodeBuilder.lineAndColumn(param))
-          astEdgeBuilder.addAstEdge(assignmentCallId, blockId, blockOrder)
+            createAssignmentNode(localParamId, accessId, param)
+          addAstEdge(assignmentCallId, blockId, blockOrder)
           blockOrder.inc()
         }
       case _ =>
@@ -256,36 +260,36 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     blockOrder: OrderTracker
   ): Unit = {
     val name, code = PassHelpers.cleanParameterNodeName(parameter)
-    astNodeBuilder.createParameterInNode(name, code, methodId, parameter, new OrderTracker(index))
+    createParameterInNode(name, code, methodId, parameter, new OrderTracker(index))
     initStatement match {
       case Some(initExpr: VarNode) =>
         val paramName    = initExpr.getName.getName
         val localParamId = createIdentifierNode(paramName, initExpr)
         val rhs          = createRhsForConditionalParameterInit(initExpr.getAssignmentSource, name, initExpr)
         val assignmentCallId =
-          astNodeBuilder.createAssignmentNode(localParamId, rhs, astNodeBuilder.lineAndColumn(initExpr))
-        astEdgeBuilder.addAstEdge(assignmentCallId, blockId, blockOrder)
+          createAssignmentNode(localParamId, rhs, initExpr)
+        addAstEdge(assignmentCallId, blockId, blockOrder)
       case Some(initExpr: ExpressionStatement) =>
         val destructingAssignmentId =
           convertDestructingAssignment(initExpr.getExpression.asInstanceOf[BinaryNode], Some(name))
-        astEdgeBuilder.addAstEdge(destructingAssignmentId, blockId, blockOrder)
+        addAstEdge(destructingAssignmentId, blockId, blockOrder)
       case None =>
         val paramName       = name
         val localParamId    = createIdentifierNode(paramName, parameter)
-        val localParamLocal = astNodeBuilder.createLocalNode(paramName, Defines.Any)
+        val localParamLocal = createLocalNode(paramName, Defines.Any)
         addLocalToAst(localParamLocal)
         scope.addVariable(paramName, localParamLocal, MethodScope)
 
         val paramId = createIdentifierNode(name, parameter)
         scope.addVariableReference(name, paramId)
 
-        val keyId = astNodeBuilder.createFieldIdentifierNode(paramName, parameter)
+        val keyId = createFieldIdentifierNode(paramName, parameter)
 
-        val accessId = astNodeBuilder.createFieldAccessNode(paramId, keyId, astNodeBuilder.lineAndColumn(parameter))
+        val accessId = createFieldAccessCallNode(paramId, keyId, parameter)
 
         val assignmentCallId =
-          astNodeBuilder.createAssignmentNode(localParamId, accessId, astNodeBuilder.lineAndColumn(parameter))
-        astEdgeBuilder.addAstEdge(assignmentCallId, blockId, blockOrder)
+          createAssignmentNode(localParamId, accessId, parameter)
+        addAstEdge(assignmentCallId, blockId, blockOrder)
       case _ =>
         logger.debug(s"Unhandled parameter kind: $initStatement")
     }
@@ -304,26 +308,26 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
     val (methodName, methodFullName) = calcMethodNameAndFullName(functionNode)
 
-    val methodId = astNodeBuilder.createMethodNode(methodName, methodFullName, functionNode)
+    val methodId = createMethodNode(methodName, methodFullName, functionNode)
     addMethodToAst(methodId)
 
     if (!functionNode.isProgram) {
-      val virtualModifierId = astNodeBuilder.createModifierNode(ModifierTypes.VIRTUAL)
-      astEdgeBuilder.addAstEdge(virtualModifierId, methodId)
+      val virtualModifierId = createModifierNode(ModifierTypes.VIRTUAL)
+      addAstEdge(virtualModifierId, methodId)
     }
 
     val methodRefId =
       if (!shouldCreateFunctionReference) {
         None
       } else {
-        Some(astNodeBuilder.createMethodRefNode(methodName, methodFullName, functionNode))
+        Some(createMethodRefNode(methodName, methodFullName, functionNode))
       }
 
     methodAstParentStack.push(methodId)
 
     val block   = functionNode.getBody
-    val blockId = astNodeBuilder.createBlockNode(block, functionNode.isProgram)
-    astEdgeBuilder.addAstEdge(blockId, methodId, 1)
+    val blockId = createBlockNode(block, functionNode.isProgram)
+    addAstEdge(blockId, methodId, 1)
 
     val capturingRefId =
       if (shouldCreateFunctionReference) {
@@ -335,15 +339,9 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
     val parameterOrderTracker = new OrderTracker(0)
     // We always create an instance parameter because in JS every function could get called with an instance.
-    astNodeBuilder.createParameterInNode("this", "this", methodId, functionNode, parameterOrderTracker)
+    createParameterInNode("this", "this", methodId, functionNode, parameterOrderTracker)
     functionNode.getParameters.forEach { parameter =>
-      astNodeBuilder.createParameterInNode(
-        parameter.getName,
-        source.getString(parameter),
-        methodId,
-        parameter,
-        parameterOrderTracker
-      )
+      createParameterInNode(parameter.getName, source.getString(parameter), methodId, parameter, parameterOrderTracker)
     }
 
     val blockOrder = new OrderTracker()
@@ -370,15 +368,15 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     }
 
     val methodReturnId =
-      astNodeBuilder.createMethodReturnNode(astNodeBuilder.lineAndColumn(functionNode))
-    astEdgeBuilder.addAstEdge(methodReturnId, methodId, 2)
+      createMethodReturnNode(functionNode)
+    addAstEdge(methodReturnId, methodId, 2)
 
     val filteredFunctionBodyStatements =
       functionBodyStatements.filterNot(PassHelpers.isSynthetic(_, destructingParameters.flatten ++ syntheticParameters))
     visitStatements(
       filteredFunctionBodyStatements.asJava,
       statementId => {
-        astEdgeBuilder.addAstEdge(statementId, blockId, blockOrder)
+        addAstEdge(statementId, blockId, blockOrder)
       }
     )
     localAstParentStack.pop()
@@ -387,7 +385,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
     methodAstParentStack.pop()
 
-    createFunctionTypeAndTypeDecl(methodId, methodAstParentStack.head, methodName, methodFullName)
+    createFunctionTypeAndTypeDecl(functionNode, methodId, methodAstParentStack.head, methodName, methodFullName)
 
     (methodRefId, methodId)
   }
@@ -405,7 +403,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
   override def visit(debuggerNode: DebuggerNode): NewNode = {
     // If no debugging is available, the debugger statement has no effect.
-    astNodeBuilder.createUnknownNode(debuggerNode)
+    createUnknownNode(debuggerNode)
   }
 
   override def visit(functionNode: FunctionNode): NewNode = {
@@ -420,28 +418,29 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   }
 
   private def createFunctionTypeAndTypeDecl(
+    node: Node,
     methodId: NewMethod,
     parentNodeId: NewNode,
     methodName: String,
     methodFullName: String
   ): Unit = {
 
-    astNodeBuilder.createTypeNode(methodName, methodFullName)
+    createTypeNode(methodName, methodFullName)
 
     val astParentType     = parentNodeId.label
     val astParentFullName = parentNodeId.properties("FULL_NAME").toString
 
     val functionTypeDeclId =
-      astNodeBuilder.createTypeDeclNode(methodName, methodFullName, astParentType, astParentFullName, Some(Defines.Any))
+      createTypeDeclNode(node, methodName, methodFullName, astParentType, astParentFullName, Some(Defines.Any))
     addTypeDeclToAst(functionTypeDeclId)
 
     // Problem for https://github.com/ShiftLeftSecurity/codescience/issues/3626 here.
     // As the type (thus, the signature) of the function node is unknown (i.e., ANY*)
     // we can't generate the correct binding with signature.
-    val functionBindingId = astNodeBuilder.createBindingNode()
-    astEdgeBuilder.addBindsEdge(functionBindingId, functionTypeDeclId)
+    val functionBindingId = createBindingNode()
+    addBindsEdge(functionBindingId, functionTypeDeclId)
 
-    astEdgeBuilder.addRefEdge(methodId, functionBindingId)
+    addRefEdge(methodId, functionBindingId)
   }
 
   override def visit(classNode: ClassNode): NewNode = {
@@ -449,7 +448,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     val metaTypeName             = s"$typeName<meta>"
     val metaTypeFullName         = s"$typeFullName<meta>"
 
-    astNodeBuilder.createTypeNode(typeName, typeFullName)
+    createTypeNode(typeName, typeFullName)
 
     // We do not need to look at classNode.getClassHeritage because
     // the CPG only allows us to encode inheriting from fully known
@@ -460,12 +459,13 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     val astParentFullName = methodAstParentStack.head.properties("FULL_NAME").toString
 
     val typeDeclId =
-      astNodeBuilder.createTypeDeclNode(typeName, typeFullName, astParentType, astParentFullName, inheritsFrom = None)
+      createTypeDeclNode(classNode, typeName, typeFullName, astParentType, astParentFullName, inheritsFrom = None)
 
-    astNodeBuilder.createTypeNode(metaTypeName, metaTypeFullName)
+    createTypeNode(metaTypeName, metaTypeFullName)
 
     val metaTypeDeclId =
-      astNodeBuilder.createTypeDeclNode(
+      createTypeDeclNode(
+        classNode,
         metaTypeName,
         metaTypeFullName,
         astParentType,
@@ -477,7 +477,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     addTypeDeclToAst(metaTypeDeclId)
 
     val metaTypeRefId =
-      astNodeBuilder.createTypeRefNode(s"class $typeName", metaTypeFullName, classNode)
+      createTypeRefNode(s"class $typeName", metaTypeFullName, classNode)
 
     methodAstParentStack.push(typeDeclId)
     dynamicInstanceTypeStack.push(typeFullName)
@@ -488,10 +488,10 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     val constructor   = classNode.getConstructor.getValue.asInstanceOf[FunctionNode]
     val constructorId = createFunctionNode(constructor, shouldCreateFunctionReference = false)._2
 
-    val constructorBindingId = astNodeBuilder.createBindingNode()
-    astEdgeBuilder.addBindsEdge(constructorBindingId, metaTypeDeclId)
+    val constructorBindingId = createBindingNode()
+    addBindsEdge(constructorBindingId, metaTypeDeclId)
 
-    astEdgeBuilder.addRefEdge(constructorId, constructorBindingId)
+    addRefEdge(constructorId, constructorBindingId)
 
     val memberOrderTracker = new OrderTracker()
     classNode.getClassElements.forEach { classElement =>
@@ -507,16 +507,16 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
             // identical.
             val functionFullName        = calcMethodNameAndFullName(function)._2
             val dynamicTypeHintFullName = Some(functionFullName)
-            astNodeBuilder.createMemberNode(memberName, classElement, dynamicTypeHintFullName)
+            createMemberNode(memberName, classElement, dynamicTypeHintFullName)
           case _ =>
-            astNodeBuilder.createMemberNode(memberName, classElement, dynamicTypeOption = None)
+            createMemberNode(memberName, classElement, dynamicTypeOption = None)
         }
 
         if (classElement.isStatic) {
           // Static member belong to the meta class.
-          astEdgeBuilder.addAstEdge(memberId, metaTypeDeclId, memberOrderTracker)
+          addAstEdge(memberId, metaTypeDeclId, memberOrderTracker)
         } else {
-          astEdgeBuilder.addAstEdge(memberId, typeDeclId, memberOrderTracker)
+          addAstEdge(memberId, typeDeclId, memberOrderTracker)
         }
       }
     }
@@ -533,20 +533,20 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   }
 
   override def visit(ifNode: IfNode): NewNode = {
-    val ifNodeId = astNodeBuilder.createControlStructureNode(ifNode, ControlStructureTypes.IF)
+    val ifNodeId = createControlStructureNode(ifNode, ControlStructureTypes.IF)
 
     Option(ifNode.getTest).foreach { testNode =>
       val testId = testNode.accept(this)
-      astEdgeBuilder.addAstEdge(testId, ifNodeId, 1)
-      astEdgeBuilder.addConditionEdge(testId, ifNodeId)
+      addAstEdge(testId, ifNodeId, 1)
+      addConditionEdge(testId, ifNodeId)
     }
     Option(ifNode.getPass).foreach { passNode =>
       val passId = passNode.accept(this)
-      astEdgeBuilder.addAstEdge(passId, ifNodeId, 2)
+      addAstEdge(passId, ifNodeId, 2)
     }
     Option(ifNode.getFail).foreach { failNode =>
       val failId = failNode.accept(this)
-      astEdgeBuilder.addAstEdge(failId, ifNodeId, 3)
+      addAstEdge(failId, ifNodeId, 3)
     }
 
     ifNodeId
@@ -561,29 +561,29 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   ): NewCall = {
     val argIds = callNode.getArgs.asScala.map(_.accept(this))
 
-    val baseCode = astNodeBuilder.codeOf(functionBaseId)
+    val baseCode = codeOf(functionBaseId)
     val propertyCode = functionPropertyId match {
-      case Some(id) => "." + astNodeBuilder.codeOf(id)
+      case Some(id) => "." + codeOf(id)
       case None     => ""
     }
 
-    val argsCode = argIds.map(astNodeBuilder.codeOf).mkString("(", ", ", ")")
+    val argsCode = argIds.map(codeOf).mkString("(", ", ", ")")
     val code     = s"$baseCode$propertyCode$argsCode"
 
     val callId =
-      astNodeBuilder.createCallNode(code, "", DispatchTypes.DYNAMIC_DISPATCH, astNodeBuilder.lineAndColumn(callNode))
+      createCallNode(code, "", DispatchTypes.DYNAMIC_DISPATCH, callNode)
     val orderTracker    = new OrderTracker(0)
     val argIndexTracker = new OrderTracker(0)
 
-    astEdgeBuilder.addAstEdge(receiverId, callId, orderTracker)
-    astEdgeBuilder.addReceiverEdge(receiverId, callId)
+    addAstEdge(receiverId, callId, orderTracker)
+    addReceiverEdge(receiverId, callId)
 
-    astEdgeBuilder.addAstEdge(baseId, callId, orderTracker)
-    astEdgeBuilder.addArgumentEdge(baseId, callId, argIndexTracker)
+    addAstEdge(baseId, callId, orderTracker)
+    addArgumentEdge(baseId, callId, argIndexTracker)
 
     argIds.foreach { argId =>
-      astEdgeBuilder.addAstEdge(argId, callId, orderTracker)
-      astEdgeBuilder.addArgumentEdge(argId, callId, argIndexTracker)
+      addAstEdge(argId, callId, orderTracker)
+      addArgumentEdge(argId, callId, argIndexTracker)
     }
 
     callId
@@ -597,18 +597,13 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
         case identNode: IdentNode =>
           identNode.getName
       }
-    val callId = astNodeBuilder.createStaticCallNode(
-      callNode.toString(),
-      methodName,
-      methodFullName,
-      astNodeBuilder.lineAndColumn(callNode)
-    )
+    val callId          = createStaticCallNode(callNode.toString(), methodName, methodFullName, callNode)
     val orderTracker    = new OrderTracker()
     val argIndexTracker = new OrderTracker()
     callNode.getArgs.forEach { arg =>
       val argId = arg.accept(this)
-      astEdgeBuilder.addAstEdge(argId, callId, orderTracker)
-      astEdgeBuilder.addArgumentEdge(argId, callId, argIndexTracker)
+      addAstEdge(argId, callId, orderTracker)
+      addArgumentEdge(argId, callId, argIndexTracker)
     }
 
     callId
@@ -649,21 +644,12 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
               val baseId = base.accept(this)
 
-              val tmpAssignmentId = astNodeBuilder.createAssignmentNode(
-                baseTmpId,
-                baseId,
-                astNodeBuilder.lineAndColumn(base),
-                withParenthesis = true
-              )
+              val tmpAssignmentId = createAssignmentNode(baseTmpId, baseId, base, withParenthesis = true)
 
               val memberId =
-                astNodeBuilder.createFieldIdentifierNode(functionAccessNode.getProperty, functionAccessNode)
+                createFieldIdentifierNode(functionAccessNode.getProperty, functionAccessNode)
 
-              val fieldAccessId = astNodeBuilder.createFieldAccessNode(
-                tmpAssignmentId,
-                memberId,
-                astNodeBuilder.lineAndColumn(functionAccessNode)
-              )
+              val fieldAccessId = createFieldAccessCallNode(tmpAssignmentId, memberId, functionAccessNode)
 
               val thisTmpId = createIdentifierNode(tmpVarName, functionAccessNode)
               scope.addVariableReference(tmpVarName, thisTmpId)
@@ -696,45 +682,45 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     } else {
       ControlStructureTypes.WHILE
     }
-    val whileNodeId = astNodeBuilder.createControlStructureNode(whileNode, controlStructureType)
+    val whileNodeId = createControlStructureNode(whileNode, controlStructureType)
 
     if (whileNode.isDoWhile) {
       val bodyId = whileNode.getBody.accept(this)
-      astEdgeBuilder.addAstEdge(bodyId, whileNodeId, 1)
+      addAstEdge(bodyId, whileNodeId, 1)
 
       val testId = whileNode.getTest.accept(this)
-      astEdgeBuilder.addAstEdge(testId, whileNodeId, 2)
-      astEdgeBuilder.addConditionEdge(testId, whileNodeId)
+      addAstEdge(testId, whileNodeId, 2)
+      addConditionEdge(testId, whileNodeId)
     } else {
       val testId = whileNode.getTest.accept(this)
-      astEdgeBuilder.addAstEdge(testId, whileNodeId, 1)
-      astEdgeBuilder.addConditionEdge(testId, whileNodeId)
+      addAstEdge(testId, whileNodeId, 1)
+      addConditionEdge(testId, whileNodeId)
 
       val bodyId = whileNode.getBody.accept(this)
-      astEdgeBuilder.addAstEdge(bodyId, whileNodeId, 2)
+      addAstEdge(bodyId, whileNodeId, 2)
     }
 
     whileNodeId
   }
 
   private def createForNode(forNode: ForNode): NewControlStructure = {
-    val forNodeId = astNodeBuilder.createControlStructureNode(forNode, ControlStructureTypes.FOR)
+    val forNodeId = createControlStructureNode(forNode, ControlStructureTypes.FOR)
 
     Option(forNode.getInit).foreach { initNode =>
       val initNodeId = initNode.accept(this)
-      astEdgeBuilder.addAstEdge(initNodeId, forNodeId, 1)
+      addAstEdge(initNodeId, forNodeId, 1)
     }
 
     val testNodeId = forNode.getTest match {
       case null =>
         // If the for condition is empty, this ensures that there is always a condition (true) present.
         val testNodeId =
-          astNodeBuilder.createLiteralNode("true", astNodeBuilder.lineAndColumn(forNode), Some(Defines.Boolean))
+          createLiteralNode("true", forNode, Some(Defines.Boolean))
         testNodeId
       case testNode if testNode.getExpression == null =>
         // If the for condition is empty, this ensures that there is always a condition (true) present.
         val testNodeId =
-          astNodeBuilder.createLiteralNode("true", astNodeBuilder.lineAndColumn(forNode), Some(Defines.Boolean))
+          createLiteralNode("true", forNode, Some(Defines.Boolean))
         testNodeId
       // The test of a forNode can be a JoinPredecessorExpression which does not wrap any expression.
       // This only happens for "for (x in y)" style loops.
@@ -743,16 +729,16 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
       case testNode if testNode.getExpression != null =>
         testNode.accept(this)
     }
-    astEdgeBuilder.addAstEdge(testNodeId, forNodeId, 2)
+    addAstEdge(testNodeId, forNodeId, 2)
 
     Option(forNode.getModify).foreach { modifyNode =>
       val modifyNodeId = modifyNode.accept(this)
-      astEdgeBuilder.addAstEdge(modifyNodeId, forNodeId, 3)
+      addAstEdge(modifyNodeId, forNodeId, 3)
     }
 
     if (forNode.getBody.getStatementCount != 0) {
       val bodyId = forNode.getBody.accept(this)
-      astEdgeBuilder.addAstEdge(bodyId, forNodeId, 4)
+      addAstEdge(bodyId, forNodeId, 4)
     }
 
     forNodeId
@@ -770,7 +756,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   private def createForInOrOfNode(forNode: ForNode): NewBlock = {
     // surrounding block:
     val blockOrder = new OrderTracker()
-    val blockId    = astNodeBuilder.createBlockNode(forNode)
+    val blockId    = createBlockNode(forNode)
     scope.pushNewBlockScope(blockId)
     localAstParentStack.push(blockId)
 
@@ -780,143 +766,134 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     // _iterator assignment:
     val iteratorName =
       PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, "_iterator")
-    val iteratorLocalId = astNodeBuilder.createLocalNode(iteratorName, Defines.Any)
+    val iteratorLocalId = createLocalNode(iteratorName, Defines.Any)
     addLocalToAst(iteratorLocalId)
 
     val iteratorId = createIdentifierNode(iteratorName, forNode)
 
-    val callId = astNodeBuilder.createCallNode(
+    val callId = createCallNode(
       "Object.keys(" + collectionName + ")[Symbol.iterator]()",
       "",
       DispatchTypes.DYNAMIC_DISPATCH,
-      astNodeBuilder.lineAndColumn(forNode)
+      forNode
     )
 
     val thisId = createIdentifierNode("this", forNode)
 
-    val indexCallId = astNodeBuilder.createCallNode(
+    val indexCallId = createCallNode(
       "Object.keys(" + collectionName + ")[Symbol.iterator]",
       Operators.indexAccess,
       DispatchTypes.STATIC_DISPATCH,
-      astNodeBuilder.lineAndColumn(forNode)
+      forNode
     )
 
-    val objectKeysCallId = astNodeBuilder.createStaticCallNode(
-      "Object.keys(" + collectionName + ")",
-      "keys",
-      "Object.keys",
-      astNodeBuilder.lineAndColumn(forNode)
-    )
+    val objectKeysCallId =
+      createStaticCallNode("Object.keys(" + collectionName + ")", "keys", "Object.keys", forNode)
 
     val argId = collection.accept(this)
-    astEdgeBuilder.addAstEdge(argId, objectKeysCallId, 1)
-    astEdgeBuilder.addArgumentEdge(argId, objectKeysCallId, 1)
+    addAstEdge(argId, objectKeysCallId, 1)
+    addArgumentEdge(argId, objectKeysCallId, 1)
 
     val indexBaseId = createIdentifierNode("Symbol", forNode)
 
-    val indexMemberId = astNodeBuilder.createFieldIdentifierNode("iterator", forNode)
+    val indexMemberId = createFieldIdentifierNode("iterator", forNode)
 
     val indexAccessId =
-      astNodeBuilder.createFieldAccessNode(indexBaseId, indexMemberId, astNodeBuilder.lineAndColumn(forNode))
+      createFieldAccessCallNode(indexBaseId, indexMemberId, forNode)
 
-    astEdgeBuilder.addAstEdge(objectKeysCallId, indexCallId, 1)
-    astEdgeBuilder.addArgumentEdge(objectKeysCallId, indexCallId, 1)
-    astEdgeBuilder.addAstEdge(indexAccessId, indexCallId, 2)
-    astEdgeBuilder.addArgumentEdge(indexAccessId, indexCallId, 2)
+    addAstEdge(objectKeysCallId, indexCallId, 1)
+    addArgumentEdge(objectKeysCallId, indexCallId, 1)
+    addAstEdge(indexAccessId, indexCallId, 2)
+    addArgumentEdge(indexAccessId, indexCallId, 2)
 
-    astEdgeBuilder.addAstEdge(indexCallId, callId, 0)
-    astEdgeBuilder.addReceiverEdge(indexCallId, callId)
+    addAstEdge(indexCallId, callId, 0)
+    addReceiverEdge(indexCallId, callId)
 
-    astEdgeBuilder.addAstEdge(thisId, callId, 1)
-    astEdgeBuilder.addArgumentEdge(thisId, callId, 0)
+    addAstEdge(thisId, callId, 1)
+    addArgumentEdge(thisId, callId, 0)
 
     val iteratorAssignmentId =
-      astNodeBuilder.createCallNode(
+      createCallNode(
         iteratorName + " = " + "Object.keys(" + collectionName + ")[Symbol.iterator]()",
         Operators.assignment,
         DispatchTypes.STATIC_DISPATCH,
-        astNodeBuilder.lineAndColumn(forNode)
+        forNode
       )
 
-    astEdgeBuilder.addAstEdge(iteratorId, iteratorAssignmentId, 1)
-    astEdgeBuilder.addArgumentEdge(iteratorId, iteratorAssignmentId, 1)
-    astEdgeBuilder.addAstEdge(callId, iteratorAssignmentId, 2)
-    astEdgeBuilder.addArgumentEdge(callId, iteratorAssignmentId, 2)
-    astEdgeBuilder.addAstEdge(iteratorAssignmentId, blockId, blockOrder)
+    addAstEdge(iteratorId, iteratorAssignmentId, 1)
+    addArgumentEdge(iteratorId, iteratorAssignmentId, 1)
+    addAstEdge(callId, iteratorAssignmentId, 2)
+    addArgumentEdge(callId, iteratorAssignmentId, 2)
+    addAstEdge(iteratorAssignmentId, blockId, blockOrder)
 
     // _result:
     val resultName =
       PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, "_result")
-    val resultLocalId = astNodeBuilder.createLocalNode(resultName, Defines.Any)
+    val resultLocalId = createLocalNode(resultName, Defines.Any)
     addLocalToAst(resultLocalId)
     val resultId = createIdentifierNode(resultName, forNode)
-    astEdgeBuilder.addAstEdge(resultId, blockId, blockOrder)
+    addAstEdge(resultId, blockId, blockOrder)
 
     // loop variable:
     val loopVariableName    = forNode.getInit.toString()
-    val loopVariableLocalId = astNodeBuilder.createLocalNode(loopVariableName, Defines.Any)
+    val loopVariableLocalId = createLocalNode(loopVariableName, Defines.Any)
     addLocalToAst(loopVariableLocalId)
-    val loopVariableId = createIdentifierNode(loopVariableName, forNode)
-    astEdgeBuilder.addAstEdge(loopVariableId, blockId, blockOrder)
+    val loopVariableId = createIdentifierNode(loopVariableName, forNode.getInit)
+    addAstEdge(loopVariableId, blockId, blockOrder)
 
     // while loop:
     val whileLoopId =
-      astNodeBuilder.createControlStructureNode(forNode, ControlStructureTypes.WHILE)
-    astEdgeBuilder.addAstEdge(whileLoopId, blockId, blockOrder)
+      createControlStructureNode(forNode, ControlStructureTypes.WHILE)
+    addAstEdge(whileLoopId, blockId, blockOrder)
 
     // while loop test:
-    val testCallId = astNodeBuilder.createCallNode(
+    val testCallId = createCallNode(
       "!(" + resultName + " = " + iteratorName + ".next()).done",
       Operators.not,
       DispatchTypes.STATIC_DISPATCH,
-      astNodeBuilder.lineAndColumn(forNode)
+      forNode
     )
 
-    val doneBaseId = astNodeBuilder.createCallNode(
+    val doneBaseId = createCallNode(
       "(" + resultName + " = " + iteratorName + ".next())",
       Operators.assignment,
       DispatchTypes.STATIC_DISPATCH,
-      astNodeBuilder.lineAndColumn(forNode)
+      forNode
     )
 
     val lhsId = createIdentifierNode(resultName, forNode)
 
-    val rhsId = astNodeBuilder.createCallNode(
-      iteratorName + ".next()",
-      "",
-      DispatchTypes.DYNAMIC_DISPATCH,
-      astNodeBuilder.lineAndColumn(forNode)
-    )
+    val rhsId = createCallNode(iteratorName + ".next()", "", DispatchTypes.DYNAMIC_DISPATCH, forNode)
 
     val nextBaseId = createIdentifierNode(iteratorName, forNode)
 
-    val nextMemberId = astNodeBuilder.createFieldIdentifierNode("next", forNode)
+    val nextMemberId = createFieldIdentifierNode("next", forNode)
 
     val nextReceiverId =
-      astNodeBuilder.createFieldAccessNode(nextBaseId, nextMemberId, astNodeBuilder.lineAndColumn(forNode))
+      createFieldAccessCallNode(nextBaseId, nextMemberId, forNode)
 
     val thisNextId = createIdentifierNode(iteratorName, forNode)
 
-    astEdgeBuilder.addAstEdge(nextReceiverId, rhsId, 0)
-    astEdgeBuilder.addReceiverEdge(nextReceiverId, rhsId)
+    addAstEdge(nextReceiverId, rhsId, 0)
+    addReceiverEdge(nextReceiverId, rhsId)
 
-    astEdgeBuilder.addAstEdge(thisNextId, rhsId, 1)
-    astEdgeBuilder.addArgumentEdge(thisNextId, rhsId, 0)
+    addAstEdge(thisNextId, rhsId, 1)
+    addArgumentEdge(thisNextId, rhsId, 0)
 
-    astEdgeBuilder.addAstEdge(lhsId, doneBaseId, 1)
-    astEdgeBuilder.addArgumentEdge(lhsId, doneBaseId, 1)
-    astEdgeBuilder.addAstEdge(rhsId, doneBaseId, 2)
-    astEdgeBuilder.addArgumentEdge(rhsId, doneBaseId, 2)
+    addAstEdge(lhsId, doneBaseId, 1)
+    addArgumentEdge(lhsId, doneBaseId, 1)
+    addAstEdge(rhsId, doneBaseId, 2)
+    addArgumentEdge(rhsId, doneBaseId, 2)
 
-    val doneMemberId = astNodeBuilder.createFieldIdentifierNode("done", forNode)
+    val doneMemberId = createFieldIdentifierNode("done", forNode)
 
-    val testId = astNodeBuilder.createFieldAccessNode(doneBaseId, doneMemberId, astNodeBuilder.lineAndColumn(forNode))
+    val testId = createFieldAccessCallNode(doneBaseId, doneMemberId, forNode)
 
-    astEdgeBuilder.addAstEdge(testId, testCallId, 1)
-    astEdgeBuilder.addArgumentEdge(testId, testCallId, 1)
+    addAstEdge(testId, testCallId, 1)
+    addArgumentEdge(testId, testCallId, 1)
 
-    astEdgeBuilder.addAstEdge(testCallId, whileLoopId, 1)
-    astEdgeBuilder.addConditionEdge(testCallId, whileLoopId)
+    addAstEdge(testCallId, whileLoopId, 1)
+    addConditionEdge(testCallId, whileLoopId)
 
     // while loop variable assignment:
     val whileLoopVariableId =
@@ -924,37 +901,37 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
     val baseId = createIdentifierNode(resultName, forNode)
 
-    val memberId = astNodeBuilder.createFieldIdentifierNode("value", forNode)
+    val memberId = createFieldIdentifierNode("value", forNode)
 
     val accessId =
-      astNodeBuilder.createFieldAccessNode(baseId, memberId, astNodeBuilder.lineAndColumn(forNode))
+      createFieldAccessCallNode(baseId, memberId, forNode)
 
-    val loopVariableAssignmentId = astNodeBuilder.createCallNode(
+    val loopVariableAssignmentId = createCallNode(
       loopVariableName + " = " + resultName + ".value",
       Operators.assignment,
       DispatchTypes.STATIC_DISPATCH,
-      astNodeBuilder.lineAndColumn(forNode)
+      forNode
     )
 
-    astEdgeBuilder.addAstEdge(whileLoopVariableId, loopVariableAssignmentId, 1)
-    astEdgeBuilder.addArgumentEdge(whileLoopVariableId, loopVariableAssignmentId, 1)
-    astEdgeBuilder.addAstEdge(accessId, loopVariableAssignmentId, 2)
-    astEdgeBuilder.addArgumentEdge(accessId, loopVariableAssignmentId, 2)
+    addAstEdge(whileLoopVariableId, loopVariableAssignmentId, 1)
+    addArgumentEdge(whileLoopVariableId, loopVariableAssignmentId, 1)
+    addAstEdge(accessId, loopVariableAssignmentId, 2)
+    addArgumentEdge(accessId, loopVariableAssignmentId, 2)
 
     val whileLoopBlockOrder = new OrderTracker()
-    val whileLoopBlockId    = astNodeBuilder.createBlockNode(forNode)
+    val whileLoopBlockId    = createBlockNode(forNode)
     scope.pushNewBlockScope(whileLoopBlockId)
     localAstParentStack.push(whileLoopBlockId)
 
-    astEdgeBuilder.addAstEdge(loopVariableAssignmentId, whileLoopBlockId, whileLoopBlockOrder)
+    addAstEdge(loopVariableAssignmentId, whileLoopBlockId, whileLoopBlockOrder)
 
     // while loop block:
     if (forNode.getBody.getStatementCount != 0) {
       val bodyId = forNode.getBody.accept(this)
-      astEdgeBuilder.addAstEdge(bodyId, whileLoopBlockId, whileLoopBlockOrder)
+      addAstEdge(bodyId, whileLoopBlockId, whileLoopBlockOrder)
     }
 
-    astEdgeBuilder.addAstEdge(whileLoopBlockId, whileLoopId, 2)
+    addAstEdge(whileLoopBlockId, whileLoopId, 2)
     scope.popScope()
     localAstParentStack.pop()
 
@@ -977,7 +954,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   }
 
   private def createRealBlock(block: Block): NewBlock = {
-    val blockId = astNodeBuilder.createBlockNode(block)
+    val blockId = createBlockNode(block)
 
     val orderTracker = new OrderTracker()
     scope.pushNewBlockScope(blockId)
@@ -986,7 +963,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     visitStatements(
       block.getStatements,
       statementId => {
-        astEdgeBuilder.addAstEdge(statementId, blockId, orderTracker)
+        addAstEdge(statementId, blockId, orderTracker)
       }
     )
     localAstParentStack.pop()
@@ -1046,75 +1023,69 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     */
   private def createArrayLiteralNode(arrayLiteralNode: ArrayLiteralNode): NewNode = {
     if (arrayLiteralNode.getElementExpressions.isEmpty) {
-      val arrayCallId = astNodeBuilder.createCallNode(
+      val arrayCallId = createCallNode(
         EcmaBuiltins.arrayFactory + "()",
         EcmaBuiltins.arrayFactory,
         DispatchTypes.STATIC_DISPATCH,
-        astNodeBuilder.lineAndColumn(arrayLiteralNode)
+        arrayLiteralNode
       )
       arrayCallId
     } else {
-      val blockId = astNodeBuilder.createBlockNode(arrayLiteralNode)
+      val blockId = createBlockNode(arrayLiteralNode)
 
       scope.pushNewBlockScope(blockId)
       val blockOrder = new OrderTracker()
       localAstParentStack.push(blockId)
 
-      val tmpName =
-        PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, "_tmp")
-      val localTmpId = astNodeBuilder.createLocalNode(tmpName, Defines.Any)
+      val tmpName    = PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, "_tmp")
+      val localTmpId = createLocalNode(tmpName, Defines.Any)
       addLocalToAst(localTmpId)
 
       val tmpArrayId = createIdentifierNode(tmpName, arrayLiteralNode)
 
-      val arrayCallId = astNodeBuilder.createCallNode(
+      val arrayCallId = createCallNode(
         EcmaBuiltins.arrayFactory + "()",
         EcmaBuiltins.arrayFactory,
         DispatchTypes.STATIC_DISPATCH,
-        astNodeBuilder.lineAndColumn(arrayLiteralNode)
+        arrayLiteralNode
       )
 
       val assignmentTmpArrayCallId =
-        astNodeBuilder.createAssignmentNode(tmpArrayId, arrayCallId, astNodeBuilder.lineAndColumn(arrayLiteralNode))
+        createAssignmentNode(tmpArrayId, arrayCallId, arrayLiteralNode)
 
-      astEdgeBuilder.addAstEdge(assignmentTmpArrayCallId, blockId, blockOrder)
+      addAstEdge(assignmentTmpArrayCallId, blockId, blockOrder)
 
       arrayLiteralNode.getElementExpressions.forEach {
         case element if element != null =>
           val elementId = element.accept(this)
 
           val pushCallId =
-            astNodeBuilder.createCallNode(
-              tmpName + s".push(${astNodeBuilder.codeOf(elementId)})",
-              "",
-              DispatchTypes.DYNAMIC_DISPATCH,
-              astNodeBuilder.lineAndColumn(element)
-            )
+            createCallNode(tmpName + s".push(${codeOf(elementId)})", "", DispatchTypes.DYNAMIC_DISPATCH, element)
 
           val nextBaseId = createIdentifierNode(tmpName, element)
 
-          val nextMemberId = astNodeBuilder.createFieldIdentifierNode("push", element)
+          val nextMemberId = createFieldIdentifierNode("push", element)
 
           val nextReceiverId =
-            astNodeBuilder.createFieldAccessNode(nextBaseId, nextMemberId, astNodeBuilder.lineAndColumn(element))
+            createFieldAccessCallNode(nextBaseId, nextMemberId, element)
 
           val thisPushId = createIdentifierNode(tmpName, element)
 
-          astEdgeBuilder.addAstEdge(nextReceiverId, pushCallId, 0)
-          astEdgeBuilder.addReceiverEdge(nextReceiverId, pushCallId)
+          addAstEdge(nextReceiverId, pushCallId, 0)
+          addReceiverEdge(nextReceiverId, pushCallId)
 
-          astEdgeBuilder.addAstEdge(thisPushId, pushCallId, 1)
-          astEdgeBuilder.addArgumentEdge(thisPushId, pushCallId, 0)
+          addAstEdge(thisPushId, pushCallId, 1)
+          addArgumentEdge(thisPushId, pushCallId, 0)
 
-          astEdgeBuilder.addAstEdge(elementId, pushCallId, 2)
-          astEdgeBuilder.addArgumentEdge(elementId, pushCallId, 1)
+          addAstEdge(elementId, pushCallId, 2)
+          addArgumentEdge(elementId, pushCallId, 1)
 
-          astEdgeBuilder.addAstEdge(pushCallId, blockId, blockOrder)
+          addAstEdge(pushCallId, blockId, blockOrder)
         case _ => // skip
       }
 
       val tmpArrayReturnId = createIdentifierNode(tmpName, arrayLiteralNode)
-      astEdgeBuilder.addAstEdge(tmpArrayReturnId, blockId, blockOrder)
+      addAstEdge(tmpArrayReturnId, blockId, blockOrder)
 
       scope.popScope()
       localAstParentStack.pop()
@@ -1143,7 +1114,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
           case obj =>
             (obj.getString, None)
         }
-        astNodeBuilder.createLiteralNode(code, astNodeBuilder.lineAndColumn(literalNode), dynamicTypeOption)
+        createLiteralNode(code, literalNode, dynamicTypeOption)
     }
   }
 
@@ -1155,41 +1126,41 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
   override def visit(accessNode: AccessNode): NewNode = {
     val baseId   = accessNode.getBase.accept(this)
-    val memberId = astNodeBuilder.createFieldIdentifierNode(accessNode.getProperty, accessNode)
-    val accessId = astNodeBuilder.createFieldAccessNode(baseId, memberId, astNodeBuilder.lineAndColumn(accessNode))
+    val memberId = createFieldIdentifierNode(accessNode.getProperty, accessNode)
+    val accessId = createFieldAccessCallNode(baseId, memberId, accessNode)
     accessId
   }
 
   private def handleSwitchCase(caseNode: CaseNode, blockId: NewBlock, blockOrder: OrderTracker): Unit = {
-    val labelId = astNodeBuilder.createJumpTarget(caseNode)
-    astEdgeBuilder.addAstEdge(labelId, blockId, blockOrder)
+    val labelId = createJumpTarget(caseNode)
+    addAstEdge(labelId, blockId, blockOrder)
 
     Option(caseNode.getTest).foreach { testExpr =>
       val testId = testExpr.accept(this)
-      astEdgeBuilder.addAstEdge(testId, blockId, blockOrder)
+      addAstEdge(testId, blockId, blockOrder)
     }
 
     visitStatements(
       caseNode.getStatements,
       statementId => {
-        astEdgeBuilder.addAstEdge(statementId, blockId, blockOrder)
+        addAstEdge(statementId, blockId, blockOrder)
       }
     )
   }
 
   override def visit(switchNode: SwitchNode): NewNode = {
     val switchNodeId =
-      astNodeBuilder.createControlStructureNode(switchNode, ControlStructureTypes.SWITCH)
+      createControlStructureNode(switchNode, ControlStructureTypes.SWITCH)
 
     // We need to get the to be switched upon expression from our switchExpressionStack because
     // the compiler generates a synthetic let: 'let :switch = expr' and thus switchNode.getExpression
     // just returns an IdentNode to :switch.
     val switchExpression   = switchExpressionStack.head
     val switchExpressionId = switchExpression.accept(this)
-    astEdgeBuilder.addAstEdge(switchExpressionId, switchNodeId, 1)
-    astEdgeBuilder.addConditionEdge(switchExpressionId, switchNodeId)
+    addAstEdge(switchExpressionId, switchNodeId, 1)
+    addConditionEdge(switchExpressionId, switchNodeId)
 
-    val blockId = astNodeBuilder.createBlockNode(switchNode)
+    val blockId = createBlockNode(switchNode)
     scope.pushNewBlockScope(blockId)
     localAstParentStack.push(blockId)
 
@@ -1198,7 +1169,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
       handleSwitchCase(caseNode, blockId, blockOrder)
     }
 
-    astEdgeBuilder.addAstEdge(blockId, switchNodeId, 2)
+    addAstEdge(blockId, switchNodeId, 2)
     scope.popScope()
     localAstParentStack.pop()
 
@@ -1208,14 +1179,10 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   override def visit(parameterNode: ParameterNode): NewNode = {
     val parameterNodeId = createIdentifierNode("arguments", parameterNode)
 
-    val indexId = astNodeBuilder.createLiteralNode(
-      parameterNode.getIndex.toString,
-      astNodeBuilder.lineAndColumn(parameterNode),
-      Some(Defines.Number)
-    )
+    val indexId = createLiteralNode(parameterNode.getIndex.toString, parameterNode, Some(Defines.Number))
 
     val accessId =
-      astNodeBuilder.createIndexAccessNode(parameterNodeId, indexId, astNodeBuilder.lineAndColumn(parameterNode))
+      createIndexAccessNode(parameterNodeId, indexId, parameterNode)
 
     accessId
   }
@@ -1247,7 +1214,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
           val rhsId = binTestExpr.getRhs.accept(this)
 
-          val testCallId = astNodeBuilder.createEqualsCallNode(lhsId, rhsId, astNodeBuilder.lineAndColumn(binTestExpr))
+          val testCallId = createEqualsCallNode(lhsId, rhsId, binTestExpr)
 
           testCallId
         case otherExpr => otherExpr.accept(this)
@@ -1265,13 +1232,13 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
         case _ => ternaryNode.getFalseExpression.accept(this)
       }
     }
-    astNodeBuilder.createTernaryNode(testId, trueId, falseId, astNodeBuilder.lineAndColumn(ternaryNode))
+    createTernaryNode(testId, trueId, falseId, ternaryNode)
   }
 
   private def createDependencyNodeForRequire(name: String, node: Node): Unit = {
     PassHelpers
       .getRequire(node)
-      .foreach(id => astNodeBuilder.createDependencyNode(name, id, VERSION_REQUIRE))
+      .foreach(id => createDependencyNode(name, id, VERSION_REQUIRE))
   }
 
   private def createVarNodeParamNodeInitKindFalse(varNode: VarNode, assignmentSource: Expression): NewNode = {
@@ -1284,7 +1251,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
         (Defines.Any, "")
       }
 
-    val varId = astNodeBuilder.createLocalNode(varNode.getName.getName, typeFullName)
+    val varId = createLocalNode(varNode.getName.getName, typeFullName)
     addLocalToAst(varId)
     val scopeType = if (varNode.isLet) {
       BlockScope
@@ -1306,7 +1273,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
       }
 
       val assigmentCallId =
-        astNodeBuilder.createAssignmentNode(destId, sourceId, astNodeBuilder.lineAndColumn(varNode), customCode = code)
+        createAssignmentNode(destId, sourceId, varNode, customCode = code)
       assigmentCallId
     } else {
       new NewCompositeNode()
@@ -1319,7 +1286,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
         val destId = varNode.getAssignmentDest.accept(this)
         val rhsId  = createRhsForConditionalParameterInit(varNode.getInit, varNode)
         val assigmentCallId =
-          astNodeBuilder.createAssignmentNode(destId, rhsId, astNodeBuilder.lineAndColumn(varNode))
+          createAssignmentNode(destId, rhsId, varNode)
         assigmentCallId
       case ParamNodeInitKind.PLAIN =>
         // We get here for all parameters of functions with at least one default parameter value
@@ -1357,11 +1324,11 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     val localTmpName =
       PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, "_tmp")
 
-    val blockId = astNodeBuilder.createBlockNode(assignment)
+    val blockId = createBlockNode(assignment)
     scope.pushNewBlockScope(blockId)
     localAstParentStack.push(blockId)
 
-    val localId = astNodeBuilder.createLocalNode(localTmpName, Defines.Any)
+    val localId = createLocalNode(localTmpName, Defines.Any)
     addLocalToAst(localId)
 
     val tmpId = createIdentifierNode(localTmpName, rhs)
@@ -1386,46 +1353,36 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
       }
 
     val assignmentTmpCallId =
-      astNodeBuilder.createAssignmentNode(tmpId, rhsId, astNodeBuilder.lineAndColumn(rhs))
+      createAssignmentNode(tmpId, rhsId, rhs)
 
-    astEdgeBuilder.addAstEdge(assignmentTmpCallId, blockId, blockOrder)
+    addAstEdge(assignmentTmpCallId, blockId, blockOrder)
 
     def convertDestructingElement(element: Node, index: Int): NewNode = {
       element match {
         case identNode: IdentNode =>
           val elementId        = identNode.accept(this)
           val fieldAccessTmpId = createIdentifierNode(localTmpName, identNode)
-          val indexId = astNodeBuilder.createLiteralNode(
-            index.toString,
-            astNodeBuilder.lineAndColumn(identNode),
-            Some(Defines.Number)
-          )
+          val indexId          = createLiteralNode(index.toString, identNode, Some(Defines.Number))
           val accessId =
-            astNodeBuilder.createIndexAccessNode(fieldAccessTmpId, indexId, astNodeBuilder.lineAndColumn(identNode))
+            createIndexAccessNode(fieldAccessTmpId, indexId, identNode)
           val assignmentCallId =
-            astNodeBuilder.createAssignmentNode(elementId, accessId, astNodeBuilder.lineAndColumn(identNode))
+            createAssignmentNode(elementId, accessId, identNode)
           assignmentCallId
         case propertyNode: PropertyNode
             if propertyNode.getValue == null && AstHelpers.getUnaryOperation(
               propertyNode.getKey.tokenType().toString
             ) == "<operator>.spreadObject" =>
           // TODO: how to handle spread objects here?
-          logger.debug(
-            s"Using a spread object for object deconstructing is not yet supported! (${source.getCode(assignment)})"
-          )
-          val unknownId = astNodeBuilder.createUnknownNode(propertyNode)
+          logger.debug(s"Using a spread object for object deconstructing is not yet supported! (${code(assignment)})")
+          val unknownId = createUnknownNode(propertyNode)
           unknownId
         case propertyNode: PropertyNode =>
           val valueId          = propertyNode.getValue.accept(this)
           val fieldAccessTmpId = createIdentifierNode(localTmpName, propertyNode)
-          val keyId            = astNodeBuilder.createPropertyKeyNode(propertyNode)
-          val accessId = astNodeBuilder.createFieldAccessNode(
-            fieldAccessTmpId,
-            keyId,
-            astNodeBuilder.lineAndColumn(propertyNode.getKey)
-          )
+          val keyId            = createPropertyKeyNode(propertyNode)
+          val accessId         = createFieldAccessCallNode(fieldAccessTmpId, keyId, propertyNode.getKey)
           val assignmentCallId =
-            astNodeBuilder.createAssignmentNode(valueId, accessId, astNodeBuilder.lineAndColumn(propertyNode))
+            createAssignmentNode(valueId, accessId, propertyNode)
           assignmentCallId
       }
 
@@ -1440,38 +1397,26 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
             val fieldAccessTmpId =
               createIdentifierNode(localTmpName, binaryNode)
 
-            val indexId = astNodeBuilder.createLiteralNode(
-              index.toString,
-              astNodeBuilder.lineAndColumn(binaryNode),
-              Some(Defines.Number)
-            )
+            val indexId = createLiteralNode(index.toString, binaryNode, Some(Defines.Number))
 
             val accessId =
-              astNodeBuilder.createIndexAccessNode(fieldAccessTmpId, indexId, astNodeBuilder.lineAndColumn(binaryNode))
+              createIndexAccessNode(fieldAccessTmpId, indexId, binaryNode)
 
-            val voidCallId = astNodeBuilder.createCallNode(
-              "void 0",
-              "<operator>.void",
-              DispatchTypes.STATIC_DISPATCH,
-              astNodeBuilder.lineAndColumn(binaryNode.getLhs)
-            )
+            val voidCallId =
+              createCallNode("void 0", "<operator>.void", DispatchTypes.STATIC_DISPATCH, binaryNode.getLhs)
 
             val equalsCallId =
-              astNodeBuilder.createEqualsCallNode(accessId, voidCallId, astNodeBuilder.lineAndColumn(binaryNode.getRhs))
+              createEqualsCallNode(accessId, voidCallId, binaryNode.getRhs)
 
             equalsCallId
           }
           val falseId = {
             val fieldAccessTmpId = createIdentifierNode(localTmpName, binaryNode)
 
-            val indexId = astNodeBuilder.createLiteralNode(
-              index.toString,
-              astNodeBuilder.lineAndColumn(binaryNode),
-              Some(Defines.Number)
-            )
+            val indexId = createLiteralNode(index.toString, binaryNode, Some(Defines.Number))
 
             val accessId =
-              astNodeBuilder.createIndexAccessNode(fieldAccessTmpId, indexId, astNodeBuilder.lineAndColumn(binaryNode))
+              createIndexAccessNode(fieldAccessTmpId, indexId, binaryNode)
             accessId
           }
           (lhsId, testId, rhsId, falseId)
@@ -1480,10 +1425,8 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
               propertyNode.getKey.tokenType().toString
             ) == "<operator>.spreadObject" =>
           // TODO: how to handle spread objects here?
-          logger.debug(
-            s"Using a spread object for object deconstructing is not yet supported! (${source.getCode(assignment)})"
-          )
-          val unknownId = astNodeBuilder.createUnknownNode(propertyNode)
+          logger.debug(s"Using a spread object for object deconstructing is not yet supported! (${code(assignment)})")
+          val unknownId = createUnknownNode(propertyNode)
           return unknownId
         case propertyNode: PropertyNode =>
           val valueAsBinaryNode = propertyNode.getValue.asInstanceOf[BinaryNode]
@@ -1492,41 +1435,33 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
           val testId = {
             val fieldAccessTmpId = createIdentifierNode(localTmpName, propertyNode)
 
-            val keyId = astNodeBuilder.createPropertyKeyNode(propertyNode)
+            val keyId = createPropertyKeyNode(propertyNode)
 
             val accessId =
-              astNodeBuilder.createFieldAccessNode(fieldAccessTmpId, keyId, astNodeBuilder.lineAndColumn(propertyNode))
+              createFieldAccessCallNode(fieldAccessTmpId, keyId, propertyNode)
 
-            val voidCallId = astNodeBuilder.createCallNode(
-              "void 0",
-              "<operator>.void",
-              DispatchTypes.STATIC_DISPATCH,
-              astNodeBuilder.lineAndColumn(propertyNode.getKey)
-            )
+            val voidCallId =
+              createCallNode("void 0", "<operator>.void", DispatchTypes.STATIC_DISPATCH, propertyNode.getKey)
 
-            val equalsCallId = astNodeBuilder.createEqualsCallNode(
-              accessId,
-              voidCallId,
-              astNodeBuilder.lineAndColumn(valueAsBinaryNode.getRhs)
-            )
+            val equalsCallId = createEqualsCallNode(accessId, voidCallId, valueAsBinaryNode.getRhs)
             equalsCallId
           }
           val falseId = {
             val fieldAccessTmpId = createIdentifierNode(localTmpName, propertyNode)
 
-            val keyId = astNodeBuilder.createPropertyKeyNode(propertyNode)
+            val keyId = createPropertyKeyNode(propertyNode)
 
             val accessId =
-              astNodeBuilder.createFieldAccessNode(fieldAccessTmpId, keyId, astNodeBuilder.lineAndColumn(propertyNode))
+              createFieldAccessCallNode(fieldAccessTmpId, keyId, propertyNode)
             accessId
           }
           (lhsId, testId, rhsId, falseId)
       }
       val ternaryNodeId =
-        astNodeBuilder.createTernaryNode(testId, trueId, falseId, astNodeBuilder.lineAndColumn(element))
+        createTernaryNode(testId, trueId, falseId, element)
 
       val assignmentCallId =
-        astNodeBuilder.createAssignmentNode(lhsId, ternaryNodeId, astNodeBuilder.lineAndColumn(element))
+        createAssignmentNode(lhsId, ternaryNodeId, element)
       assignmentCallId
     }
 
@@ -1535,21 +1470,21 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
         lhs.getElements.asScala.zipWithIndex.foreach {
           case (element: PropertyNode, index: Int) if element.getValue.isInstanceOf[BinaryNode] =>
             val subTreeId = convertDestructingElementWithDefault(element, index)
-            astEdgeBuilder.addAstEdge(subTreeId, blockId, blockOrder)
+            addAstEdge(subTreeId, blockId, blockOrder)
             createDependencyNodeForRequire(element.getKeyName, assignment.getRhs)
           case (element: PropertyNode, index: Int) =>
             val subTreeId = convertDestructingElement(element, index)
-            astEdgeBuilder.addAstEdge(subTreeId, blockId, blockOrder)
+            addAstEdge(subTreeId, blockId, blockOrder)
             createDependencyNodeForRequire(element.getKeyName, assignment.getRhs)
         }
       case lhs: ArrayLiteralNode =>
         lhs.getElementExpressions.asScala.zipWithIndex.foreach {
           case (element: BinaryNode, index: Int) =>
             val subTreeId = convertDestructingElementWithDefault(element, index)
-            astEdgeBuilder.addAstEdge(subTreeId, blockId, blockOrder)
+            addAstEdge(subTreeId, blockId, blockOrder)
           case (element: IdentNode, index: Int) =>
             val subTreeId = convertDestructingElement(element, index)
-            astEdgeBuilder.addAstEdge(subTreeId, blockId, blockOrder)
+            addAstEdge(subTreeId, blockId, blockOrder)
             createDependencyNodeForRequire(element.getName, assignment.getRhs)
           // Skipped for array destruction assignment with ignores. The JS parser inserts null here.
           case (null, _) =>
@@ -1559,21 +1494,21 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     }
 
     val returnTmpId = createIdentifierNode(localTmpName, rhs)
-    astEdgeBuilder.addAstEdge(returnTmpId, blockId, blockOrder)
+    addAstEdge(returnTmpId, blockId, blockOrder)
     scope.popScope()
     localAstParentStack.pop()
     blockId
   }
-  private def convertCommaOp(commaop: BinaryNode): NewBlock = {
-    val lhsId = commaop.getLhs.accept(this)
-    val rhsId = commaop.getRhs.accept(this)
+  private def convertCommaOp(commaOp: BinaryNode): NewBlock = {
+    val lhsId = commaOp.getLhs.accept(this)
+    val rhsId = commaOp.getRhs.accept(this)
 
     // generate the exact same code value that we used to when this was handled through `convertSimpleBinaryOp`
-    val code    = astNodeBuilder.codeOf(lhsId) + " , " + astNodeBuilder.codeOf(rhsId)
-    val blockId = astNodeBuilder.createBlockNode(commaop, customCode = Some(code))
+    val code    = codeOf(lhsId) + " , " + codeOf(rhsId)
+    val blockId = createBlockNode(commaOp, customCode = Some(code))
 
-    astEdgeBuilder.addAstEdge(lhsId, blockId, 0)
-    astEdgeBuilder.addAstEdge(rhsId, blockId, 1)
+    addAstEdge(lhsId, blockId, 0)
+    addAstEdge(rhsId, blockId, 1)
 
     blockId
   }
@@ -1584,17 +1519,17 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     val lhsId = binaryNode.getLhs.accept(this)
     val rhsId = binaryNode.getRhs.accept(this)
 
-    val callId = astNodeBuilder.createCallNode(
-      astNodeBuilder.codeOf(lhsId) + " " + binaryNode.tokenType + " " + astNodeBuilder.codeOf(rhsId),
+    val callId = createCallNode(
+      codeOf(lhsId) + " " + binaryNode.tokenType + " " + codeOf(rhsId),
       op,
       DispatchTypes.STATIC_DISPATCH,
-      astNodeBuilder.lineAndColumn(binaryNode)
+      binaryNode
     )
 
-    astEdgeBuilder.addAstEdge(lhsId, callId, 1)
-    astEdgeBuilder.addArgumentEdge(lhsId, callId, 1)
-    astEdgeBuilder.addAstEdge(rhsId, callId, 2)
-    astEdgeBuilder.addArgumentEdge(rhsId, callId, 2)
+    addAstEdge(lhsId, callId, 1)
+    addArgumentEdge(lhsId, callId, 1)
+    addAstEdge(rhsId, callId, 2)
+    addArgumentEdge(rhsId, callId, 2)
 
     callId
   }
@@ -1602,7 +1537,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   private def createConstructorBlock(unaryNode: UnaryNode): NewBlock = {
     val constructorCall = unaryNode.getExpression.asInstanceOf[CallNode]
 
-    val blockId = astNodeBuilder.createBlockNode(unaryNode)
+    val blockId = createBlockNode(unaryNode)
 
     scope.pushNewBlockScope(blockId)
     val blockOrder = new OrderTracker()
@@ -1610,32 +1545,27 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
     val tmpAllocName =
       PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, "_tmp")
-    val localTmpAllocId = astNodeBuilder.createLocalNode(tmpAllocName, Defines.Any)
+    val localTmpAllocId = createLocalNode(tmpAllocName, Defines.Any)
     addLocalToAst(localTmpAllocId)
 
     val tmpAllocId1 = createIdentifierNode(tmpAllocName, unaryNode)
 
-    val allocId = astNodeBuilder.createCallNode(
-      ".alloc",
-      ".alloc",
-      DispatchTypes.STATIC_DISPATCH,
-      astNodeBuilder.lineAndColumn(unaryNode)
-    )
+    val allocId = createCallNode(".alloc", ".alloc", DispatchTypes.STATIC_DISPATCH, unaryNode)
 
     val assignmentTmpAllocCallId =
-      astNodeBuilder.createAssignmentNode(tmpAllocId1, allocId, astNodeBuilder.lineAndColumn(unaryNode))
+      createAssignmentNode(tmpAllocId1, allocId, unaryNode)
 
-    astEdgeBuilder.addAstEdge(assignmentTmpAllocCallId, blockId, blockOrder)
+    addAstEdge(assignmentTmpAllocCallId, blockId, blockOrder)
 
     val tmpAllocId2 = createIdentifierNode(tmpAllocName, unaryNode)
 
     val receiverId = constructorCall.getFunction.accept(this)
     val callId     = handleCallNodeArgs(constructorCall, receiverId, tmpAllocId2, receiverId, None)
 
-    astEdgeBuilder.addAstEdge(callId, blockId, blockOrder)
+    addAstEdge(callId, blockId, blockOrder)
 
     val tmpAllocReturnId = createIdentifierNode(tmpAllocName, unaryNode)
-    astEdgeBuilder.addAstEdge(tmpAllocReturnId, blockId, blockOrder)
+    addAstEdge(tmpAllocReturnId, blockId, blockOrder)
 
     scope.popScope()
     localAstParentStack.pop()
@@ -1646,28 +1576,23 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   private def createUnaryNodeForPrefixOperation(unaryNode: UnaryNode, op: String): NewCall = {
     val astChildId = unaryNode.getExpression.accept(this)
 
-    val code = unaryNode.tokenType().toString + " " + astNodeBuilder.codeOf(astChildId)
+    val code = unaryNode.tokenType().toString + " " + codeOf(astChildId)
 
     val callId =
-      astNodeBuilder.createCallNode(code, op, DispatchTypes.STATIC_DISPATCH, astNodeBuilder.lineAndColumn(unaryNode))
+      createCallNode(code, op, DispatchTypes.STATIC_DISPATCH, unaryNode)
 
-    astEdgeBuilder.addAstEdge(astChildId, callId, 1)
-    astEdgeBuilder.addArgumentEdge(astChildId, callId, 1)
+    addAstEdge(astChildId, callId, 1)
+    addArgumentEdge(astChildId, callId, 1)
 
     callId
   }
 
   private def createUnaryNode(unaryNode: UnaryNode, op: String): NewCall = {
-    val callId = astNodeBuilder.createCallNode(
-      unaryNode.toString,
-      op,
-      DispatchTypes.STATIC_DISPATCH,
-      astNodeBuilder.lineAndColumn(unaryNode)
-    )
+    val callId     = createCallNode(unaryNode.toString, op, DispatchTypes.STATIC_DISPATCH, unaryNode)
     val astChildId = unaryNode.getExpression.accept(this)
 
-    astEdgeBuilder.addAstEdge(astChildId, callId, 1)
-    astEdgeBuilder.addArgumentEdge(astChildId, callId, 1)
+    addAstEdge(astChildId, callId, 1)
+    addArgumentEdge(astChildId, callId, 1)
 
     callId
   }
@@ -1689,37 +1614,37 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
         node.getExpressions.asScala
     }
 
-    val callId = astNodeBuilder.createCallNode(
+    val callId = createCallNode(
       s"__Runtime.TO_STRING(${args.mkString(",")})",
       "__Runtime.TO_STRING",
       DispatchTypes.STATIC_DISPATCH,
-      astNodeBuilder.lineAndColumn(templateLiteralNode)
+      templateLiteralNode
     )
 
     val callOrder    = new OrderTracker()
     val callArgIndex = new OrderTracker()
     args.foreach { expression =>
       val argId = expression.accept(this)
-      astEdgeBuilder.addAstEdge(argId, callId, callOrder)
-      astEdgeBuilder.addArgumentEdge(argId, callId, callArgIndex)
+      addAstEdge(argId, callId, callOrder)
+      addArgumentEdge(argId, callId, callArgIndex)
 
     }
     callId
   }
 
   override def visit(ternaryNode: TernaryNode): NewNode = {
-    astNodeBuilder.createTernaryNode(
+    createTernaryNode(
       ternaryNode.getTest.accept(this),
       ternaryNode.getTrueExpression.accept(this),
       ternaryNode.getFalseExpression.accept(this),
-      astNodeBuilder.lineAndColumn(ternaryNode)
+      ternaryNode
     )
   }
 
   override def visit(throwNode: ThrowNode): NewNode = {
-    val unknownId  = astNodeBuilder.createUnknownNode(throwNode)
+    val unknownId  = createUnknownNode(throwNode)
     val astChildId = throwNode.getExpression.accept(this)
-    astEdgeBuilder.addAstEdge(astChildId, unknownId, 1)
+    addAstEdge(astChildId, unknownId, 1)
     unknownId
   }
 
@@ -1728,20 +1653,20 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   //       calculated during JS runtime. How to emulate this?
   //       (see: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/with)
   override def visit(withNode: WithNode): NewNode = {
-    val unknownId    = astNodeBuilder.createUnknownNode(withNode)
+    val unknownId    = createUnknownNode(withNode)
     val expressionId = withNode.getExpression.accept(this)
-    astEdgeBuilder.addAstEdge(expressionId, unknownId, 1)
+    addAstEdge(expressionId, unknownId, 1)
     val bodyId = withNode.getBody.accept(this)
-    astEdgeBuilder.addAstEdge(bodyId, unknownId, 2)
+    addAstEdge(bodyId, unknownId, 2)
     unknownId
   }
 
   // TODO: Proper handling of label nodes.
   //       Currently we lack appropriate handling for GOTOs.
   override def visit(labelNode: LabelNode): NewNode = {
-    val unknownId  = astNodeBuilder.createUnknownNode(labelNode)
+    val unknownId  = createUnknownNode(labelNode)
     val astChildId = labelNode.getBody.accept(this)
-    astEdgeBuilder.addAstEdge(astChildId, unknownId, 1)
+    addAstEdge(astChildId, unknownId, 1)
     unknownId
   }
 
@@ -1763,12 +1688,12 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   }
 
   override def visit(tryNode: TryNode): NewNode = {
-    val tryNodeId = astNodeBuilder.createControlStructureNode(tryNode, ControlStructureTypes.TRY)
+    val tryNodeId = createControlStructureNode(tryNode, ControlStructureTypes.TRY)
 
     val bodyId = tryNode.getBody.accept(this)
-    astEdgeBuilder.addAstEdge(bodyId, tryNodeId, 1)
+    addAstEdge(bodyId, tryNodeId, 1)
 
-    val blockId = astNodeBuilder.createBlockNode(tryNode)
+    val blockId = createBlockNode(tryNode)
     scope.pushNewBlockScope(blockId)
     val blockOrder = new OrderTracker()
     localAstParentStack.push(blockId)
@@ -1777,18 +1702,18 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
       visitStatements(
         catchBlock.getStatements,
         { statementId =>
-          astEdgeBuilder.addAstEdge(statementId, blockId, blockOrder)
+          addAstEdge(statementId, blockId, blockOrder)
         }
       )
     }
 
-    astEdgeBuilder.addAstEdge(blockId, tryNodeId, 2)
+    addAstEdge(blockId, tryNodeId, 2)
     scope.popScope()
     localAstParentStack.pop()
 
     Option(tryNode.getFinallyBody).foreach { finallyBody =>
       val finallyBodyId = finallyBody.accept(this)
-      astEdgeBuilder.addAstEdge(finallyBodyId, tryNodeId, 3)
+      addAstEdge(finallyBodyId, tryNodeId, 3)
     }
 
     tryNodeId
@@ -1797,34 +1722,33 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   override def visit(indexNode: IndexNode): NewNode = {
     val baseId  = indexNode.getBase.accept(this)
     val indexId = indexNode.getIndex.accept(this)
-    astNodeBuilder.createIndexAccessNode(baseId, indexId, astNodeBuilder.lineAndColumn(indexNode))
+    createIndexAccessNode(baseId, indexId, indexNode)
   }
 
   override def visit(returnNode: ReturnNode): NewNode = {
-    val retId = astNodeBuilder.createReturnNode(returnNode)
+    val retId = createReturnNode(returnNode)
 
     Option(returnNode.getExpression).foreach { returnExpression =>
       val retExprId = returnExpression.accept(this)
-      astEdgeBuilder.addAstEdge(retExprId, retId, 1)
-      astEdgeBuilder.addArgumentEdge(retExprId, retId, 1)
+      addAstEdge(retExprId, retId, 1)
+      addArgumentEdge(retExprId, retId, 1)
     }
     retId
   }
 
   override def visit(errorNode: ErrorNode): NewNode = {
-    astNodeBuilder.createUnknownNode(errorNode)
+    createUnknownNode(errorNode)
   }
 
   override def visit(objectNode: ObjectNode): NewNode = {
-    val blockId = astNodeBuilder.createBlockNode(objectNode)
+    val blockId = createBlockNode(objectNode)
 
     scope.pushNewBlockScope(blockId)
     val blockOrder = new OrderTracker()
     localAstParentStack.push(blockId)
 
-    val tmpName =
-      PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, "_tmp")
-    val localId = astNodeBuilder.createLocalNode(tmpName, Defines.Any)
+    val tmpName = PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, "_tmp")
+    val localId = createLocalNode(tmpName, Defines.Any)
     addLocalToAst(localId)
 
     objectNode.getElements.forEach {
@@ -1838,7 +1762,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
           ) == "<operator>.spreadObject" =>
         // TODO: handling of spread objects here
         val exprId = element.getKey.asInstanceOf[UnaryNode].getExpression.accept(this)
-        astEdgeBuilder.addAstEdge(exprId, blockId, blockOrder)
+        addAstEdge(exprId, blockId, blockOrder)
       case element =>
         val rightHandSideId = element.getValue match {
           case functionNode: FunctionNode =>
@@ -1848,19 +1772,15 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
         val leftHandSideTmpId = createIdentifierNode(tmpName, element)
 
-        val keyId = astNodeBuilder.createPropertyKeyNode(element)
+        val keyId = createPropertyKeyNode(element)
 
         val leftHandSideFieldAccessId =
-          astNodeBuilder.createFieldAccessNode(leftHandSideTmpId, keyId, astNodeBuilder.lineAndColumn(element.getKey))
+          createFieldAccessCallNode(leftHandSideTmpId, keyId, element.getKey)
 
         val assignmentCallId =
-          astNodeBuilder.createAssignmentNode(
-            leftHandSideFieldAccessId,
-            rightHandSideId,
-            astNodeBuilder.lineAndColumn(element)
-          )
+          createAssignmentNode(leftHandSideFieldAccessId, rightHandSideId, element)
 
-        astEdgeBuilder.addAstEdge(assignmentCallId, blockId, blockOrder)
+        addAstEdge(assignmentCallId, blockId, blockOrder)
 
         // getter + setter:
         Option(element.getGetter).foreach(_.accept(this))
@@ -1868,7 +1788,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     }
 
     val tmpId = createIdentifierNode(tmpName, objectNode)
-    astEdgeBuilder.addAstEdge(tmpId, blockId, blockOrder)
+    addAstEdge(tmpId, blockId, blockOrder)
 
     scope.popScope()
     localAstParentStack.pop()
@@ -1907,12 +1827,12 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
                     case None =>
                       val methodScopeNodeId = methodScope.scopeNode
                       val localId =
-                        astNodeBuilder.createLocalNode(origin.variableName, Defines.Any, Some(closureBindingIdProperty))
-                      astEdgeBuilder.addAstEdge(localId, methodScopeNodeId, 0)
+                        createLocalNode(origin.variableName, Defines.Any, Some(closureBindingIdProperty))
+                      addAstEdge(localId, methodScopeNodeId, 0)
                       val closureBindingId =
-                        astNodeBuilder.createClosureBindingNode(closureBindingIdProperty, origin.variableName)
+                        createClosureBindingNode(closureBindingIdProperty, origin.variableName)
 
-                      methodScope.capturingRefId.foreach(astEdgeBuilder.addCaptureEdge(closureBindingId, _))
+                      methodScope.capturingRefId.foreach(addCaptureEdge(closureBindingId, _))
 
                       nextReferenceId = closureBindingId
 
@@ -1929,7 +1849,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
           }
 
         localOrCapturedLocalIdOption.foreach { localOrCapturedLocalId =>
-          astEdgeBuilder.addRefEdge(localOrCapturedLocalId, currentReferenceId)
+          addRefEdge(localOrCapturedLocalId, currentReferenceId)
           currentReferenceId = nextReferenceId
         }
 
@@ -1943,8 +1863,8 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     variableName: String
   ): (NewNode, ScopeType) = {
     val varId =
-      astNodeBuilder.createLocalNode(variableName, Defines.Any)
-    astEdgeBuilder.addAstEdge(varId, methodScopeNodeId, 0)
+      createLocalNode(variableName, Defines.Any)
+    addAstEdge(varId, methodScopeNodeId, 0)
     (varId, MethodScope)
   }
 

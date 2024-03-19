@@ -1,11 +1,7 @@
 package io.shiftleft.js2cpg.passes
 
-import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.codepropertygraph.generated.*
 import io.shiftleft.codepropertygraph.generated.nodes.*
-import io.shiftleft.js2cpg.core.Config
-import io.shiftleft.js2cpg.io.FileDefaults.JS_SUFFIX
-import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.semanticcpg.language.*
 
 class SimpleAstCreationPassTest extends AbstractPassTest {
