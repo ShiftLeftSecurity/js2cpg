@@ -5,14 +5,15 @@ import better.files.File
 import com.atlassian.sourcemap.{ReadableSourceMap, ReadableSourceMapImpl}
 import com.oracle.js.parser.Source
 import com.oracle.js.parser.ir.Node
-import io.shiftleft.js2cpg.io.FileDefaults._
+import io.joern.x2cpg.utils.OffsetUtils
+import io.shiftleft.js2cpg.io.FileDefaults.*
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.preprocessing.NuxtTranspiler
 import io.shiftleft.utils.IOUtils
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
 object JsSource {
@@ -71,6 +72,15 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
   def getCode(node: Node): String = codeFromSourceMap(node)
 
   def getString(node: Node): String = source.getString(node.getToken)
+
+  def fileContentFromSourceMap: String = {
+    sourceMap match {
+      case Some(SourceMapOrigin(_, Some(sourceMap), _)) =>
+        sourceMap.getSourcesContent.asScala.mkString
+      case _ =>
+        source.getContent
+    }
+  }
 
   /** @return
     *   always the original file that was parsed. Might be a file that is the result of transpilation
@@ -215,7 +225,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
     currentLine: String,
     currentLineNumber: Int,
     transpiledCodeLength: Int
-  ): String =
+  ): String = {
     currentLine match {
       case line if line.length >= transpiledCodeLength =>
         shortenCode(line, transpiledCodeLength - 1)
@@ -229,6 +239,37 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
       case line =>
         line.stripLineEnd
     }
+  }
+
+  private def offsetTable: Array[Int] = OffsetUtils.getLineOffsetTable(Some(fileContentFromSourceMap))
+
+  def offsets(node: Node): Option[(Int, Int)] = {
+    sourceMap match {
+      case Some(SourceMapOrigin(_, Some(sourceMap), _)) =>
+        val line         = getLineOfSource(node.getStart) - 1
+        val column       = getColumnOfSource(node.getStart)
+        val lineEnd      = getLineOfSource(node.getFinish) - 1
+        val columnEnd    = getColumnOfSource(node.getFinish)
+        val mappingStart = sourceMap.getMapping(line, column)
+        val mappingEnd   = sourceMap.getMapping(lineEnd, columnEnd)
+        val (startOffset, endOffset) = OffsetUtils.coordinatesToOffset(
+          offsetTable,
+          mappingStart.getSourceLine + 1,
+          mappingStart.getSourceColumn,
+          mappingEnd.getSourceLine + 1,
+          mappingEnd.getSourceColumn
+        )
+        Some((startOffset, endOffset - 1))
+      case _ if offsetTable.nonEmpty =>
+        val line                     = getLineOfSource(node.getStart) - 1
+        val column                   = getColumnOfSource(node.getStart)
+        val lineEnd                  = getLineOfSource(node.getFinish) - 1
+        val columnEnd                = getColumnOfSource(node.getFinish)
+        val (startOffset, endOffset) = OffsetUtils.coordinatesToOffset(offsetTable, line, column, lineEnd, columnEnd)
+        Some((startOffset, endOffset - 1))
+      case _ => None
+    }
+  }
 
   private def lineFromSourceMap(node: Node): Option[Int] = {
     sourceMap match {

@@ -120,6 +120,7 @@ class AstNodeBuilder(
   }
 
   def createTypeDeclNode(
+    node: Node,
     name: String,
     fullName: String,
     astParentType: String,
@@ -134,6 +135,9 @@ class AstNodeBuilder(
       .isExternal(false)
       .inheritsFromTypeFullName(inheritsFrom.toList)
       .filename(source.filePath)
+    source.offsets(node).foreach { (start, end) =>
+      typeDecl.offset(start).offsetEnd(end)
+    }
     diffGraph.addNode(typeDecl)
     typeDecl
   }
@@ -402,6 +406,9 @@ class AstNodeBuilder(
       .isExternal(false)
       .lineNumber(line)
       .columnNumber(column)
+    source.offsets(functionNode).foreach { (start, end) =>
+      method.offset(start).offsetEnd(end)
+    }
     diffGraph.addNode(method)
     method
   }

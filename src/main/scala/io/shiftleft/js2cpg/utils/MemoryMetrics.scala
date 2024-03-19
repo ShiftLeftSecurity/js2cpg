@@ -3,6 +3,7 @@ package io.shiftleft.js2cpg.utils
 import io.shiftleft.js2cpg.core.Config
 import org.slf4j.LoggerFactory
 
+import scala.util.Try
 import scala.util.Using
 
 object MemoryMetrics {
@@ -54,14 +55,14 @@ object MemoryMetrics {
     }
   }
 
-  def withMemoryMetrics(config: Config)(work: => Unit): Unit = config.jvmMetrics match {
+  def withMemoryMetrics[T](config: Config)(work: => T): T = config.jvmMetrics match {
     case Some(port) =>
       Using(new JmxRunnable(port, 5000)) { monitor =>
         val t = new Thread(monitor)
         t.setName("js2cpg-jvm-monitor")
         t.start()
         work
-      }
+      }.get
     case None => work
   }
 

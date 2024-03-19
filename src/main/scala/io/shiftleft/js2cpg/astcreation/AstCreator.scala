@@ -58,9 +58,10 @@ import io.shiftleft.codepropertygraph.generated.nodes.{
   NewTypeRef
 }
 import io.shiftleft.codepropertygraph.generated.{ControlStructureTypes, DispatchTypes, ModifierTypes, Operators}
-import io.shiftleft.js2cpg.datastructures.Stack._
-import io.shiftleft.js2cpg.datastructures._
-import io.shiftleft.js2cpg.datastructures.scope._
+import io.shiftleft.js2cpg.core.Config
+import io.shiftleft.js2cpg.datastructures.Stack.*
+import io.shiftleft.js2cpg.datastructures.*
+import io.shiftleft.js2cpg.datastructures.scope.*
 import io.shiftleft.js2cpg.passes.{Defines, EcmaBuiltins, PassHelpers}
 import io.shiftleft.js2cpg.passes.PassHelpers.ParamNodeInitKind
 import io.shiftleft.js2cpg.parser.{GeneralizingAstVisitor, JsSource}
@@ -68,7 +69,7 @@ import overflowdb.BatchedUpdate.DiffGraphBuilder
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object AstCreator {
 
@@ -80,7 +81,7 @@ object AstCreator {
 
 }
 
-class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: Set[String])
+class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: Set[String], config: Config)
     extends GeneralizingAstVisitor[NewNode] {
 
   import AstCreator._
@@ -112,6 +113,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   private def prepareFileWrapperFunction(): NewNamespaceBlock = {
     val fileName = source.filePath
     val fileNode = astNodeBuilder.createFileNode(fileName)
+    Option.when(!config.disableFileContent)(fileNode.content(source.fileContentFromSourceMap))
 
     val namespaceBlock =
       astNodeBuilder.createNamespaceBlockNode(fileName + ":" + Defines.GlobalNamespace)
@@ -387,7 +389,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
     methodAstParentStack.pop()
 
-    createFunctionTypeAndTypeDecl(methodId, methodAstParentStack.head, methodName, methodFullName)
+    createFunctionTypeAndTypeDecl(functionNode, methodId, methodAstParentStack.head, methodName, methodFullName)
 
     (methodRefId, methodId)
   }
@@ -420,6 +422,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   }
 
   private def createFunctionTypeAndTypeDecl(
+    node: Node,
     methodId: NewMethod,
     parentNodeId: NewNode,
     methodName: String,
@@ -432,7 +435,14 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     val astParentFullName = parentNodeId.properties("FULL_NAME").toString
 
     val functionTypeDeclId =
-      astNodeBuilder.createTypeDeclNode(methodName, methodFullName, astParentType, astParentFullName, Some(Defines.Any))
+      astNodeBuilder.createTypeDeclNode(
+        node,
+        methodName,
+        methodFullName,
+        astParentType,
+        astParentFullName,
+        Some(Defines.Any)
+      )
     addTypeDeclToAst(functionTypeDeclId)
 
     // Problem for https://github.com/ShiftLeftSecurity/codescience/issues/3626 here.
@@ -460,12 +470,20 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     val astParentFullName = methodAstParentStack.head.properties("FULL_NAME").toString
 
     val typeDeclId =
-      astNodeBuilder.createTypeDeclNode(typeName, typeFullName, astParentType, astParentFullName, inheritsFrom = None)
+      astNodeBuilder.createTypeDeclNode(
+        classNode,
+        typeName,
+        typeFullName,
+        astParentType,
+        astParentFullName,
+        inheritsFrom = None
+      )
 
     astNodeBuilder.createTypeNode(metaTypeName, metaTypeFullName)
 
     val metaTypeDeclId =
       astNodeBuilder.createTypeDeclNode(
+        classNode,
         metaTypeName,
         metaTypeFullName,
         astParentType,
