@@ -96,6 +96,26 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         cpgPath.deleteOnExit()
       }
 
+    "contain correctly re-mapped content fields in simple Babel project" in
+      TranspilationFixture("babel") { tmpDir =>
+        val cpgPath = tmpDir / "cpg.bin.zip"
+        Js2CpgMain.main(
+          Array(tmpDir.pathAsString, "--output", cpgPath.pathAsString, "--no-ts", "--enable-file-content")
+        )
+
+        val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
+
+        val List(programMethod) = cpg.method.nameExact(":program").l
+        programMethod.content shouldBe Some("""[1, 2, 3].map((n) => n + 1);
+            |""".stripMargin)
+
+        val List(anonymousMethod) = cpg.method.nameExact("anonymous").l
+        anonymousMethod.content shouldBe Some("(n) => n + 1);")
+
+        cpg.close()
+        cpgPath.deleteOnExit()
+      }
+
     "generate and use sourcemap files correctly" in
       TranspilationFixture("typescript") { tmpDir =>
         val cpgPath = tmpDir / "cpg.bin.zip"

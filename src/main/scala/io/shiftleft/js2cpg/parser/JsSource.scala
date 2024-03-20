@@ -5,7 +5,6 @@ import better.files.File
 import com.atlassian.sourcemap.{ReadableSourceMap, ReadableSourceMapImpl}
 import com.oracle.js.parser.Source
 import com.oracle.js.parser.ir.Node
-import io.joern.x2cpg.utils.OffsetUtils
 import io.shiftleft.js2cpg.io.FileDefaults.*
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.preprocessing.NuxtTranspiler
@@ -27,6 +26,12 @@ object JsSource {
   def shortenCode(code: String, length: Int = MAX_CODE_LENGTH): String =
     StringUtils.abbreviate(code, math.max(MIN_CODE_LENGTH, length))
 
+  case class SourceMapOrigin(
+    sourceFilePath: Path,
+    sourceMap: Option[ReadableSourceMap],
+    sourceWithLineNumbers: Map[Int, String]
+  )
+
 }
 
 class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
@@ -37,14 +42,10 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
   private val mapFilePath      = absoluteFilePath + ".map"
   private val sourceMap        = sourceMapOrigin()
 
+  def getSourceMap: Option[SourceMapOrigin] = sourceMap
+
   private val (positionToLineNumberMapping, positionToFirstPositionInLineMapping) =
     FileUtils.positionLookupTables(source.getContent)
-
-  private case class SourceMapOrigin(
-    sourceFilePath: Path,
-    sourceMap: Option[ReadableSourceMap],
-    sourceWithLineNumbers: Map[Int, String]
-  )
 
   /** @return
     *   the file path of the parsed file. If this file is the result of transpilation the original source file path is
@@ -241,36 +242,6 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
     }
   }
 
-  private def offsetTable: Array[Int] = OffsetUtils.getLineOffsetTable(Some(fileContentFromSourceMap))
-
-  def offsets(node: Node): Option[(Int, Int)] = {
-    sourceMap match {
-      case Some(SourceMapOrigin(_, Some(sourceMap), _)) =>
-        val line         = getLineOfSource(node.getStart) - 1
-        val column       = getColumnOfSource(node.getStart)
-        val lineEnd      = getLineOfSource(node.getFinish) - 1
-        val columnEnd    = getColumnOfSource(node.getFinish)
-        val mappingStart = sourceMap.getMapping(line, column)
-        val mappingEnd   = sourceMap.getMapping(lineEnd, columnEnd)
-        val (startOffset, endOffset) = OffsetUtils.coordinatesToOffset(
-          offsetTable,
-          mappingStart.getSourceLine + 1,
-          mappingStart.getSourceColumn,
-          mappingEnd.getSourceLine + 1,
-          mappingEnd.getSourceColumn
-        )
-        Some((startOffset, endOffset - 1))
-      case _ if offsetTable.nonEmpty =>
-        val line                     = getLineOfSource(node.getStart) - 1
-        val column                   = getColumnOfSource(node.getStart)
-        val lineEnd                  = getLineOfSource(node.getFinish) - 1
-        val columnEnd                = getColumnOfSource(node.getFinish)
-        val (startOffset, endOffset) = OffsetUtils.coordinatesToOffset(offsetTable, line, column, lineEnd, columnEnd)
-        Some((startOffset, endOffset - 1))
-      case _ => None
-    }
-  }
-
   private def lineFromSourceMap(node: Node): Option[Int] = {
     sourceMap match {
       case Some(SourceMapOrigin(_, Some(sourceMap), _)) =>
@@ -308,14 +279,14 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
 
   // Returns the line number for a given position in the source.
   // We use this method instead of source.getLine for performance reasons.
-  private def getLineOfSource(position: Int): Int = {
+  def getLineOfSource(position: Int): Int = {
     val (_, lineNumber) = positionToLineNumberMapping.minAfter(position).get
     lineNumber
   }
 
   // Returns the column number for a given position in the source.
   // We use this method instead of source.getColumn for performance reasons.
-  private def getColumnOfSource(position: Int): Int = {
+  def getColumnOfSource(position: Int): Int = {
     val (_, firstPositionInLine) = positionToFirstPositionInLineMapping.minAfter(position).get
     position - firstPositionInLine
   }

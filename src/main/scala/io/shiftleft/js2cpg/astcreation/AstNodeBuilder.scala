@@ -13,6 +13,7 @@ import overflowdb.BatchedUpdate.DiffGraphBuilder
 class AstNodeBuilder(
   private val diffGraph: DiffGraphBuilder,
   private val astEdgeBuilder: AstEdgeBuilder,
+  private val astCreator: AstCreator,
   private val source: JsSource,
   private val scope: Scope
 ) {
@@ -135,7 +136,7 @@ class AstNodeBuilder(
       .isExternal(false)
       .inheritsFromTypeFullName(inheritsFrom.toList)
       .filename(source.filePath)
-    source.offsets(node).foreach { (start, end) =>
+    astCreator.offsets(node).foreach { (start, end) =>
       typeDecl.offset(start).offsetEnd(end)
     }
     diffGraph.addNode(typeDecl)
@@ -406,7 +407,7 @@ class AstNodeBuilder(
       .isExternal(false)
       .lineNumber(line)
       .columnNumber(column)
-    source.offsets(functionNode).foreach { (start, end) =>
+    astCreator.offsets(functionNode).foreach { (start, end) =>
       method.offset(start).offsetEnd(end)
     }
     diffGraph.addNode(method)

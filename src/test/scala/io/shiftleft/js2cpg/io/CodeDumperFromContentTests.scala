@@ -12,31 +12,6 @@ import org.scalatest.Inside
 
 class CodeDumperFromContentTests extends AbstractPassTest with Inside {
 
-  "dumping code from content" should {
-    implicit val finder: NodeExtensionFinder = DefaultNodeExtensionFinder
-
-    val code = """
-     |// A comment
-     |function my_func(param1) {
-     |  var x = foo(param1);
-     |}""".stripMargin
-
-    "allow one to dump a method node's source code from `File.contents`" in AstWithFileContentFixture(code) { cpg =>
-      inside(cpg.method.nameExact("my_func").dumpRaw.l) {
-        case content :: Nil =>
-          pendingUntilFixed {
-            // Need to enable JS in package io.shiftleft.semanticcpg.codedumper.CoreDumper.supportedLanguages
-            content.linesIterator.map(_.strip).l shouldBe List(
-              "func my_func(param1: Int) -> Int { /* <=== Test0.swift:<global>:my_func */",
-              "let x: Int = foo(p: param1)",
-              "}"
-            )
-          }
-        case content => fail(s"Expected exactly 1 content dump, but got: $content")
-      }
-    }
-  }
-
   "code from method content" should {
     val methodCode =
       """function my_func(param1) {
