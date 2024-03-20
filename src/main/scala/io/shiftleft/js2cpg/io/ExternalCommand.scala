@@ -4,7 +4,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import scala.sys.process.{Process, ProcessLogger}
 import scala.util.{Failure, Success, Try}
 import scala.jdk.CollectionConverters._
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 
 object ExternalCommand {
 

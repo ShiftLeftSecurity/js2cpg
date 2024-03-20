@@ -5,14 +5,14 @@ import better.files.File
 import com.atlassian.sourcemap.{ReadableSourceMap, ReadableSourceMapImpl}
 import com.oracle.js.parser.Source
 import com.oracle.js.parser.ir.Node
-import io.shiftleft.js2cpg.io.FileDefaults._
+import io.shiftleft.js2cpg.io.FileDefaults.*
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.preprocessing.NuxtTranspiler
 import io.shiftleft.utils.IOUtils
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
 object JsSource {
@@ -26,6 +26,12 @@ object JsSource {
   def shortenCode(code: String, length: Int = MAX_CODE_LENGTH): String =
     StringUtils.abbreviate(code, math.max(MIN_CODE_LENGTH, length))
 
+  case class SourceMapOrigin(
+    sourceFilePath: Path,
+    sourceMap: Option[ReadableSourceMap],
+    sourceWithLineNumbers: Map[Int, String]
+  )
+
 }
 
 class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
@@ -36,14 +42,10 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
   private val mapFilePath      = absoluteFilePath + ".map"
   private val sourceMap        = sourceMapOrigin()
 
+  def getSourceMap: Option[SourceMapOrigin] = sourceMap
+
   private val (positionToLineNumberMapping, positionToFirstPositionInLineMapping) =
     FileUtils.positionLookupTables(source.getContent)
-
-  private case class SourceMapOrigin(
-    sourceFilePath: Path,
-    sourceMap: Option[ReadableSourceMap],
-    sourceWithLineNumbers: Map[Int, String]
-  )
 
   /** @return
     *   the file path of the parsed file. If this file is the result of transpilation the original source file path is
@@ -71,6 +73,15 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
   def getCode(node: Node): String = codeFromSourceMap(node)
 
   def getString(node: Node): String = source.getString(node.getToken)
+
+  def fileContentFromSourceMap: String = {
+    sourceMap match {
+      case Some(SourceMapOrigin(_, Some(sourceMap), _)) =>
+        sourceMap.getSourcesContent.asScala.mkString
+      case _ =>
+        source.getContent
+    }
+  }
 
   /** @return
     *   always the original file that was parsed. Might be a file that is the result of transpilation
@@ -215,7 +226,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
     currentLine: String,
     currentLineNumber: Int,
     transpiledCodeLength: Int
-  ): String =
+  ): String = {
     currentLine match {
       case line if line.length >= transpiledCodeLength =>
         shortenCode(line, transpiledCodeLength - 1)
@@ -229,6 +240,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
       case line =>
         line.stripLineEnd
     }
+  }
 
   private def lineFromSourceMap(node: Node): Option[Int] = {
     sourceMap match {
@@ -267,14 +279,14 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
 
   // Returns the line number for a given position in the source.
   // We use this method instead of source.getLine for performance reasons.
-  private def getLineOfSource(position: Int): Int = {
+  def getLineOfSource(position: Int): Int = {
     val (_, lineNumber) = positionToLineNumberMapping.minAfter(position).get
     lineNumber
   }
 
   // Returns the column number for a given position in the source.
   // We use this method instead of source.getColumn for performance reasons.
-  private def getColumnOfSource(position: Int): Int = {
+  def getColumnOfSource(position: Int): Int = {
     val (_, firstPositionInLine) = positionToFirstPositionInLineMapping.minAfter(position).get
     position - firstPositionInLine
   }

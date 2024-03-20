@@ -19,7 +19,7 @@ class FileUtilsTest extends AnyWordSpec with Matchers {
         (sourceDir / ".folder" / "e.js").createIfNotExists(createParents = true)
 
         File.usingTemporaryDirectory("js2cpgTest") { targetDir =>
-          val config     = Config(srcDir = sourceDir.pathAsString)
+          val config     = Config().withInputPath(sourceDir.pathAsString)
           val copiedDir  = FileUtils.copyToDirectory(sourceDir, targetDir, config)
           val dirContent = FileUtils.getFileTree(copiedDir.path, config, List(JS_SUFFIX))
           dirContent shouldBe empty
@@ -34,7 +34,7 @@ class FileUtilsTest extends AnyWordSpec with Matchers {
         (sourceDir / "b-min.js").createFile()
         (sourceDir / "b-min.23472420.js").createFile()
 
-        val config  = Config(srcDir = sourceDir.pathAsString)
+        val config  = Config().withInputPath(sourceDir.pathAsString)
         val minFile = (sourceDir / "something.js").createFile()
         minFile.write(s"console.log('${"x" * FileDefaults.LINE_LENGTH_THRESHOLD}');")
         val dirContent = FileUtils.getFileTree(sourceDir.path, config, List(JS_SUFFIX))

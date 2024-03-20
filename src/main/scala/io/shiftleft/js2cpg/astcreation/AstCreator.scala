@@ -44,6 +44,7 @@ import com.oracle.js.parser.ir.{
   WithNode
 }
 import com.oracle.js.parser.ir.LiteralNode.ArrayLiteralNode
+import io.joern.x2cpg.utils.OffsetUtils
 import io.shiftleft.codepropertygraph.generated.nodes.{
   NewBlock,
   NewCall,
@@ -58,17 +59,19 @@ import io.shiftleft.codepropertygraph.generated.nodes.{
   NewTypeRef
 }
 import io.shiftleft.codepropertygraph.generated.{ControlStructureTypes, DispatchTypes, ModifierTypes, Operators}
-import io.shiftleft.js2cpg.datastructures.Stack._
-import io.shiftleft.js2cpg.datastructures._
-import io.shiftleft.js2cpg.datastructures.scope._
+import io.shiftleft.js2cpg.core.Config
+import io.shiftleft.js2cpg.datastructures.Stack.*
+import io.shiftleft.js2cpg.datastructures.*
+import io.shiftleft.js2cpg.datastructures.scope.*
 import io.shiftleft.js2cpg.passes.{Defines, EcmaBuiltins, PassHelpers}
 import io.shiftleft.js2cpg.passes.PassHelpers.ParamNodeInitKind
 import io.shiftleft.js2cpg.parser.{GeneralizingAstVisitor, JsSource}
+import io.shiftleft.js2cpg.parser.JsSource.SourceMapOrigin
 import overflowdb.BatchedUpdate.DiffGraphBuilder
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object AstCreator {
 
@@ -80,7 +83,7 @@ object AstCreator {
 
 }
 
-class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: Set[String])
+class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: Set[String], config: Config)
     extends GeneralizingAstVisitor[NewNode] {
 
   import AstCreator._
@@ -89,7 +92,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
   private val astEdgeBuilder = new AstEdgeBuilder(diffGraph)
 
-  private val astNodeBuilder = new AstNodeBuilder(diffGraph, astEdgeBuilder, source, scope)
+  private val astNodeBuilder = new AstNodeBuilder(diffGraph, astEdgeBuilder, this, source, scope)
 
   // Nested methods are not put in the AST where they are defined.
   // Instead we put them directly under the METHOD in which they are
@@ -109,9 +112,52 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
   private val usedVariableNames = mutable.HashMap.empty[String, Int]
 
+  private val fileContentFromSourceMap = source.fileContentFromSourceMap
+
+  private def offsetTable: Array[Int] = OffsetUtils.getLineOffsetTable(Some(fileContentFromSourceMap))
+
+  def offsets(node: Node): Option[(Int, Int)] = {
+    if (!config.disableFileContent) {
+      source.getSourceMap match {
+        case Some(SourceMapOrigin(_, Some(sourceMap), _)) =>
+          val line         = source.getLineOfSource(node.getStart) - 1
+          val column       = source.getColumnOfSource(node.getStart)
+          val mappingStart = sourceMap.getMapping(line, column)
+          if (mappingStart == null && line == 0 && column == 0) {
+            // synthetic :function around every file so we simply take the full source code range here
+            Some((0, fileContentFromSourceMap.length))
+          } else if (mappingStart == null) {
+            // No mapping found e.g., for synthetic code
+            None
+          } else {
+            val (startOffset, _) = OffsetUtils.coordinatesToOffset(
+              offsetTable,
+              mappingStart.getSourceLine,
+              mappingStart.getSourceColumn,
+              mappingStart.getSourceLine,
+              mappingStart.getSourceColumn
+            )
+            val endOffset = Math.min(startOffset + source.getCode(node).length, fileContentFromSourceMap.length)
+            Some((startOffset, endOffset))
+          }
+        case None if offsetTable.nonEmpty =>
+          val line                     = source.getLineOfSource(node.getStart) - 1
+          val column                   = source.getColumnOfSource(node.getStart)
+          val lineEnd                  = source.getLineOfSource(node.getFinish) - 1
+          val columnEnd                = source.getColumnOfSource(node.getFinish)
+          val (startOffset, endOffset) = OffsetUtils.coordinatesToOffset(offsetTable, line, column, lineEnd, columnEnd)
+          Some((startOffset, endOffset - 1))
+        case _ => None
+      }
+    } else {
+      None
+    }
+  }
+
   private def prepareFileWrapperFunction(): NewNamespaceBlock = {
     val fileName = source.filePath
     val fileNode = astNodeBuilder.createFileNode(fileName)
+    Option.when(!config.disableFileContent)(fileNode.content(source.fileContentFromSourceMap))
 
     val namespaceBlock =
       astNodeBuilder.createNamespaceBlockNode(fileName + ":" + Defines.GlobalNamespace)
@@ -387,7 +433,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
     methodAstParentStack.pop()
 
-    createFunctionTypeAndTypeDecl(methodId, methodAstParentStack.head, methodName, methodFullName)
+    createFunctionTypeAndTypeDecl(functionNode, methodId, methodAstParentStack.head, methodName, methodFullName)
 
     (methodRefId, methodId)
   }
@@ -420,6 +466,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   }
 
   private def createFunctionTypeAndTypeDecl(
+    node: Node,
     methodId: NewMethod,
     parentNodeId: NewNode,
     methodName: String,
@@ -432,7 +479,14 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     val astParentFullName = parentNodeId.properties("FULL_NAME").toString
 
     val functionTypeDeclId =
-      astNodeBuilder.createTypeDeclNode(methodName, methodFullName, astParentType, astParentFullName, Some(Defines.Any))
+      astNodeBuilder.createTypeDeclNode(
+        node,
+        methodName,
+        methodFullName,
+        astParentType,
+        astParentFullName,
+        Some(Defines.Any)
+      )
     addTypeDeclToAst(functionTypeDeclId)
 
     // Problem for https://github.com/ShiftLeftSecurity/codescience/issues/3626 here.
@@ -460,12 +514,20 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     val astParentFullName = methodAstParentStack.head.properties("FULL_NAME").toString
 
     val typeDeclId =
-      astNodeBuilder.createTypeDeclNode(typeName, typeFullName, astParentType, astParentFullName, inheritsFrom = None)
+      astNodeBuilder.createTypeDeclNode(
+        classNode,
+        typeName,
+        typeFullName,
+        astParentType,
+        astParentFullName,
+        inheritsFrom = None
+      )
 
     astNodeBuilder.createTypeNode(metaTypeName, metaTypeFullName)
 
     val metaTypeDeclId =
       astNodeBuilder.createTypeDeclNode(
+        classNode,
         metaTypeName,
         metaTypeFullName,
         astParentType,

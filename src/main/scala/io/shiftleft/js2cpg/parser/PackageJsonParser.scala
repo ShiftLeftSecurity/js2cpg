@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.utils.IOUtils
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 
 import scala.collection.concurrent.TrieMap
 import scala.util.Try

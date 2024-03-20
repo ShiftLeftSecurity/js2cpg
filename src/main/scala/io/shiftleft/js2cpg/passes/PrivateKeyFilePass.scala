@@ -1,7 +1,7 @@
 package io.shiftleft.js2cpg.passes
 
+import io.joern.x2cpg.utils.Report
 import io.shiftleft.codepropertygraph.Cpg
-import io.shiftleft.js2cpg.core.Report
 import io.shiftleft.utils.IOUtils
 
 import java.nio.file.Path
