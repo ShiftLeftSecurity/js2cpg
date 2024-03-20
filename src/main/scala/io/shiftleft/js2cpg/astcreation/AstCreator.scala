@@ -126,6 +126,9 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
           if (mappingStart == null && line == 0 && column == 0) {
             // synthetic :function around every file so we simply take the full source code range here
             Some((0, fileContentFromSourceMap.length))
+          } else if (mappingStart == null) {
+            // No mapping found e.g., for synthetic code
+            None
           } else {
             val (startOffset, _) = OffsetUtils.coordinatesToOffset(
               offsetTable,
