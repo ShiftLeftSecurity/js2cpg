@@ -74,7 +74,7 @@ object JavaScriptParser {
   }
 
   private def nodeJsFix(jsSource: JsSource): JsSource = {
-    val lines        = jsSource.source.getContent.toString.linesIterator.toSeq
+    val lines        = jsSource.source.getContent.linesIterator.toSeq
     val replaceIndex = lines.lastIndexWhere(l => importRegex.matches(l.trim())) + 1
     val (head, rest) = lines.splitAt(replaceIndex)
     val fixedCode    = (head ++ nodeJsFixWrapper(rest)).mkString("\n")

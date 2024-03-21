@@ -32,7 +32,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     "generate js files correctly for a simple Babel project" in
       TranspilationFixture("babel") { tmpDir =>
         File.usingTemporaryDirectory("js2cpgTest") { transpileOutDir =>
-          val config = Config(srcDir = transpileOutDir.pathAsString, tsTranspiling = false)
+          val config = Config().withInputPath(transpileOutDir.pathAsString).withTsTranspiling(false)
 
           new TranspilationRunner(tmpDir.path, transpileOutDir.path, config).execute()
 
@@ -52,7 +52,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     "generate js files correctly for a simple Babel project in folder with whitespace" in
       TranspilationFixture("babel") { tmpDir =>
         File.usingTemporaryDirectory("js2cpgTest folder") { transpileOutDir =>
-          val config = Config(srcDir = transpileOutDir.pathAsString, tsTranspiling = false)
+          val config = Config().withInputPath(transpileOutDir.pathAsString).withTsTranspiling(false)
 
           new TranspilationRunner(tmpDir.path, transpileOutDir.path, config).execute()
 
@@ -113,10 +113,10 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
     "generate js files correctly for a simple Typescript project" in
       TranspilationFixture("typescript") { tmpDir =>
         File.usingTemporaryDirectory("js2cpgTest") { transpileOutDir =>
-          val config = Config(srcDir = transpileOutDir.pathAsString, tsTranspiling = false)
+          val config = Config().withInputPath(transpileOutDir.pathAsString).withTsTranspiling(false)
 
           val jsFiles = FileUtils
-            .getFileTree(tmpDir.path, Config(srcDir = tmpDir.pathAsString), List(JS_SUFFIX))
+            .getFileTree(tmpDir.path, Config().withInputPath(tmpDir.pathAsString), List(JS_SUFFIX))
             .map(f => (f, tmpDir.path))
 
           val expectedJsFiles =
@@ -294,10 +294,14 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         new TranspilationRunner(
           tmpDir.path,
           transpileOutDir.path,
-          Config(srcDir = tmpDir.pathAsString, babelTranspiling = false, optimizeDependencies = false)
+          Config().withInputPath(tmpDir.pathAsString).withBabelTranspiling(false).withOptimizeDependencies(false)
         ).execute()
         val transpiledJsFiles =
-          FileUtils.getFileTree(transpileOutDir.path, Config(srcDir = transpileOutDir.pathAsString), List(JS_SUFFIX))
+          FileUtils.getFileTree(
+            transpileOutDir.path,
+            Config().withInputPath(transpileOutDir.pathAsString),
+            List(JS_SUFFIX)
+          )
         transpiledJsFiles shouldBe empty
       }
     }
@@ -309,10 +313,10 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         new TranspilationRunner(
           tmpDir.path,
           transpileOutDir.path,
-          Config(srcDir = tmpDir.pathAsString, babelTranspiling = false, optimizeDependencies = true)
+          Config().withInputPath(tmpDir.pathAsString).withBabelTranspiling(false).withOptimizeDependencies(true)
         ).execute()
         val transpiledJsFiles = FileUtils
-          .getFileTree(transpileOutDir.path, Config(srcDir = transpileOutDir.pathAsString), List(JS_SUFFIX))
+          .getFileTree(transpileOutDir.path, Config().withInputPath(transpileOutDir.pathAsString), List(JS_SUFFIX))
           .map(_.getFileName.toString)
         transpiledJsFiles shouldBe List("index.js")
       }
