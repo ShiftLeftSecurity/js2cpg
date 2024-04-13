@@ -1,4 +1,4 @@
-addSbtPlugin("com.github.sbt" % "sbt-native-packager"  % "1.9.16")
+addSbtPlugin("com.github.sbt" % "sbt-native-packager"  % "1.10.0")
 addSbtPlugin("org.scalameta"  % "sbt-scalafmt"         % "2.5.0")
 addSbtPlugin("io.shiftleft"   % "sbt-ci-release-early" % "2.0.27")
 addSbtPlugin("com.dwijnand"   % "sbt-dynver"           % "4.1.1")
