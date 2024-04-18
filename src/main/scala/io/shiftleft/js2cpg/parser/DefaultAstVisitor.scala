@@ -168,10 +168,10 @@ abstract class DefaultAstVisitor(lexicalContext: LexicalContext = new LexicalCon
   override def leaveLabelNode(labelNode: LabelNode): Node =
     super.leaveLabelNode(labelNode)
 
-  override def enterLiteralNode(literalNode: LiteralNode[_]): Boolean =
+  override def enterLiteralNode(literalNode: LiteralNode[?]): Boolean =
     super.enterLiteralNode(literalNode)
 
-  override def leaveLiteralNode(literalNode: LiteralNode[_]): Node =
+  override def leaveLiteralNode(literalNode: LiteralNode[?]): Node =
     super.leaveLiteralNode(literalNode)
 
   override def enterNameSpaceImportNode(nameSpaceImportNode: NameSpaceImportNode): Boolean =

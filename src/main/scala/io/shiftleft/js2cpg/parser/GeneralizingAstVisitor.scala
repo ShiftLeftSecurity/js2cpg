@@ -200,7 +200,7 @@ class GeneralizingAstVisitor[T] extends TranslatorNodeVisitor[LexicalContext, T]
     visit(node.asInstanceOf[Statement])
   }
 
-  def visit(node: LiteralNode[_]): T = {
+  def visit(node: LiteralNode[?]): T = {
     visit(node.asInstanceOf[Expression])
   }
 
@@ -388,7 +388,7 @@ class GeneralizingAstVisitor[T] extends TranslatorNodeVisitor[LexicalContext, T]
     visit(node)
   }
 
-  override def enterLiteralNode(node: LiteralNode[_]): T = {
+  override def enterLiteralNode(node: LiteralNode[?]): T = {
     visit(node)
   }
 

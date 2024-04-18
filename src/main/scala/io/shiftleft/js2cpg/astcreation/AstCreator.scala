@@ -1123,7 +1123,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     }
   }
 
-  override def visit(literalNode: LiteralNode[_]): NewNode = {
+  override def visit(literalNode: LiteralNode[?]): NewNode = {
     literalNode match {
       case arrayLiteralNode: ArrayLiteralNode =>
         createArrayLiteralNode(arrayLiteralNode)
