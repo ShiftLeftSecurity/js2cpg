@@ -21,7 +21,7 @@ object ExternalCommand {
     val commands      = command.split(COMMAND_AND).toSeq
     commands.map { cmd =>
       val cmdWithQuotesAroundDir = StringUtils.replace(cmd, inDir, s"'$inDir'")
-      Try(Process(cmdWithQuotesAroundDir, dir, extraEnv.toList*).!(processLogger)).getOrElse(1)
+      Try(Process(cmdWithQuotesAroundDir, dir, extraEnv.toList *).!(processLogger)).getOrElse(1)
     }.sum match {
       case 0 =>
         Success(stdOutOutput.asScala.mkString(System.lineSeparator()))

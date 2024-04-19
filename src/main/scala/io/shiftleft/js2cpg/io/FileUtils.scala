@@ -103,7 +103,7 @@ object FileUtils {
           override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
             val result = fileCollector.visitFile(file, attrs)
             if (!fileCollector.wasExcluded(file)) {
-              Files.copy(file, newPath(file), copyOptions*)
+              Files.copy(file, newPath(file), copyOptions *)
             }
             result
           }
@@ -120,7 +120,7 @@ object FileUtils {
         }
       )
     } else {
-      Files.copy(from.path, destination.path, copyOptions*)
+      Files.copy(from.path, destination.path, copyOptions *)
     }
     excludedPaths.addAll(fileCollector.excludedPaths)
     destination
