@@ -9,6 +9,7 @@ import io.shiftleft.js2cpg.io.FileDefaults.*
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.preprocessing.NuxtTranspiler
 import io.shiftleft.utils.IOUtils
+
 import org.slf4j.LoggerFactory
 
 import scala.jdk.CollectionConverters.*

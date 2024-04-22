@@ -1094,7 +1094,7 @@ class AstCreator(val diffGraph: DiffGraphBuilder, val source: JsSource, val used
     }
   }
 
-  override def visit(literalNode: LiteralNode[_]): NewNode = {
+  override def visit(literalNode: LiteralNode[?]): NewNode = {
     literalNode match {
       case arrayLiteralNode: ArrayLiteralNode =>
         createArrayLiteralNode(arrayLiteralNode)
