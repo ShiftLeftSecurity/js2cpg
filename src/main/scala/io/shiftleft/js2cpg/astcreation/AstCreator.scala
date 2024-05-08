@@ -44,6 +44,7 @@ import com.oracle.js.parser.ir.{
   WithNode
 }
 import com.oracle.js.parser.ir.LiteralNode.ArrayLiteralNode
+import flatgraph.DiffGraphBuilder
 import io.shiftleft.codepropertygraph.generated.nodes.{
   NewBlock,
   NewCall,
@@ -64,7 +65,6 @@ import io.shiftleft.js2cpg.datastructures.scope._
 import io.shiftleft.js2cpg.passes.{Defines, EcmaBuiltins, PassHelpers}
 import io.shiftleft.js2cpg.passes.PassHelpers.ParamNodeInitKind
 import io.shiftleft.js2cpg.parser.{GeneralizingAstVisitor, JsSource}
-import overflowdb.BatchedUpdate.DiffGraphBuilder
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
@@ -429,7 +429,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     astNodeBuilder.createTypeNode(methodName, methodFullName)
 
     val astParentType     = parentNodeId.label
-    val astParentFullName = parentNodeId.properties("FULL_NAME").toString
+    val astParentFullName = parentNodeId.propertiesMap.get("FULL_NAME").toString
 
     val functionTypeDeclId =
       astNodeBuilder.createTypeDeclNode(methodName, methodFullName, astParentType, astParentFullName, Some(Defines.Any))
@@ -457,7 +457,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     // need to be resolved first, we for now dont handle the class
     // hierarchy.
     val astParentType     = methodAstParentStack.head.label
-    val astParentFullName = methodAstParentStack.head.properties("FULL_NAME").toString
+    val astParentFullName = methodAstParentStack.head.propertiesMap.get("FULL_NAME").toString
 
     val typeDeclId =
       astNodeBuilder.createTypeDeclNode(typeName, typeFullName, astParentType, astParentFullName, inheritsFrom = None)

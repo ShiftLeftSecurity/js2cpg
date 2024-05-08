@@ -7,8 +7,6 @@ import io.shiftleft.codepropertygraph.generated.nodes.Dependency
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.js2cpg.core.Report
 import io.shiftleft.semanticcpg.language.*
-import overflowdb.Node
-import overflowdb.traversal.*
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -18,7 +16,8 @@ abstract class AbstractPassTest extends AnyWordSpec with Matchers {
 
   protected abstract class Fixture
 
-  protected def getDependencies(cpg: Cpg): Traversal[Dependency] = cpg.dependency
+  protected def getDependencies(cpg: Cpg): Iterator[Dependency] =
+    cpg.dependency
 
   protected object AstFixture extends Fixture {
     def apply(code: String)(f: Cpg => Unit): Unit = {

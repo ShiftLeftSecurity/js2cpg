@@ -1,17 +1,14 @@
 package io.shiftleft.js2cpg.passes
 
 import better.files.File
-import io.shiftleft.codepropertygraph.Cpg
-import io.shiftleft.codepropertygraph.generated._
+import io.shiftleft.codepropertygraph.generated.*
 import io.shiftleft.js2cpg.core.Report
-import io.shiftleft.semanticcpg.language._
+import io.shiftleft.semanticcpg.language.*
 import io.joern.x2cpg.passes.controlflow.CfgCreationPass
-import io.joern.x2cpg.passes.controlflow.cfgcreation.Cfg._
-import io.shiftleft.codepropertygraph.generated.nodes.AstNodeBase
-import io.shiftleft.codepropertygraph.generated.nodes.Method
+import io.joern.x2cpg.passes.controlflow.cfgcreation.Cfg.*
+import io.shiftleft.codepropertygraph.generated.nodes.{AstNodeBase, CfgNode, Method}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import overflowdb.Node
 
 class CfgCreationPassTest extends AnyWordSpec with Matchers {
 
@@ -1290,7 +1287,7 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
 
   private class CfgFixture(code: String) {
 
-    private val cpg: Cpg = Cpg.emptyCpg
+    private val cpg: Cpg = Cpg.empty
 
     File.usingTemporaryDirectory("js2cpgCfgIntegrationTest") { workspace =>
       val file = workspace / "test.js"
@@ -1300,7 +1297,7 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
       new CfgCreationPass(cpg).createAndApply()
     }
 
-    private def matchCode(node: Node, code: String): Boolean = node match {
+    private def matchCode(node: CfgNode, code: String): Boolean = node match {
       case m: Method            => m.name == code
       case astNode: AstNodeBase => astNode.code == code
       case _                    => false
@@ -1325,7 +1322,7 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
           }
           .lift(index)
           .getOrElse(fail(s"No node found for code = '$code' and index '$index'!"))
-        node.property(PropertyNames.CODE).toString
+        node.code
       }.toSet
     }
 
@@ -1337,14 +1334,14 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
     def succOf(code: String, index: Int): Set[String] = {
       val nodes      = cpg.method.ast.isCfgNode.collect { case node if matchCode(node, code) => node }.l
       val node       = nodes.lift(index).getOrElse(fail(s"No node found for code = '$code' and index '$index'!"))
-      val successors = node._cfgOut.map(_.property(PropertyNames.CODE).toString)
+      val successors = node._cfgOut.cast[CfgNode].code
       successors.toSetImmutable
     }
 
     def succOf(code: String, nodeType: String): Set[String] = {
       val nodes = cpg.method.ast.isCfgNode.label(nodeType).collectFirst { case node if matchCode(node, code) => node }
       val node  = nodes.getOrElse(fail(s"No node found for code = '$code' and type '$nodeType'!"))
-      val successors = node._cfgOut.map(_.property(PropertyNames.CODE).toString)
+      val successors = node._cfgOut.cast[CfgNode].code
       successors.toSetImmutable
     }
 

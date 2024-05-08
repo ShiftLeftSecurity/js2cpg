@@ -1,12 +1,12 @@
 package io.shiftleft.js2cpg.passes
 
-import io.shiftleft.codepropertygraph.Cpg
+import io.shiftleft.codepropertygraph.generated.Cpg
 import io.shiftleft.semanticcpg.language._
 
 class BuiltinTypesPassTest extends AbstractPassTest {
 
   "BuiltinTypesPass" should {
-    val cpg = Cpg.emptyCpg
+    val cpg = Cpg.empty
     new BuiltinTypesPass(cpg).createAndApply()
 
     "create a '<global>' NamespaceBlock" in {
