@@ -1,6 +1,7 @@
 package io.shiftleft.js2cpg.astcreation
 
 import com.oracle.js.parser.ir._
+import flatgraph.DiffGraphBuilder
 import io.shiftleft.codepropertygraph.generated.nodes._
 import io.shiftleft.codepropertygraph.generated.{DispatchTypes, EvaluationStrategies, Operators}
 import io.shiftleft.js2cpg.datastructures.{LineAndColumn, OrderTracker}
@@ -8,7 +9,6 @@ import io.shiftleft.js2cpg.datastructures.scope.{MethodScope, Scope}
 import io.shiftleft.js2cpg.passes.Defines
 import io.shiftleft.js2cpg.parser.JsSource
 import io.shiftleft.js2cpg.parser.JsSource.shortenCode
-import overflowdb.BatchedUpdate.DiffGraphBuilder
 
 class AstNodeBuilder(
   private val diffGraph: DiffGraphBuilder,

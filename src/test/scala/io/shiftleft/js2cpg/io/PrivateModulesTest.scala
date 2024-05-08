@@ -24,7 +24,7 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
         val cpgPath = tmpDir / "cpg.bin.zip"
         Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath.pathAsString, "--no-babel"))
 
-        val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
+        val cpg = Cpg.withStorage(cpgPath.pathAsString, deserializeOnClose = false)
 
         fileNames(cpg) should contain allElementsOf Set(
           s"@privateA${java.io.File.separator}a.js",
@@ -52,7 +52,7 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
           )
         )
 
-        val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
+        val cpg = Cpg.withStorage(cpgPath.pathAsString, deserializeOnClose = false)
 
         fileNames(cpg) should contain allElementsOf Set(
           s"@privateA${java.io.File.separator}a.js",
@@ -82,7 +82,7 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
           )
         )
 
-        val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
+        val cpg = Cpg.withStorage(cpgPath.pathAsString, deserializeOnClose = false)
 
         fileNames(cpg) should contain only s"@privateB${java.io.File.separator}b.js"
         cpg.close()
@@ -98,7 +98,7 @@ class PrivateModulesTest extends AnyWordSpec with Matchers {
         val cpgPath = tmpDir / "cpg.bin.zip"
         Js2CpgMain.main(Array(tmpProjectPath.pathAsString, "--output", cpgPath.pathAsString, "--no-babel"))
 
-        val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
+        val cpg = Cpg.withStorage(cpgPath.pathAsString, deserializeOnClose = false)
 
         fileNames(cpg) should contain only "index.js"
         cpg.close()

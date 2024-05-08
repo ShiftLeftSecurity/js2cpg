@@ -1,8 +1,8 @@
 package io.shiftleft.js2cpg.passes
 
 import io.shiftleft.js2cpg.core.Report
-import io.shiftleft.codepropertygraph.Cpg
-import io.shiftleft.semanticcpg.language._
+import io.shiftleft.codepropertygraph.generated.Cpg
+import io.shiftleft.semanticcpg.language.*
 import better.files.File
 import io.shiftleft.js2cpg.io.FileDefaults
 import org.scalatest.matchers.should.Matchers
@@ -18,12 +18,12 @@ class ConfigPassTest extends AnyWordSpec with Matchers {
         val fileB = dir / "b.vue"
         fileA.write("someCodeA();")
         fileB.write("someCodeB();")
-        val cpg       = Cpg.emptyCpg
+        val cpg       = Cpg.empty
         val filenames = List((fileA.path, fileA.parent.path), (fileB.path, fileB.parent.path))
         new ConfigPass(filenames, cpg, new Report()).createAndApply()
 
-        val List(configFileA) = cpg.configFile("a.vue").l
-        val List(configFileB) = cpg.configFile("b.vue").l
+        val List(configFileA) = cpg.configFile.name("a.vue").l
+        val List(configFileB) = cpg.configFile.name("b.vue").l
         configFileA.content shouldBe "someCodeA();"
         configFileB.content shouldBe "someCodeB();"
       }
@@ -43,14 +43,14 @@ class ConfigPassTest extends AnyWordSpec with Matchers {
         fileB.write("b")
         fileC.write("c")
 
-        val cpg = Cpg.emptyCpg
+        val cpg = Cpg.empty
         val filenames =
           List((fileA.path, fileA.parent.path), (fileB.path, fileB.parent.path), (fileC.path, fileC.parent.path))
         new ConfigPass(filenames, cpg, new Report()).createAndApply()
 
-        val List(configFileA) = cpg.configFile("a.conf.js").l
-        val List(configFileB) = cpg.configFile("b.config.js").l
-        val List(configFileC) = cpg.configFile("c.json").l
+        val List(configFileA) = cpg.configFile.name("a.conf.js").l
+        val List(configFileB) = cpg.configFile.name("b.config.js").l
+        val List(configFileC) = cpg.configFile.name("c.json").l
         configFileA.content shouldBe "a"
         configFileB.content shouldBe "b"
         configFileC.content shouldBe "c"
@@ -65,7 +65,7 @@ class ConfigPassTest extends AnyWordSpec with Matchers {
         fileA.write("x\n" * FileDefaults.NUM_LINES_THRESHOLD + 1) // too many lines
         fileB.write("x" * FileDefaults.LINE_LENGTH_THRESHOLD + 1) // line too long
 
-        val cpg       = Cpg.emptyCpg
+        val cpg       = Cpg.empty
         val filenames = List((fileA.path, fileA.parent.path), (fileB.path, fileB.parent.path))
         new ConfigPass(filenames, cpg, new Report()).createAndApply()
 
@@ -85,12 +85,12 @@ class ConfigPassTest extends AnyWordSpec with Matchers {
         fileA.write("a")
         fileB.write("b")
 
-        val cpg       = Cpg.emptyCpg
+        val cpg       = Cpg.empty
         val filenames = List((fileA.path, fileA.parent.path), (fileB.path, fileB.parent.path))
         new ConfigPass(filenames, cpg, new Report()).createAndApply()
 
-        val List(configFileA) = cpg.configFile("a.html").l
-        val List(configFileB) = cpg.configFile("b.html").l
+        val List(configFileA) = cpg.configFile.name("a.html").l
+        val List(configFileB) = cpg.configFile.name("b.html").l
         configFileA.content shouldBe "a"
         configFileB.content shouldBe "b"
       }
@@ -106,14 +106,14 @@ class ConfigPassTest extends AnyWordSpec with Matchers {
         fileA.write("-----BEGIN RSA PRIVATE KEY-----\n123456789\n-----END RSA PRIVATE KEY-----")
         val fileB = dir / "b.key"
         fileB.write("-----BEGIN SOME OTHER KEY-----\nthis is fine\n-----END SOME OTHER KEY-----")
-        val cpg       = Cpg.emptyCpg
+        val cpg       = Cpg.empty
         val filenames = List((fileA.path, fileA.parent.path), (fileB.path, fileB.parent.path))
         new PrivateKeyFilePass(filenames, cpg, new Report()).createAndApply()
 
-        val List(configFileA) = cpg.configFile("a.key").l
+        val List(configFileA) = cpg.configFile.name("a.key").l
         configFileA.content shouldBe "Content omitted for security reasons."
 
-        cpg.configFile("b.key") shouldBe empty
+        cpg.configFile.name("b.key") shouldBe empty
       }
     }
 

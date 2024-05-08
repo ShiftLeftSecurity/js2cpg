@@ -1,23 +1,22 @@
 package io.shiftleft.js2cpg.passes
 
-import io.shiftleft.codepropertygraph.Cpg
-import io.shiftleft.codepropertygraph.generated.Languages
-import io.shiftleft.semanticcpg.language._
+import io.shiftleft.codepropertygraph.generated.{Cpg, Languages}
+import io.shiftleft.semanticcpg.language.*
 
 import scala.jdk.CollectionConverters._
 
 class JsMetaDataPassTest extends AbstractPassTest {
 
   "MetaDataPass" should {
-    val cpg = Cpg.emptyCpg
+    val cpg = Cpg.empty
     new JsMetaDataPass(cpg, "somehash", ".").createAndApply()
 
     "create exactly 1 node" in {
-      cpg.graph.V.asScala.size shouldBe 1
+      cpg.graph.nodeCount shouldBe 1
     }
 
     "create no edges" in {
-      cpg.graph.E.asScala.size shouldBe 0
+      cpg.graph.edgeCount shouldBe 0
     }
 
     "create a metadata node with correct language" in {
