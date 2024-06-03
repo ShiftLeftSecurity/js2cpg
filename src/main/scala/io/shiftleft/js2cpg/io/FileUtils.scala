@@ -165,7 +165,7 @@ object FileUtils {
     (positionToLineNumber, positionToFirstPositionInLine)
   }
 
-  final case class FileStatistics(linesOfCode: Int, longestLineLength: Int, containsMarker: Boolean)
+  final case class FileStatistics(linesOfCode: Long, longestLineLength: Int, containsMarker: Boolean)
 
   private def createDecoder(): CharsetDecoder =
     Codec.UTF8.decoder
@@ -173,7 +173,7 @@ object FileUtils {
       .onUnmappableCharacter(CodingErrorAction.REPLACE)
 
   def fileStatistics(lines: Iterator[String]): FileStatistics = {
-    var linesOfCode       = 0
+    var linesOfCode       = 0L
     var longestLineLength = 0
     var containsMarker    = false
 

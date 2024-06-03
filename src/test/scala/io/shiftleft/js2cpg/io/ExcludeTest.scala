@@ -1,67 +1,50 @@
 package io.shiftleft.js2cpg.io
 
 import better.files.File
-import io.joern.x2cpg.X2Cpg.newEmptyCpg
-import io.joern.x2cpg.utils.Report
-import io.shiftleft.js2cpg.core.Config
-import io.shiftleft.js2cpg.io.FileDefaults.JS_SUFFIX
-import io.shiftleft.js2cpg.passes.AstCreationPass
-import io.shiftleft.semanticcpg.language.*
+import io.shiftleft.codepropertygraph.Cpg
+import io.shiftleft.js2cpg.core.{Js2cpgArgumentsParser, Js2CpgMain}
+import io.shiftleft.semanticcpg.language._
+
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatest.BeforeAndAfterAll
 
 import java.util.regex.Pattern
 
-class ExcludeTest extends AnyWordSpec with Matchers with TableDrivenPropertyChecks with BeforeAndAfterAll {
-
-  private val testFiles: List[String] = List(
-    ".sub/e.js",
-    "folder/b.js",
-    "folder/c.js",
-    "foo.bar/d.js",
-    "tests/a.spec.js",
-    "tests/b.mock.js",
-    "tests/c.e2e.js",
-    "tests/d.test.js",
-    "a.js",
-    "b-min.js",
-    "c.spec.js",
-    "d.chunk.js",
-    "index.js"
-  )
-
-  private val projectUnderTest: File = {
-    val dir = File.newTemporaryDirectory("jssrc2cpgTestsExcludeTest")
-    testFiles.foreach { testFile =>
-      val file = dir / testFile
-      file.createIfNotExists(createParents = true)
-    }
-    dir
+object ExcludeTest {
+  private implicit class ToArg(val arg: String) extends AnyVal {
+    def toArg: String = s"--$arg"
   }
+}
 
-  override def afterAll(): Unit = projectUnderTest.delete(swallowIOExceptions = true)
+class ExcludeTest extends AnyWordSpec with Matchers with TableDrivenPropertyChecks {
+
+  import ExcludeTest._
+  import Js2cpgArgumentsParser._
+
+  private val projectUnderTestPath = File(getClass.getResource("/excludes").toURI).pathAsString
+
+  private def fileNames(cpg: Cpg): List[String] = cpg.file.name.l
 
   private def testWithArguments(
-    exclude: Seq[String],
-    excludeRegex: String,
-    ignoreTests: Boolean,
-    expectedFiles: Set[String]
+    args: Seq[String],
+    expectedFiles: Set[String],
+    defaultArgs: Set[String] = Set(NO_TS, NO_BABEL)
   ): Unit = {
-    File.usingTemporaryDirectory("js2cpgTests") { tmpDir =>
-      val cpg = newEmptyCpg()
-      val config = Config()
-        .withInputPath(projectUnderTest.toString)
-        .withOutputPath(tmpDir.toString)
-        .withIgnoredFiles(exclude)
-        .withIgnoredFilesRegex(excludeRegex)
-        .withIgnoreTests(ignoreTests)
-      val files = FileUtils
-        .getFileTree(projectUnderTest.path, config, List(JS_SUFFIX))
-        .map(f => (f, projectUnderTest.path))
-      new AstCreationPass(cpg, files, config, new Report()).createAndApply()
-      cpg.file.name.l should contain theSameElementsAs expectedFiles.map(_.replace("/", java.io.File.separator))
+    File.usingTemporaryDirectory("js2cpgTest") { tmpDir =>
+      val cpgPath = tmpDir / "cpg.bin.zip"
+
+      Js2CpgMain.main(
+        Array(projectUnderTestPath, "--output", cpgPath.pathAsString) ++
+          args.toArray ++
+          defaultArgs.map(_.toArg).toArray
+      )
+
+      val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
+
+      fileNames(cpg) should contain theSameElementsAs expectedFiles.map(_.replace("/", java.io.File.separator))
+      cpg.close()
+      cpgPath.deleteOnExit()
     }
   }
 
@@ -69,106 +52,83 @@ class ExcludeTest extends AnyWordSpec with Matchers with TableDrivenPropertyChec
 
     val testInput = Table(
       // -- Header for naming all test parameters
-      ("statement", "--exclude", "--exclude-regex", "with-tests", "expectedResult"),
+      ("statement", "arguments", "expectedResult"),
       // --
       // Test for default:
       (
         "exclude nothing if no excludes are given",
         Seq.empty[String],
-        "",
-        true,
         Set("index.js", "a.js", "folder/b.js", "folder/c.js", "foo.bar/d.js")
       ),
       // --
       // Tests for --exclude only:
       (
-        "exclude a file with --exclude with relative path",
-        Seq("index.js"),
-        "",
-        true,
+        s"exclude a file with ${EXCLUDE.toArg} with relative path",
+        Seq(EXCLUDE.toArg, "index.js"),
         Set("a.js", "folder/b.js", "folder/c.js", "foo.bar/d.js")
       ),
       (
-        "exclude files with --exclude with relative paths",
-        Seq("index.js", "folder/b.js"),
-        "",
-        true,
+        s"exclude files with ${EXCLUDE.toArg} with relative paths",
+        Seq(EXCLUDE.toArg, "index.js,folder/b.js"),
         Set("a.js", "folder/c.js", "foo.bar/d.js")
       ),
       (
-        "exclude a file with --exclude with absolute path",
-        Seq(s"$projectUnderTest/index.js"),
-        "",
-        true,
+        s"exclude a file with ${EXCLUDE.toArg} with absolute path",
+        Seq(EXCLUDE.toArg, s"$projectUnderTestPath/index.js"),
         Set("a.js", "folder/b.js", "folder/c.js", "foo.bar/d.js")
       ),
       (
-        "exclude files with --exclude with absolute paths",
-        Seq(s"$projectUnderTest/index.js", s"$projectUnderTest/folder/b.js"),
-        "",
-        true,
+        s"exclude files with ${EXCLUDE.toArg} with absolute paths",
+        Seq(EXCLUDE.toArg, s"$projectUnderTestPath/index.js,$projectUnderTestPath/folder/b.js"),
         Set("a.js", "folder/c.js", "foo.bar/d.js")
       ),
       (
-        "exclude files with --exclude with mixed paths",
-        Seq("index.js", s"$projectUnderTest/folder/b.js"),
-        "",
-        true,
+        s"exclude files with ${EXCLUDE.toArg} with mixed paths",
+        Seq(EXCLUDE.toArg, s"index.js,$projectUnderTestPath/folder/b.js"),
         Set("a.js", "folder/c.js", "foo.bar/d.js")
       ),
       (
-        "exclude a folder with --exclude with absolute path",
-        Seq(s"$projectUnderTest/folder/"),
-        "",
-        true,
+        s"exclude a folder with ${EXCLUDE.toArg} with absolute path",
+        Seq(EXCLUDE.toArg, s"$projectUnderTestPath/folder/"),
         Set("a.js", "index.js", "foo.bar/d.js")
       ),
       (
-        "exclude a folder with --exclude with relative path",
-        Seq("folder/"),
-        "",
-        true,
+        s"exclude a folder with ${EXCLUDE.toArg} with relative path",
+        Seq(EXCLUDE.toArg, s"folder/"),
         Set("a.js", "index.js", "foo.bar/d.js")
       ),
       // --
       // Tests for --exclude-regex only:
       (
-        "exclude a file with --exclude-regex",
-        Seq.empty,
-        ".*index\\..*",
-        true,
+        s"exclude a file with ${EXCLUDE_REGEX.toArg}",
+        Seq(EXCLUDE_REGEX.toArg, ".*index\\..*"),
         Set("a.js", "folder/b.js", "folder/c.js", "foo.bar/d.js")
       ),
       (
-        "exclude files with --exclude-regex",
-        Seq.empty,
-        ".*(index|b)\\..*",
-        true,
+        s"exclude files with ${EXCLUDE_REGEX.toArg}",
+        Seq(EXCLUDE_REGEX.toArg, ".*(index|b)\\..*"),
         Set("a.js", "folder/c.js", "foo.bar/d.js")
       ),
       (
-        "exclude a complete folder with --exclude-regex",
-        Seq.empty,
-        s".*${Pattern.quote(java.io.File.separator)}?folder${Pattern.quote(java.io.File.separator)}.*",
-        true,
+        s"exclude a complete folder with ${EXCLUDE_REGEX.toArg}",
+        Seq(
+          EXCLUDE_REGEX.toArg,
+          s".*${Pattern.quote(java.io.File.separator)}folder${Pattern.quote(java.io.File.separator)}.*"
+        ),
         Set("index.js", "a.js", "foo.bar/d.js")
       ),
       // --
       // Tests for mixed arguments
       (
-        "exclude files with --exclude and --exclude-regex",
-        Seq("a.js"),
-        ".*(index|b)\\..*",
-        true,
+        s"exclude files with ${EXCLUDE.toArg} and ${EXCLUDE_REGEX.toArg}",
+        Seq(EXCLUDE.toArg, "a.js", EXCLUDE_REGEX.toArg, ".*(index|b)\\..*"),
         Set("folder/c.js", "foo.bar/d.js")
       ),
       // --
       // Tests for including test files
       (
-        "include test files with --with-tests",
-        Seq.empty,
-        "",
-        false,
+        s"include test files with ${WITH_TESTS.toArg}",
+        Seq(WITH_TESTS.toArg),
         Set(
           "index.js",
           "a.js",
@@ -178,14 +138,13 @@ class ExcludeTest extends AnyWordSpec with Matchers with TableDrivenPropertyChec
           "tests/a.spec.js",
           "tests/b.mock.js",
           "tests/c.e2e.js",
-          "tests/d.test.js",
-          "c.spec.js"
+          "tests/d.test.js"
         )
       )
     )
 
-    forAll(testInput) { (statement, exclude, excludeRegex, withTests, result) =>
-      s"$statement" in testWithArguments(exclude, excludeRegex, withTests, result)
+    forAll(testInput) { (statement, arguments, result) =>
+      s"$statement" in testWithArguments(arguments, result)
     }
 
   }

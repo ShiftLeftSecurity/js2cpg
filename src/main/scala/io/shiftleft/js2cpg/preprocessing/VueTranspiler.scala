@@ -41,14 +41,14 @@ object VueTranspiler {
   def isVueProject(config: Config, projectPath: Path): Boolean = {
     val hasVueDep =
       PackageJsonParser
-        .dependencies((File(config.inputPath) / FileDefaults.PACKAGE_JSON_FILENAME).path)
+        .dependencies((File(config.srcDir) / FileDefaults.PACKAGE_JSON_FILENAME).path)
         .exists(_._1.startsWith("vue"))
     hasVueDep && hasVueFiles(config, projectPath)
   }
 
   private def vueVersion(config: Config): Int = {
     val versionString =
-      PackageJsonParser.dependencies((File(config.inputPath) / FileDefaults.PACKAGE_JSON_FILENAME).path)("vue")
+      PackageJsonParser.dependencies((File(config.srcDir) / FileDefaults.PACKAGE_JSON_FILENAME).path)("vue")
     // ignore ~, ^, and more from semver; see: https://stackoverflow.com/a/25861938
     val c = versionString.collectFirst { case c if Try(c.toString.toInt).isSuccess => c.toString.toInt }
     c.getOrElse(3) // 3 is the latest version; we default to that

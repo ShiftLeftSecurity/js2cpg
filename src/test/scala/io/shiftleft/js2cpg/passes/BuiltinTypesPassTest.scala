@@ -14,7 +14,7 @@ class BuiltinTypesPassTest extends AbstractPassTest {
     }
 
     "create types and type decls correctly" in {
-      Defines.JsTypes.foreach { typeName =>
+      Defines.JsTypes.foreach { case typeName: String =>
         val typeDeclNodes = cpg.typeDecl(typeName).l
         typeDeclNodes should have length 1
         val typeDeclNode = typeDeclNodes.head

@@ -6,7 +6,7 @@ import io.shiftleft.js2cpg.datastructures.OrderTracker
 import overflowdb.BatchedUpdate.DiffGraphBuilder
 import org.slf4j.LoggerFactory
 
-trait AstEdgeBuilder { this: AstCreator =>
+class AstEdgeBuilder(private val diffGraph: DiffGraphBuilder) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 

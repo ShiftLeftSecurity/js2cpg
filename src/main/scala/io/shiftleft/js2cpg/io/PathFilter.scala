@@ -18,10 +18,10 @@ case class PathFilter(
 
   private val logger = LoggerFactory.getLogger(PathFilter.getClass)
 
-  private val projectDir: String = Paths.get(config.inputPath).toAbsolutePath.toString
+  private val projectDir: String = Paths.get(config.srcDir).toAbsolutePath.toString
 
   private def shouldBeIgnoredByUserConfig(filePath: Path, config: Config): Boolean =
-    config.ignoredFiles.contains(filePath.toString) || config.ignoredFilesRegex.matches(filePath.toString)
+    config.ignoredFiles.contains(filePath) || config.ignoredFilesRegex.matches(filePath.toString)
 
   private def acceptFromNodeModulesFolder(path: Path): Boolean =
     withNodeModuleFolder && (".*" + NODE_MODULES_DIR_NAME + ".*").r.matches(path.toString)
@@ -34,7 +34,7 @@ case class PathFilter(
           if IGNORED_FOLDERS_REGEX.exists(_.matches(File(dirPath).name)) &&
             !acceptFromNodeModulesFolder(dirPath) =>
         Rejected(relDir, "folder ignored by default")
-      case dirPath if config.ignoredFiles.exists(i => dirPath.toString.startsWith(i)) =>
+      case dirPath if config.ignoredFiles.exists(i => dirPath.toString.startsWith(i.toString)) =>
         Rejected(relDir, "folder ignored by user configuration")
       case _ =>
         Accepted()

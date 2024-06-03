@@ -4,23 +4,22 @@ import java.nio.file.Path
 import better.files.File
 import com.oracle.js.parser.Source
 import com.oracle.js.parser.ir.FunctionNode
-import io.joern.x2cpg.utils.Report
-import io.joern.x2cpg.utils.TimeUtils
 import io.shiftleft.codepropertygraph.Cpg
+import io.shiftleft.js2cpg.core.Report
 import io.shiftleft.js2cpg.astcreation.AstCreator
-import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.{FileUtils, JsFileChecks}
 import io.shiftleft.js2cpg.parser.{JavaScriptParser, JsSource}
 import io.shiftleft.passes.ConcurrentWriterCpgPass
 import org.slf4j.LoggerFactory
-import io.shiftleft.js2cpg.utils.SourceWrapper.*
+import io.shiftleft.js2cpg.utils.SourceWrapper._
+import io.shiftleft.js2cpg.utils.TimeUtils
 
 import scala.util.{Failure, Success, Try}
 
 /** Given a list of filenames, this pass creates the abstract syntax tree and CPG AST for each file. Files are processed
   * in parallel.
   */
-class AstCreationPass(cpg: Cpg, filenames: List[(Path, Path)], config: Config, report: Report)
+class AstCreationPass(srcDir: File, filenames: List[(Path, Path)], cpg: Cpg, report: Report)
     extends ConcurrentWriterCpgPass[(Path, Path)](cpg) {
 
   private val logger = LoggerFactory.getLogger(getClass)
@@ -50,7 +49,7 @@ class AstCreationPass(cpg: Cpg, filenames: List[(Path, Path)], config: Config, r
           logger.warn(s"Failed to generate CPG for '$path'!", exception)
         case Success(localDiff) =>
           logger.info(s"Processed file '$path'")
-          report.updateReport(path, true, duration)
+          report.updateReportDuration(path, duration)
           diffGraph.absorb(localDiff)
       }
     }
@@ -85,7 +84,7 @@ class AstCreationPass(cpg: Cpg, filenames: List[(Path, Path)], config: Config, r
     val fileStatistics = JsFileChecks.check(relPath, lines)
 
     val source   = Source.sourceFor(relPath, lines.mkString("\n"))
-    val jsSource = source.toJsSource(File(config.inputPath), rootDir)
+    val jsSource = source.toJsSource(srcDir, rootDir)
 
     logger.debug(s"Parsing file '$relPath'.")
     Try(JavaScriptParser.parseFromSource(jsSource)) match {
