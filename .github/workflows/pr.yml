@@ -20,7 +20,7 @@ jobs:
           java-version: '11'
           cache: 'sbt'
       - name: Compile and run tests
-        run: sbt test
+        run: sbt clean +test
   formatting:
     runs-on: ubuntu-22.04
     steps:
@@ -34,6 +34,6 @@ jobs:
           java-version: '11'
           cache: 'sbt'
       - name: Check formatting
-        run: sbt scalafmtCheck Test/scalafmtCheck
+        run: sbt scalafmtCheck test:scalafmtCheck
       - run: echo "Previous step failed because code is not formatted. Run 'sbt scalafmt'"
         if: ${{ failure() }}

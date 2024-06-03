@@ -21,7 +21,7 @@ class BuiltinTypesPass(cpg: Cpg) extends CpgPass(cpg) {
     diffGraph.addNode(namespaceBlock)
 
     val orderTracker = new OrderTracker()
-    Defines.JsTypes.foreach { typeName =>
+    Defines.JsTypes.foreach { case typeName: String =>
       val tpe = NewType()
         .name(typeName)
         .fullName(typeName)

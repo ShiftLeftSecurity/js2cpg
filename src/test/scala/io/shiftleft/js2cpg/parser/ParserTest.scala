@@ -109,7 +109,7 @@ class ParserTest extends AnyWordSpec with Matchers {
       val expected =
         "(function (exports, require, module, __filename, __dirname) { if(true) { return 1; } });"
       val jsSource = JavaScriptParser.parse(jsfunction)._2
-      jsSource.source.getContent shouldBe expected
+      jsSource.source.getContent.toString shouldBe expected
     }
 
     "fix NodeJS invalid return with import like code line" in {
@@ -124,7 +124,7 @@ class ParserTest extends AnyWordSpec with Matchers {
           |// fooimportbar
           |console.log('fizzbuzz'); });""".stripMargin
       val jsSource = JavaScriptParser.parse(jsfunction)._2
-      jsSource.source.getContent shouldBe expected
+      jsSource.source.getContent.toString shouldBe expected
     }
 
     "fix NodeJS invalid return with simple import" in {
@@ -137,7 +137,7 @@ class ParserTest extends AnyWordSpec with Matchers {
           |import foo from 'dep.js';
           |(function (exports, require, module, __filename, __dirname) { if(true) { return 1; } });""".stripMargin
       val jsSource = JavaScriptParser.parse(jsfunction)._2
-      jsSource.source.getContent shouldBe expected
+      jsSource.source.getContent.toString shouldBe expected
     }
 
     "fix NodeJS invalid return with multiple imports" in {
@@ -168,7 +168,7 @@ class ParserTest extends AnyWordSpec with Matchers {
           |import "module-name";
           |(function (exports, require, module, __filename, __dirname) { if(true) { return 1; } });""".stripMargin
       val jsSource = JavaScriptParser.parse(jsfunction)._2
-      jsSource.source.getContent shouldBe expected
+      jsSource.source.getContent.toString shouldBe expected
     }
 
   }

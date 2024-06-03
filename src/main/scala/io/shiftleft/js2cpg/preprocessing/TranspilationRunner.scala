@@ -67,7 +67,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
   }
 
   def handlePrivateModules(): List[(Path, Path)] = {
-    val project           = File(config.inputPath)
+    val project           = File(config.srcDir)
     val nodeModulesFolder = project / NODE_MODULES_DIR_NAME
     if (!nodeModulesFolder.exists) {
       List.empty

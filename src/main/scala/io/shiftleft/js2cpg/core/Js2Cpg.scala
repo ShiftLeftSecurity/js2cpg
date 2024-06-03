@@ -3,23 +3,20 @@ package io.shiftleft.js2cpg.core
 import java.nio.file.{Path, StandardCopyOption}
 import better.files.File
 import better.files.File.LinkOptions
-import io.shiftleft.js2cpg.passes.*
-import io.shiftleft.js2cpg.io.FileDefaults.*
+import io.shiftleft.js2cpg.passes._
+import io.shiftleft.js2cpg.io.FileDefaults._
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.preprocessing.NuxtTranspiler
 import io.shiftleft.js2cpg.preprocessing.TranspilationRunner
 import io.shiftleft.js2cpg.utils.MemoryMetrics
-import io.joern.x2cpg.X2Cpg.withNewEmptyCpg
+import io.joern.x2cpg.X2Cpg.newEmptyCpg
 import io.joern.x2cpg.utils.HashUtil
-import io.joern.x2cpg.utils.Report
-import io.joern.x2cpg.X2CpgFrontend
-import io.shiftleft.codepropertygraph.Cpg
 import org.slf4j.LoggerFactory
 
 import scala.util.{Failure, Success, Try}
 
-class Js2Cpg extends X2CpgFrontend[Config] {
+class Js2Cpg {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
@@ -27,7 +24,7 @@ class Js2Cpg extends X2CpgFrontend[Config] {
 
   private def checkCpgGenInputFiles(jsFiles: List[(Path, Path)], config: Config): Unit = {
     if (jsFiles.isEmpty) {
-      val project = File(config.inputPath)
+      val project = File(config.srcDir)
       logger.warn(s"'$project' contains no *.js files. No CPG was generated.")
       if (config.babelTranspiling) {
         logger.warn("\t- Babel transpilation did not yield any *.js files")
@@ -104,7 +101,7 @@ class Js2Cpg extends X2CpgFrontend[Config] {
     } ++ transpiledJsFiles
   }
 
-  private def prepareAndGenerateCpg(project: File, tmpProjectDir: File, config: Config): Try[Cpg] = {
+  private def prepareAndGenerateCpg(project: File, tmpProjectDir: File, config: Config): Unit = {
     val newTmpProjectDir = if (project.extension.contains(VSIX_SUFFIX)) {
       handleVsixProject(project, tmpProjectDir)
     } else {
@@ -117,9 +114,7 @@ class Js2Cpg extends X2CpgFrontend[Config] {
       .getFileTree(newTmpProjectDir.path, config, List(JS_SUFFIX, MJS_SUFFIX))
       .map(f => (f, newTmpProjectDir.path))
 
-    val result = for {
-      tmpTranspileDir <- File.temporaryDirectory("js2cpgTranspileOut")
-    } yield {
+    File.usingTemporaryDirectory("js2cpgTranspileOut") { tmpTranspileDir =>
       findProjects(newTmpProjectDir, config)
         .foreach { p =>
           val subDir =
@@ -149,55 +144,57 @@ class Js2Cpg extends X2CpgFrontend[Config] {
       // as we do not have any control of the transpilers themselves
       // (also they very much depend on the speed of npm).
       MemoryMetrics.withMemoryMetrics(config) {
-        generateCPG(config.withInputPath(newTmpProjectDir.toString), jsFiles)
+        generateCPG(config.copy(srcDir = newTmpProjectDir.toString), jsFiles)
       }
     }
-    result.get()
   }
 
-  def createCpg(config: Config): Try[Cpg] = {
-    val project = File(config.inputPath)
+  def run(config: Config): Unit = {
+    val project = File(config.srcDir)
 
     // We need to get the absolut project path here otherwise user configured
     // excludes based on either absolut or relative paths can not be matched.
     // We intentionally use .canonicalFile as this is using java.io.File#getCanonicalPath
     // under the hood that will resolve . or ../ and symbolic links in any combination.
     val absoluteProjectPath          = project.canonicalFile.pathAsString
-    val configWithAbsolutProjectPath = config.withInputPath(absoluteProjectPath)
+    val configWithAbsolutProjectPath = config.copy(srcDir = absoluteProjectPath)
 
     logger.info(s"Generating CPG from Javascript sources in: '$absoluteProjectPath'")
     logger.debug(s"Configuration:$configWithAbsolutProjectPath")
 
-    val result = for {
-      tmpProjectDir <- File.temporaryDirectory(project.name)
-    } yield prepareAndGenerateCpg(project, tmpProjectDir, configWithAbsolutProjectPath)
+    File.usingTemporaryDirectory(project.name) { tmpProjectDir =>
+      prepareAndGenerateCpg(project, tmpProjectDir, configWithAbsolutProjectPath)
+    }
 
     logger.info("Generation of CPG is complete.")
     report.print()
-
-    result.get()
   }
 
   private def configFiles(config: Config, extensions: List[String]): List[(Path, Path)] =
     FileUtils
-      .getFileTree(File(config.inputPath).path, config, extensions, filterIgnoredFiles = false)
-      .map(f => (f, File(config.inputPath).path))
+      .getFileTree(File(config.srcDir).path, config, extensions, filterIgnoredFiles = false)
+      .map(f => (f, File(config.srcDir).path))
 
-  private def generateCPG(config: Config, jsFilesWithRoot: List[(Path, Path)]): Try[Cpg] = {
-    withNewEmptyCpg(config.outputPath, config) { (cpg, config) =>
-      val hash = HashUtil.sha256(jsFilesWithRoot.map(_._1))
+  private def generateCPG(config: Config, jsFilesWithRoot: List[(Path, Path)]): Unit = {
+    val cpg  = newEmptyCpg(Some(config.outputFile))
+    val hash = HashUtil.sha256(jsFilesWithRoot.map(_._1))
 
-      new AstCreationPass(cpg, jsFilesWithRoot, config, report).createAndApply()
-      new JsMetaDataPass(cpg, hash, config.inputPath).createAndApply()
-      new BuiltinTypesPass(cpg).createAndApply()
-      new DependenciesPass(cpg, config).createAndApply()
-      new ConfigPass(configFiles(config, List(VUE_SUFFIX)), cpg, report).createAndApply()
-      new PrivateKeyFilePass(configFiles(config, List(KEY_SUFFIX)), cpg, report).createAndApply()
-      if (config.includeHtml) {
-        new ConfigPass(configFiles(config, List(HTML_SUFFIX)), cpg, report).createAndApply()
-      }
+    new AstCreationPass(File(config.srcDir), jsFilesWithRoot, cpg, report).createAndApply()
+    new JsMetaDataPass(cpg, hash, config.srcDir).createAndApply()
+    new BuiltinTypesPass(cpg).createAndApply()
+    new DependenciesPass(cpg, config).createAndApply()
+    new ConfigPass(configFiles(config, List(VUE_SUFFIX)), cpg, report).createAndApply()
+    new PrivateKeyFilePass(configFiles(config, List(KEY_SUFFIX)), cpg, report).createAndApply()
+
+    if (config.includeHtml) {
+      new ConfigPass(configFiles(config, List(HTML_SUFFIX)), cpg, report).createAndApply()
+    }
+
+    if (config.includeConfigs) {
       new ConfigPass(configFiles(config, CONFIG_FILES), cpg, report).createAndApply()
     }
+
+    cpg.close()
   }
 
 }

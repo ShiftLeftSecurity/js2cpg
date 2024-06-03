@@ -2,13 +2,12 @@ package io.shiftleft.js2cpg.passes
 
 import better.files.File
 import io.joern.x2cpg.X2Cpg.newEmptyCpg
-import io.joern.x2cpg.utils.Report
 import io.shiftleft.codepropertygraph.Cpg
-import io.shiftleft.js2cpg.core.Config
+import io.shiftleft.js2cpg.core.{Config, Report}
 import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler
-import io.shiftleft.semanticcpg.language.*
+import io.shiftleft.semanticcpg.language._
 
 class DependenciesPassTest extends AbstractPassTest {
 
@@ -181,9 +180,8 @@ class DependenciesPassTest extends AbstractPassTest {
 
         val filenames = List((file.path, file.parent.path))
         val cpg       = newEmptyCpg()
-        val config    = Config().withInputPath(dir.toString).withPackageJsonLocation(packageJson)
-        new AstCreationPass(cpg, filenames, config, new Report()).createAndApply()
-        new DependenciesPass(cpg, config).createAndApply()
+        new AstCreationPass(dir, filenames, cpg, new Report()).createAndApply()
+        new DependenciesPass(cpg, Config(srcDir = dir.toString, packageJsonLocation = packageJson)).createAndApply()
 
         f(cpg)
         jsonTmpFiles.foreach(_.delete())
