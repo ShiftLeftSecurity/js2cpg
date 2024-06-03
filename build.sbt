@@ -1,5 +1,5 @@
-val cpgVersion   = "1.6.11"
-val joernVersion = "2.0.335"
+val cpgVersion   = "1.6.13"
+val joernVersion = "2.0.392"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
@@ -27,10 +27,11 @@ lazy val commonSettings = Seq(
     "io.shiftleft"              %% "codepropertygraph" % cpgVersion,
     "io.joern"                  %% "x2cpg"             % joernVersion,
     "com.github.scopt"          %% "scopt"             % "4.1.0",
-    "org.graalvm.js"             % "js"                % "22.3.4",
-    "com.fasterxml.jackson.core" % "jackson-databind"  % "2.15.3",
+    // do not update to 23.x as this requires JDK >= 19
+    "org.graalvm.js"             % "js"                % "22.3.5",
+    "com.fasterxml.jackson.core" % "jackson-databind"  % "2.17.1",
     "com.atlassian.sourcemap"    % "sourcemap"         % "2.0.0",
-    "commons-io"                 % "commons-io"        % "2.13.0",
+    "commons-io"                 % "commons-io"        % "2.16.1",
     "org.slf4j"                  % "slf4j-api"         % "2.0.7",
     "org.apache.logging.log4j"   % "log4j-slf4j2-impl" % "2.20.0"     % Optional,
     "org.apache.logging.log4j"   % "log4j-core"        % "2.20.0"     % Optional,

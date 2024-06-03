@@ -160,7 +160,7 @@ trait TranspilingEnvironment {
       isYarnAvailable.get
   }
 
-  protected def npmAvailable(): Boolean = isNpmAvailable match {
+  private def npmAvailable(): Boolean = isNpmAvailable match {
     case Some(value) =>
       value
     case None =>

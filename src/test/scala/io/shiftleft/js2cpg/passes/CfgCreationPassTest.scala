@@ -2,13 +2,14 @@ package io.shiftleft.js2cpg.passes
 
 import better.files.File
 import io.shiftleft.codepropertygraph.Cpg
-import io.shiftleft.codepropertygraph.generated._
-import io.shiftleft.js2cpg.core.Report
-import io.shiftleft.semanticcpg.language._
+import io.shiftleft.codepropertygraph.generated.*
+import io.shiftleft.semanticcpg.language.*
 import io.joern.x2cpg.passes.controlflow.CfgCreationPass
-import io.joern.x2cpg.passes.controlflow.cfgcreation.Cfg._
+import io.joern.x2cpg.passes.controlflow.cfgcreation.Cfg.*
+import io.joern.x2cpg.utils.Report
 import io.shiftleft.codepropertygraph.generated.nodes.AstNodeBase
 import io.shiftleft.codepropertygraph.generated.nodes.Method
+import io.shiftleft.js2cpg.core.Config
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import overflowdb.Node
@@ -1296,7 +1297,7 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
       val file = workspace / "test.js"
       file.write(code)
       val filenames = List((file.path, file.parent.path))
-      new AstCreationPass(workspace, filenames, cpg, new Report()).createAndApply()
+      new AstCreationPass(cpg, filenames, Config().withInputPath(workspace.toString), new Report()).createAndApply()
       new CfgCreationPass(cpg).createAndApply()
     }
 
