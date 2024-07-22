@@ -16,7 +16,7 @@ class NewCompositeNode(underlying: ListBuffer[NewNode] = ListBuffer.empty[NewNod
 
   override def productElement(n: Int): Any = null
 
-  override def copy(): this.type = {
+  override def copy: this.type = {
     val newInstance = new NewCompositeNode(underlying.clone())
     newInstance.asInstanceOf[this.type]
   }
@@ -29,9 +29,9 @@ class NewCompositeNode(underlying: ListBuffer[NewNode] = ListBuffer.empty[NewNod
     underlying.foreach(func)
   }
 
-  override def isValidInNeighbor(edgeLabel: String, node: NewNode): Boolean  = ??? // we do not need this
-  override def isValidOutNeighbor(edgeLabel: String, node: NewNode): Boolean = ??? // we do not need this
-  override def propertiesMap: util.Map[String, Any]                          = ??? // we do not need this
+  override def isValidInNeighbor(edgeLabel: String, node: NewNode): Boolean     = ??? // we do not need this
+  override def isValidOutNeighbor(edgeLabel: String, node: NewNode): Boolean    = ??? // we do not need this
+  override def propertiesMap: util.Map[String, Any]                             = ??? // we do not need this
+  override def countAndVisitProperties(interface: BatchedUpdateInterface): Unit = ???
   override type StoredNodeType = StoredNode
-  override def flattenProperties(interface: BatchedUpdateInterface): Unit = ???
 }
