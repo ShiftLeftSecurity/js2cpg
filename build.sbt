@@ -1,5 +1,5 @@
-val cpgVersion   = "1.6.11"
-val joernVersion = "2.0.335"
+val cpgVersion   = "1.7.3"
+val joernVersion = "4.0.8"
 
 val gitCommitString = SettingKey[String]("gitSha")
 
@@ -16,7 +16,7 @@ Global / excludeLintKeys += Fast / configuration
 Global / excludeLintKeys += gitCommitString
 
 lazy val commonSettings = Seq(
-  scalaVersion := "3.4.1",
+  scalaVersion := "3.4.2",
   organization := "io.shiftleft",
   scalacOptions ++= Seq("-Xtarget:8"),
   resolvers ++= Seq(

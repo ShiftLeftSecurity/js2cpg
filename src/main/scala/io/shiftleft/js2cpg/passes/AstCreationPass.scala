@@ -4,12 +4,12 @@ import java.nio.file.Path
 import better.files.File
 import com.oracle.js.parser.Source
 import com.oracle.js.parser.ir.FunctionNode
-import io.shiftleft.codepropertygraph.Cpg
+import io.shiftleft.codepropertygraph.generated.Cpg
 import io.shiftleft.js2cpg.core.Report
 import io.shiftleft.js2cpg.astcreation.AstCreator
 import io.shiftleft.js2cpg.io.{FileUtils, JsFileChecks}
 import io.shiftleft.js2cpg.parser.{JavaScriptParser, JsSource}
-import io.shiftleft.passes.ConcurrentWriterCpgPass
+import io.shiftleft.passes.ForkJoinParallelCpgPass
 import org.slf4j.LoggerFactory
 import io.shiftleft.js2cpg.utils.SourceWrapper._
 import io.shiftleft.js2cpg.utils.TimeUtils
@@ -20,7 +20,7 @@ import scala.util.{Failure, Success, Try}
   * in parallel.
   */
 class AstCreationPass(srcDir: File, filenames: List[(Path, Path)], cpg: Cpg, report: Report)
-    extends ConcurrentWriterCpgPass[(Path, Path)](cpg) {
+    extends ForkJoinParallelCpgPass[(Path, Path)](cpg) {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
@@ -41,7 +41,7 @@ class AstCreationPass(srcDir: File, filenames: List[(Path, Path)], cpg: Cpg, rep
 
     parseResult.map { case (parseResult, usedIdentNodes) =>
       val (result, duration) = {
-        TimeUtils.time(generateCpg(parseResult, new DiffGraphBuilder, usedIdentNodes))
+        TimeUtils.time(generateCpg(parseResult, Cpg.newDiffGraphBuilder, usedIdentNodes))
       }
       val path = parseResult.jsSource.originalFilePath
       result match {

@@ -1,19 +1,19 @@
 package io.shiftleft.js2cpg.passes
 
-import io.shiftleft.codepropertygraph.Cpg
+import io.shiftleft.codepropertygraph.generated.Cpg
 import io.shiftleft.codepropertygraph.generated.nodes.NewConfigFile
 import io.shiftleft.js2cpg.core.Report
 import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.utils.TimeUtils
-import io.shiftleft.passes.ConcurrentWriterCpgPass
+import io.shiftleft.passes.ForkJoinParallelCpgPass
 import io.shiftleft.utils.IOUtils
 import org.slf4j.{Logger, LoggerFactory}
 
 import java.nio.file.Path
 
 class ConfigPass(filenames: List[(Path, Path)], cpg: Cpg, report: Report)
-    extends ConcurrentWriterCpgPass[(Path, Path)](cpg) {
+    extends ForkJoinParallelCpgPass[(Path, Path)](cpg) {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
@@ -37,7 +37,7 @@ class ConfigPass(filenames: List[(Path, Path)], cpg: Cpg, report: Report)
       val fileName = relativeFile.toString
       val content  = fileContent(filePath)
       val (result, time) = TimeUtils.time {
-        val localDiff = new DiffGraphBuilder
+        val localDiff = Cpg.newDiffGraphBuilder
         logger.debug(s"Adding file '$relativeFile' as config file.")
         val configNode = NewConfigFile().name(fileName).content(content.mkString("\n"))
         report.addReportInfo(fileName, fileStatistics.linesOfCode, parsed = true, cpgGen = true, isConfig = true)

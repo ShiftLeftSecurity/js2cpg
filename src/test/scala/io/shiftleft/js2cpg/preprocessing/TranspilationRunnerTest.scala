@@ -1,7 +1,7 @@
 package io.shiftleft.js2cpg.preprocessing
 
 import better.files.File
-import io.shiftleft.codepropertygraph.Cpg
+import io.shiftleft.codepropertygraph.generated.Cpg
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.core.Js2CpgMain
 import io.shiftleft.js2cpg.io.FileDefaults.JS_SUFFIX
@@ -16,7 +16,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
 
   private def fileNames(cpg: Cpg): List[String] = cpg.file.name.l
 
-  private def callLineNumbers(cpg: Cpg): List[Integer] = cpg.call.lineNumber.l
+  private def callLineNumbers(cpg: Cpg): List[Int] = cpg.call.lineNumber.l
 
   private def callCodeFields(cpg: Cpg): List[String] = cpg.call.code.l
 
@@ -74,7 +74,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val cpgPath = tmpDir / "cpg.bin.zip"
         Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath.pathAsString, "--no-ts"))
 
-        val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
+        val cpg = Cpg.withStorage(cpgPath.path, persistOnClose = false)
 
         fileNames(cpg) should contain theSameElementsAs List("foo.js")
         callCodeFields(cpg) should contain allElementsOf List(
@@ -101,7 +101,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val cpgPath = tmpDir / "cpg.bin.zip"
         Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath.pathAsString, "--no-babel"))
 
-        val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
+        val cpg = Cpg.withStorage(cpgPath.path, persistOnClose = false)
 
         fileNames(cpg) should contain theSameElementsAs List("a.ts", "b.ts")
         callLineNumbers(cpg) should contain allElementsOf List(1, 1)
@@ -154,7 +154,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val cpgPath = tmpDir / "cpg.bin.zip"
         Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath.pathAsString, "--no-babel"))
 
-        val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
+        val cpg = Cpg.withStorage(cpgPath.path, persistOnClose = false)
 
         fileNames(cpg) should contain theSameElementsAs List(
           "index.js",
@@ -178,7 +178,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val cpgPath = tmpDir / "cpg.bin.zip"
         Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath.pathAsString, "--no-babel", "--with-tests"))
 
-        val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
+        val cpg = Cpg.withStorage(cpgPath.path, persistOnClose = false)
 
         fileNames(cpg) should contain theSameElementsAs List(
           "a.ts",
@@ -196,7 +196,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val cpgPath = tmpDir / "cpg.bin.zip"
         Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath.pathAsString))
 
-        val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
+        val cpg = Cpg.withStorage(cpgPath.path, persistOnClose = false)
 
         fileNames(cpg) should contain theSameElementsAs List(
           "a.js",
@@ -214,7 +214,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val cpgPath = tmpDir / "cpg.bin.zip"
         Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath.pathAsString))
 
-        val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
+        val cpg = Cpg.withStorage(cpgPath.path, persistOnClose = false)
 
         fileNames(cpg) should contain theSameElementsAs List(
           "a.js",
@@ -231,7 +231,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val cpgPath = tmpDir / "cpg.bin.zip"
         Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath.pathAsString))
 
-        val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
+        val cpg = Cpg.withStorage(cpgPath.path, persistOnClose = false)
 
         fileNames(cpg) should contain theSameElementsAs List(
           s"src${java.io.File.separator}main.js",
@@ -247,7 +247,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val cpgPath = tmpDir / "cpg.bin.zip"
         Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath.pathAsString))
 
-        val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
+        val cpg = Cpg.withStorage(cpgPath.path, persistOnClose = false)
 
         fileNames(cpg) should contain theSameElementsAs List(
           s"src${java.io.File.separator}views${java.io.File.separator}AboutPage.vue",
@@ -265,7 +265,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val cpgPath = tmpDir / "cpg.bin.zip"
         Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath.pathAsString, "--no-ts", "--no-babel"))
 
-        val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
+        val cpg = Cpg.withStorage(cpgPath.path, persistOnClose = false)
 
         fileNames(cpg) should contain only "test.ejs"
         callLineNumbers(cpg) should contain allElementsOf List(5, 7, 15, 16, 21)
@@ -279,7 +279,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
         val cpgPath = tmpDir / "cpg.bin.zip"
         Js2CpgMain.main(Array(tmpDir.pathAsString, "--output", cpgPath.pathAsString, "--no-ts", "--no-babel"))
 
-        val cpg = Cpg.withConfig(overflowdb.Config.withoutOverflow.withStorageLocation(cpgPath.pathAsString))
+        val cpg = Cpg.withStorage(cpgPath.path, persistOnClose = false)
 
         // Sadly, calling the pug transpiler via pug cli does not support source maps:
         fileNames(cpg) should contain only "test.js"

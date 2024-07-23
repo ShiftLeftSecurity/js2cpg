@@ -1,9 +1,9 @@
 package io.shiftleft.js2cpg.astcreation
 
+import flatgraph.DiffGraphBuilder
 import io.shiftleft.codepropertygraph.generated.EdgeTypes
 import io.shiftleft.codepropertygraph.generated.nodes._
 import io.shiftleft.js2cpg.datastructures.OrderTracker
-import overflowdb.BatchedUpdate.DiffGraphBuilder
 import org.slf4j.LoggerFactory
 
 class AstEdgeBuilder(private val diffGraph: DiffGraphBuilder) {
