@@ -3,6 +3,7 @@ on:
   push:
     branches: [master, main]
     tags: ["*"]
+  workflow_dispatch:    # allow to manually trigger this workflow
 jobs:
   release:
     concurrency: release
