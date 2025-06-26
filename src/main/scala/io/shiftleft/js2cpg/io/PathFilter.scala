@@ -2,7 +2,7 @@ package io.shiftleft.js2cpg.io
 
 import better.files.File
 import io.shiftleft.js2cpg.core.Config
-import io.shiftleft.js2cpg.io.FileDefaults._
+import io.shiftleft.js2cpg.io.FileDefaults.*
 import org.slf4j.LoggerFactory
 
 import java.nio.file.{InvalidPathException, Path, Paths}
@@ -41,7 +41,7 @@ case class PathFilter(
     }
   }
 
-  /** We only accept a file if its a regular file and has the appropriate extension.
+  /** We only accept a file if it is a regular file and has the appropriate extension.
     *
     * @param file
     *   the file to inspect

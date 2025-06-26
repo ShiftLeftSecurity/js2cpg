@@ -1,9 +1,8 @@
 package io.shiftleft.js2cpg.io
 
 import io.shiftleft.js2cpg.core.Js2cpgArgumentsParser
-import io.shiftleft.js2cpg.io.FileDefaults._
+import io.shiftleft.js2cpg.io.FileDefaults.*
 import io.shiftleft.js2cpg.io.FileUtils.FileStatistics
-import io.shiftleft.utils.IOUtils
 import org.slf4j.LoggerFactory
 
 import java.nio.file.Path

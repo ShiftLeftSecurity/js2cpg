@@ -39,7 +39,7 @@ object NuxtTranspiler {
 
 class NuxtTranspiler(override val config: Config, override val projectPath: Path) extends Transpiler {
 
-  import NuxtTranspiler._
+  import NuxtTranspiler.*
 
   private val logger = LoggerFactory.getLogger(getClass)
   private val nuxt   = Paths.get(projectPath.toString, "node_modules", ".bin", "nuxt").toString

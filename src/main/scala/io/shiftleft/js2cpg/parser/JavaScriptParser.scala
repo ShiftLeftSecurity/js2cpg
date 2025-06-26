@@ -2,7 +2,7 @@ package io.shiftleft.js2cpg.parser
 
 import com.oracle.js.parser.{ErrorManager, Parser, ParserException, ScriptEnvironment, Source}
 import com.oracle.js.parser.ir.{ErrorNode, FunctionNode}
-import io.shiftleft.js2cpg.utils.SourceWrapper._
+import io.shiftleft.js2cpg.utils.SourceWrapper.*
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
@@ -12,8 +12,8 @@ object JavaScriptParser {
 
   private val logger = LoggerFactory.getLogger(JavaScriptParser.getClass)
 
-  // A value >= 13 is internally used by graaljs for the ECMA script version 2022.
-  // Sadly the do not provide a define for this.
+  // A value >= 13 is internally used by GraalJS for the ECMA script version 2022.
+  // Sadly they do not provide a pre-defined constant for this.
   private val ecmaVersion = 13
 
   private val moduleName = ":program"
@@ -74,7 +74,7 @@ object JavaScriptParser {
   }
 
   private def nodeJsFix(jsSource: JsSource): JsSource = {
-    val lines        = jsSource.source.getContent.toString.linesIterator.toSeq
+    val lines        = jsSource.source.getContent.linesIterator.toSeq
     val replaceIndex = lines.lastIndexWhere(l => importRegex.matches(l.trim())) + 1
     val (head, rest) = lines.splitAt(replaceIndex)
     val fixedCode    = (head ++ nodeJsFixWrapper(rest)).mkString("\n")
@@ -86,7 +86,7 @@ object JavaScriptParser {
     val moduleErrorManager = new Js2CpgErrMgr("strict mode")
     buildParser(jsSource, moduleErrorManager).parseModule(moduleName) match {
       case null if moduleErrorManager.containsNodeJSInvalidReturn =>
-        // We might have to fix NodeJS code here:
+        // We might have to fix Node.js code here:
         val newSource = nodeJsFix(jsSource)
         val fixed     = buildParser(newSource, moduleErrorManager).parseModule(moduleName)
         if (fixed == null) {
@@ -96,7 +96,7 @@ object JavaScriptParser {
           logger.debug(s"Applied NodeJS fix for file '${jsSource.filePath}'.")
           (fixed, newSource)
         }
-      // if module parsing fails completely we have to fall-back to non-strict mode loosing imports/exports:
+      // if module parsing fails completely we have to fall back to non-strict mode loosing imports/exports:
       case null =>
         val nonStrictErrorManager = new Js2CpgErrMgr("non-strict mode")
         buildParser(jsSource, nonStrictErrorManager).parse() match {

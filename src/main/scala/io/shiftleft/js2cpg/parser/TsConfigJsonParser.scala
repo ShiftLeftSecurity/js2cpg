@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory
 
 import java.nio.file.Path
 import scala.util.{Failure, Success}
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 object TsConfigJsonParser {
 

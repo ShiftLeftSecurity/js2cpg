@@ -5,14 +5,14 @@ import better.files.File
 import com.atlassian.sourcemap.{ReadableSourceMap, ReadableSourceMapImpl}
 import com.oracle.js.parser.Source
 import com.oracle.js.parser.ir.Node
-import io.shiftleft.js2cpg.io.FileDefaults._
+import io.shiftleft.js2cpg.io.FileDefaults.*
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.preprocessing.NuxtTranspiler
 import io.shiftleft.utils.IOUtils
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.{ListHasAsScala, SetHasAsScala}
 import scala.util.{Failure, Success, Try}
 
 object JsSource {
@@ -30,7 +30,7 @@ object JsSource {
 
 class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
 
-  import JsSource._
+  import JsSource.*
 
   private val absoluteFilePath = (File(projectDir.toAbsolutePath) / originalFilePath).pathAsString
   private val mapFilePath      = absoluteFilePath + ".map"
@@ -86,7 +86,7 @@ class JsSource(val srcDir: File, val projectDir: Path, val source: Source) {
     if (sourceFileName.isEmpty) {
       srcDir / source.getName
     } else if (absoluteFilePath.contains(NuxtTranspiler.NUXT_FOLDER) && srcDir.path.compareTo(projectDir) == 0) {
-      // For nuxt-js transpilation we have the same src and project dir and we need some special handling here
+      // For nuxt-js transpilation we have the same src and project dir, and we need some special handling here
       if (sourceFileName.startsWith(WEBPACK_PREFIX)) {
         val replacedName = FileUtils.cleanPath(sourceFileName.replace(WEBPACK_PREFIX, ""))
         srcDir / replacedName.substring(replacedName.indexOf("/") + 1)

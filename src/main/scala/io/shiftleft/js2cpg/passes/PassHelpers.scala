@@ -1,11 +1,11 @@
 package io.shiftleft.js2cpg.passes
 
 import com.oracle.js.parser.ir.LiteralNode.ArrayLiteralNode
-import com.oracle.js.parser.ir._
+import com.oracle.js.parser.ir.*
 
 import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.ListHasAsScala
 
 object PassHelpers {
 

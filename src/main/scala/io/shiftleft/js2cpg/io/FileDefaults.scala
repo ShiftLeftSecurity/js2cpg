@@ -89,7 +89,7 @@ object FileDefaults {
     JSON_LOCK_FILENAME,
     YARN_LOCK_FILENAME,
     PNPM_LOCK_FILENAME,
-    // pnpm workspace config file is not required as we manually descent into sub-project:
+    // pnpm workspace config file is not required as we manually descent into subprojects:
     PNPM_WS_FILENAME,
     NPM_SHRINKWRAP_FILENAME,
     WEBPACK_CONFIG_FILENAME,

@@ -1,74 +1,24 @@
 package io.shiftleft.js2cpg.astcreation
 
 import com.oracle.js.parser.TokenType
-import com.oracle.js.parser.ir.{
-  AccessNode,
-  BinaryNode,
-  Block,
-  BlockExpression,
-  BlockStatement,
-  BreakNode,
-  CallNode,
-  CaseNode,
-  CatchNode,
-  ClassNode,
-  ContinueNode,
-  DebuggerNode,
-  ErrorNode,
-  Expression,
-  ExpressionStatement,
-  ForNode,
-  FunctionNode,
-  IdentNode,
-  IfNode,
-  ImportNode,
-  IndexNode,
-  JoinPredecessorExpression,
-  LabelNode,
-  LiteralNode,
-  Module,
-  Node,
-  ObjectNode,
-  ParameterNode,
-  PropertyNode,
-  ReturnNode,
-  Statement,
-  SwitchNode,
-  TemplateLiteralNode,
-  TernaryNode,
-  ThrowNode,
-  TryNode,
-  UnaryNode,
-  VarNode,
-  WhileNode,
-  WithNode
-}
+import com.oracle.js.parser.ir
+import com.oracle.js.parser.ir.*
 import com.oracle.js.parser.ir.LiteralNode.ArrayLiteralNode
 import flatgraph.DiffGraphBuilder
-import io.shiftleft.codepropertygraph.generated.nodes.{
-  NewBlock,
-  NewCall,
-  NewControlStructure,
-  NewIdentifier,
-  NewLocal,
-  NewMethod,
-  NewMethodRef,
-  NewNamespaceBlock,
-  NewNode,
-  NewTypeDecl,
-  NewTypeRef
-}
-import io.shiftleft.codepropertygraph.generated.{ControlStructureTypes, DispatchTypes, ModifierTypes, Operators}
-import io.shiftleft.js2cpg.datastructures.Stack._
-import io.shiftleft.js2cpg.datastructures._
-import io.shiftleft.js2cpg.datastructures.scope._
+import io.shiftleft.codepropertygraph.generated.nodes.*
+import io.joern.x2cpg.datastructures.Stack.*
+import io.joern.x2cpg.datastructures.VariableScopeManager
+import io.joern.x2cpg.datastructures.VariableScopeManager.ScopeType
+import io.joern.x2cpg.datastructures.VariableScopeManager.ScopeType.*
+import io.shiftleft.codepropertygraph.generated.*
+import io.shiftleft.js2cpg.datastructures.*
 import io.shiftleft.js2cpg.passes.{Defines, EcmaBuiltins, PassHelpers}
 import io.shiftleft.js2cpg.passes.PassHelpers.ParamNodeInitKind
 import io.shiftleft.js2cpg.parser.{GeneralizingAstVisitor, JsSource}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object AstCreator {
 
@@ -83,20 +33,20 @@ object AstCreator {
 class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: Set[String])
     extends GeneralizingAstVisitor[NewNode] {
 
-  import AstCreator._
+  import AstCreator.*
 
-  private val scope = new Scope()
+  private val scope = new VariableScopeManager()
 
   private val astEdgeBuilder = new AstEdgeBuilder(diffGraph)
 
   private val astNodeBuilder = new AstNodeBuilder(diffGraph, astEdgeBuilder, source, scope)
 
   // Nested methods are not put in the AST where they are defined.
-  // Instead we put them directly under the METHOD in which they are
+  // Instead, we put them directly under the METHOD in which they are
   // defined. To achieve this we need this extra stack.
   private val methodAstParentStack     = new Stack[NewNode]()
   private val localAstParentStack      = new Stack[NewBlock]()
-  private val switchExpressionStack    = new Stack[Expression]()
+  private val switchExpressionStack    = new Stack[ir.Expression]()
   private val dynamicInstanceTypeStack = mutable.Stack.empty[String]
   private val metaTypeRefIdStack       = mutable.Stack.empty[NewTypeRef]
 
@@ -141,11 +91,10 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     methodAstParentStack.push(prepareFileWrapperFunction())
     createImportsAndDependencies(programFunction.getModule)
     programFunction.accept(this)
-    createVariableReferenceLinks()
+    scope.createVariableReferenceLinks(diffGraph, source.filePath)
   }
 
   private def createImportsAndDependencies(module: Module): Unit = {
-
     if (module == null) {
       return
     }
@@ -195,16 +144,11 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
   private def createIdentifierNode(name: String, lineAndColumnProvider: Node): NewIdentifier = {
     val dynamicInstanceTypeOption = name match {
-      case "this" =>
-        dynamicInstanceTypeStack.headOption
-      case "console" =>
-        Some(Defines.Console)
-      case "Math" =>
-        Some(Defines.Math)
-      case _ =>
-        None
+      case "this"    => dynamicInstanceTypeStack.headOption
+      case "console" => Some(Defines.Console)
+      case "Math"    => Some(Defines.Math)
+      case _         => None
     }
-
     astNodeBuilder.createIdentifierNode(name, lineAndColumnProvider, dynamicInstanceTypeOption)
   }
 
@@ -230,11 +174,11 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
           val paramName    = param.getName
           val localParamId = createIdentifierNode(paramName, param)
           val paramId      = createIdentifierNode(name, param)
-          scope.addVariableReference(name, paramId)
+          scope.addVariableReference(name, paramId, Defines.Any, EvaluationStrategies.BY_REFERENCE)
 
           val localParamLocal = astNodeBuilder.createLocalNode(paramName, Defines.Any)
           addLocalToAst(localParamLocal)
-          scope.addVariable(paramName, localParamLocal, MethodScope)
+          scope.addVariable(paramName, localParamLocal, Defines.Any, MethodScope)
           val keyId    = astNodeBuilder.createFieldIdentifierNode(paramName, param)
           val accessId = astNodeBuilder.createFieldAccessNode(paramId, keyId, astNodeBuilder.lineAndColumn(param))
           val assignmentCallId =
@@ -274,10 +218,10 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
         val localParamId    = createIdentifierNode(paramName, parameter)
         val localParamLocal = astNodeBuilder.createLocalNode(paramName, Defines.Any)
         addLocalToAst(localParamLocal)
-        scope.addVariable(paramName, localParamLocal, MethodScope)
+        scope.addVariable(paramName, localParamLocal, Defines.Any, MethodScope)
 
         val paramId = createIdentifierNode(name, parameter)
-        scope.addVariableReference(name, paramId)
+        scope.addVariableReference(name, paramId, Defines.Any, EvaluationStrategies.BY_REFERENCE)
 
         val keyId = astNodeBuilder.createFieldIdentifierNode(paramName, parameter)
 
@@ -454,7 +398,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     // We do not need to look at classNode.getClassHeritage because
     // the CPG only allows us to encode inheriting from fully known
     // types. Since in JS we "inherit" from a variable which would
-    // need to be resolved first, we for now dont handle the class
+    // need to be resolved first, we for now don't handle the class
     // hierarchy.
     val astParentType     = methodAstParentStack.head.label
     val astParentFullName = methodAstParentStack.head.propertiesMap.get("FULL_NAME").toString
@@ -513,7 +457,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
         }
 
         if (classElement.isStatic) {
-          // Static member belong to the meta class.
+          // Static member belong to the metaclass.
           astEdgeBuilder.addAstEdge(memberId, metaTypeDeclId, memberOrderTracker)
         } else {
           astEdgeBuilder.addAstEdge(memberId, typeDeclId, memberOrderTracker)
@@ -636,16 +580,15 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
               val receiverId = functionAccessNode.accept(this)
 
               val baseId = createIdentifierNode(baseIdentNode.getName, baseIdentNode)
-              scope.addVariableReference(baseIdentNode.getName, baseId)
+              scope.addVariableReference(baseIdentNode.getName, baseId, Defines.Any, EvaluationStrategies.BY_REFERENCE)
 
               (receiverId, None, receiverId, baseId)
             case base =>
               // Base is complex so we need a tmp variable.
-              val tmpVarName =
-                PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, "_tmp")
+              val tmpVarName = PassHelpers.generateUnusedVariableName(usedVariableNames, usedIdentNodes, "_tmp")
 
               val baseTmpId = createIdentifierNode(tmpVarName, base)
-              scope.addVariableReference(tmpVarName, baseTmpId)
+              scope.addVariableReference(tmpVarName, baseTmpId, Defines.Any, EvaluationStrategies.BY_REFERENCE)
 
               val baseId = base.accept(this)
 
@@ -666,16 +609,16 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
               )
 
               val thisTmpId = createIdentifierNode(tmpVarName, functionAccessNode)
-              scope.addVariableReference(tmpVarName, thisTmpId)
+              scope.addVariableReference(tmpVarName, thisTmpId, Defines.Any, EvaluationStrategies.BY_REFERENCE)
 
               (baseId, Some(memberId), fieldAccessId, thisTmpId)
           }
         case _ =>
           val receiverId = callNode.getFunction.accept(this)
 
-          // We need to create an synthetic this argument.
+          // We need to create a synthetic this argument.
           val thisId = createIdentifierNode("this", callNode)
-          scope.addVariableReference("this", thisId)
+          scope.addVariableReference("this", thisId, Defines.Any, EvaluationStrategies.BY_REFERENCE)
 
           (receiverId, None, receiverId, thisId)
       }
@@ -976,7 +919,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     expressionStatement.getExpression.accept(this)
   }
 
-  private def createRealBlock(block: Block): NewBlock = {
+  private def createRealBlock(block: ir.Block): NewBlock = {
     val blockId = astNodeBuilder.createBlockNode(block)
 
     val orderTracker = new OrderTracker()
@@ -997,7 +940,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   }
 
   // We do not get here for specially handled method top level blocks.
-  override def visit(block: Block): NewNode = {
+  override def visit(block: ir.Block): NewNode = {
     val realBlock = source.getString(block) == "{"
 
     if (realBlock) {
@@ -1149,7 +1092,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
 
   override def visit(identNode: IdentNode): NewNode = {
     val identId = createIdentifierNode(identNode.getName, identNode)
-    scope.addVariableReference(identNode.getName, identId)
+    scope.addVariableReference(identNode.getName, identId, Defines.Any, EvaluationStrategies.BY_REFERENCE)
     identId
   }
 
@@ -1220,12 +1163,12 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     accessId
   }
 
-  private def createRhsForConditionalParameterInit(initExpression: Expression, varNode: VarNode): NewCall = {
+  private def createRhsForConditionalParameterInit(initExpression: ir.Expression, varNode: VarNode): NewCall = {
     createRhsForConditionalParameterInit(initExpression, varNode.getName.getName, varNode)
   }
 
   private def createRhsForConditionalParameterInit(
-    initExpression: Expression,
+    initExpression: ir.Expression,
     propertyNode: PropertyNode,
     name: Option[String]
   ): NewCall = {
@@ -1237,18 +1180,19 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     createRhsForConditionalParameterInit(initExpression, keyName, propertyNode)
   }
 
-  private def createRhsForConditionalParameterInit(initExpression: Expression, keyName: String, node: Node): NewCall = {
+  private def createRhsForConditionalParameterInit(
+    initExpression: ir.Expression,
+    keyName: String,
+    node: Node
+  ): NewCall = {
     val ternaryNode = initExpression.asInstanceOf[TernaryNode]
     val testId = {
       ternaryNode.getTest match {
         case binTestExpr: BinaryNode =>
           val lhsId = createIdentifierNode(keyName, node)
-          scope.addVariableReference(keyName, lhsId)
-
-          val rhsId = binTestExpr.getRhs.accept(this)
-
+          scope.addVariableReference(keyName, lhsId, Defines.Any, EvaluationStrategies.BY_REFERENCE)
+          val rhsId      = binTestExpr.getRhs.accept(this)
           val testCallId = astNodeBuilder.createEqualsCallNode(lhsId, rhsId, astNodeBuilder.lineAndColumn(binTestExpr))
-
           testCallId
         case otherExpr => otherExpr.accept(this)
       }
@@ -1260,7 +1204,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
       ternaryNode.getFalseExpression.getExpression match {
         case paramNode: ParameterNode if paramNode.toString().startsWith("arguments") =>
           val initId = createIdentifierNode(keyName, node)
-          scope.addVariableReference(keyName, initId)
+          scope.addVariableReference(keyName, initId, Defines.Any, EvaluationStrategies.BY_REFERENCE)
           initId
         case _ => ternaryNode.getFalseExpression.accept(this)
       }
@@ -1274,7 +1218,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
       .foreach(id => astNodeBuilder.createDependencyNode(name, id, VERSION_REQUIRE))
   }
 
-  private def createVarNodeParamNodeInitKindFalse(varNode: VarNode, assignmentSource: Expression): NewNode = {
+  private def createVarNodeParamNodeInitKindFalse(varNode: VarNode, assignmentSource: ir.Expression): NewNode = {
     val (typeFullName, code) =
       if (varNode.isFunctionDeclaration) {
         val functionNode        = varNode.getInit.asInstanceOf[FunctionNode]
@@ -1291,7 +1235,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     } else {
       MethodScope
     }
-    scope.addVariable(varNode.getName.getName, varId, scopeType)
+    scope.addVariable(varNode.getName.getName, varId, Defines.Any, scopeType)
 
     if (varNode.isAssignment) {
       val destId   = varNode.getAssignmentDest.accept(this)
@@ -1876,93 +1820,12 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
     blockId
   }
 
-  private def createVariableReferenceLinks(): Unit = {
-    val resolvedReferenceIt = scope.resolve(createMethodLocalForUnresolvedReference)
-    val capturedLocals      = mutable.HashMap.empty[String, NewNode]
-
-    resolvedReferenceIt.foreach { case ResolvedReference(variableNodeId, origin) =>
-      var currentScope             = origin.stack
-      var currentReferenceId       = origin.referenceNodeId
-      var nextReferenceId: NewNode = null
-
-      var done = false
-      while (!done) {
-        val localOrCapturedLocalIdOption =
-          if (currentScope.get.nameToVariableNode.contains(origin.variableName)) {
-            done = true
-            Some(variableNodeId)
-          } else {
-            currentScope.flatMap {
-              case methodScope: MethodScopeElement =>
-                // We have reached a MethodScope and still did not find a local variable to link to.
-                // For all non local references the CPG format does not allow us to link
-                // directly. Instead we need to create a fake local variable in method
-                // scope and link to this local which itself carries the information
-                // that it is a captured variable. This needs to be done for each
-                // method scope until we reach the originating scope.
-                val closureBindingIdProperty =
-                  methodScope.methodFullName + ":" + origin.variableName
-                capturedLocals
-                  .updateWith(closureBindingIdProperty) {
-                    case None =>
-                      val methodScopeNodeId = methodScope.scopeNode
-                      val localId =
-                        astNodeBuilder.createLocalNode(origin.variableName, Defines.Any, Some(closureBindingIdProperty))
-                      astEdgeBuilder.addAstEdge(localId, methodScopeNodeId, 0)
-                      val closureBindingId =
-                        astNodeBuilder.createClosureBindingNode(closureBindingIdProperty, origin.variableName)
-
-                      methodScope.capturingRefId.foreach(astEdgeBuilder.addCaptureEdge(closureBindingId, _))
-
-                      nextReferenceId = closureBindingId
-
-                      Some(localId)
-                    case someLocalId =>
-                      // When there is already a LOCAL representing the capturing, we do not
-                      // need to process the surrounding scope element as this has already
-                      // been processed.
-                      done = true
-                      someLocalId
-                  }
-              case _: BlockScopeElement => None
-            }
-          }
-
-        localOrCapturedLocalIdOption.foreach { localOrCapturedLocalId =>
-          astEdgeBuilder.addRefEdge(localOrCapturedLocalId, currentReferenceId)
-          currentReferenceId = nextReferenceId
-        }
-
-        currentScope = currentScope.get.surroundingScope
-      }
-    }
-  }
-
-  private def createMethodLocalForUnresolvedReference(
-    methodScopeNodeId: NewNode,
-    variableName: String
-  ): (NewNode, ScopeType) = {
-    val varId =
-      astNodeBuilder.createLocalNode(variableName, Defines.Any)
-    astEdgeBuilder.addAstEdge(varId, methodScopeNodeId, 0)
-    (varId, MethodScope)
-  }
-
-  private def computeScopePath(stack: Option[ScopeElement]): String =
-    new ScopeElementIterator(stack)
-      .to(Seq)
-      .reverse
-      .collect { case methodScopeElement: MethodScopeElement =>
-        methodScopeElement.name
-      }
-      .mkString(":")
-
   private def calcTypeNameAndFullName(classNode: ClassNode): (String, String) = {
     def calcTypeName(classNode: ClassNode): String = {
       val typeName = Option(classNode.getIdent) match {
         case Some(ident) => ident.getName
-        // in JS it is possible to create anonymous classes; hence no name
-        case None =>
+        case None        =>
+          // In JS, it is possible to create anonymous classes; hence no name
           "_anon_cdecl"
       }
       typeName
@@ -1973,7 +1836,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
         nameAndFullName
       case None =>
         val name             = calcTypeName(classNode)
-        val fullNamePrefix   = source.filePath + ":" + computeScopePath(scope.getScopeHead) + ":"
+        val fullNamePrefix   = source.filePath + ":" + scope.computeScopePath + ":"
         val intendedFullName = fullNamePrefix + name
         val postfix          = typeFullNameToPostfix.getOrElse(intendedFullName, 0)
 
@@ -1994,18 +1857,12 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
   private def calcMethodNameAndFullName(functionNode: FunctionNode): (String, String) = {
     def calcMethodName(functionNode: FunctionNode): String = {
       val name = functionNode match {
-        case _ if functionNode.isAnonymous && functionNode.isProgram =>
-          ":program"
-        case _ if functionNode.isAnonymous && functionNode.isClassConstructor =>
-          "anonClass<constructor>"
-        case _ if functionNode.isAnonymous =>
-          "anonymous"
-        case _ if functionNode.isClassConstructor =>
-          s"${functionNode.getName}<constructor>"
-        case _ =>
-          functionNode.getName
+        case _ if functionNode.isAnonymous && functionNode.isProgram          => ":program"
+        case _ if functionNode.isAnonymous && functionNode.isClassConstructor => "anonClass<constructor>"
+        case _ if functionNode.isAnonymous                                    => "anonymous"
+        case _ if functionNode.isClassConstructor                             => s"${functionNode.getName}<constructor>"
+        case _                                                                => functionNode.getName
       }
-
       name
     }
 
@@ -2017,7 +1874,7 @@ class AstCreator(diffGraph: DiffGraphBuilder, source: JsSource, usedIdentNodes: 
         nameAndFullName
       case None =>
         val intendedName   = calcMethodName(functionNode)
-        val fullNamePrefix = source.filePath + ":" + computeScopePath(scope.getScopeHead) + ":"
+        val fullNamePrefix = source.filePath + ":" + scope.computeScopePath + ":"
         var name           = intendedName
         var fullName       = ""
 

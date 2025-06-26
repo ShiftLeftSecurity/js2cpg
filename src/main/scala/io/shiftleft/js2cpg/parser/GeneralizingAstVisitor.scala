@@ -1,6 +1,6 @@
 package io.shiftleft.js2cpg.parser
 
-import com.oracle.js.parser.ir._
+import com.oracle.js.parser.ir.*
 import com.oracle.js.parser.ir.visitor.TranslatorNodeVisitor
 
 /** This visitor mapped the enterXXX methods to the visit() to provide an interface which is closer to the original

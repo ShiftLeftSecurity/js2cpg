@@ -4,15 +4,14 @@ import java.nio.file.Path
 import better.files.File
 import com.oracle.js.parser.Source
 import com.oracle.js.parser.ir.FunctionNode
+import io.joern.x2cpg.utils.{Report, TimeUtils}
 import io.shiftleft.codepropertygraph.generated.Cpg
-import io.shiftleft.js2cpg.core.Report
 import io.shiftleft.js2cpg.astcreation.AstCreator
 import io.shiftleft.js2cpg.io.{FileUtils, JsFileChecks}
 import io.shiftleft.js2cpg.parser.{JavaScriptParser, JsSource}
 import io.shiftleft.passes.ForkJoinParallelCpgPass
 import org.slf4j.LoggerFactory
-import io.shiftleft.js2cpg.utils.SourceWrapper._
-import io.shiftleft.js2cpg.utils.TimeUtils
+import io.shiftleft.js2cpg.utils.SourceWrapper.*
 
 import scala.util.{Failure, Success, Try}
 
@@ -28,30 +27,25 @@ class AstCreationPass(srcDir: File, filenames: List[(Path, Path)], cpg: Cpg, rep
 
   override def generateParts(): Array[(Path, Path)] = filenames.toArray
 
-  override def runOnPart(diffGraph: DiffGraphBuilder, filename: (Path, Path)): Unit = {
-    val (file, fileRoot) = filename
-
-    val parseResult = parse(file, fileRoot) match {
+  override def runOnPart(diffGraph: DiffGraphBuilder, input: (Path, Path)): Unit = {
+    val (file, fileRoot) = input
+    parse(file, fileRoot) match {
+      case Success(parseResult) =>
+        val usedIdentNodes = collectUsedIdentNodes(parseResult)
+        val path           = parseResult.jsSource.originalFilePath
+        val (result, duration) = TimeUtils.time {
+          generateCpg(parseResult, Cpg.newDiffGraphBuilder, usedIdentNodes)
+        }
+        result match {
+          case Success(localDiff) =>
+            logger.info(s"Processed file '$path'")
+            report.updateReport(path, true, duration)
+            diffGraph.absorb(localDiff)
+          case Failure(exception) =>
+            logger.warn(s"Failed to generate CPG for '$path'!", exception)
+        }
       case Failure(parseException) =>
         logger.warn(parseException.getMessage)
-        None
-      case Success(parseResult) =>
-        Some((parseResult, preAnalyze(parseResult)))
-    }
-
-    parseResult.map { case (parseResult, usedIdentNodes) =>
-      val (result, duration) = {
-        TimeUtils.time(generateCpg(parseResult, Cpg.newDiffGraphBuilder, usedIdentNodes))
-      }
-      val path = parseResult.jsSource.originalFilePath
-      result match {
-        case Failure(exception) =>
-          logger.warn(s"Failed to generate CPG for '$path'!", exception)
-        case Success(localDiff) =>
-          logger.info(s"Processed file '$path'")
-          report.updateReportDuration(path, duration)
-          diffGraph.absorb(localDiff)
-      }
     }
   }
 
@@ -70,7 +64,7 @@ class AstCreationPass(srcDir: File, filenames: List[(Path, Path)], cpg: Cpg, rep
     }
   }
 
-  private def preAnalyze(parseResult: ParseResult): Set[String] = {
+  private def collectUsedIdentNodes(parseResult: ParseResult): Set[String] = {
     val ast                = parseResult.ast
     val usedIdentNodesPass = new UsedIdentNodesPass()
     ast.accept(usedIdentNodesPass)

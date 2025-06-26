@@ -3,8 +3,6 @@ package io.shiftleft.js2cpg.passes
 import io.shiftleft.codepropertygraph.generated.{Cpg, Languages}
 import io.shiftleft.semanticcpg.language.*
 
-import scala.jdk.CollectionConverters._
-
 class JsMetaDataPassTest extends AbstractPassTest {
 
   "MetaDataPass" should {

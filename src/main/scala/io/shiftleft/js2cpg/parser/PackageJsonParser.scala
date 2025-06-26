@@ -1,19 +1,16 @@
 package io.shiftleft.js2cpg.parser
 
 import com.fasterxml.jackson.core.JsonParser
-
-import java.nio.file.{Path, Paths}
-import org.slf4j.LoggerFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.utils.IOUtils
 import org.apache.commons.lang3.StringUtils
+import org.slf4j.LoggerFactory
 
+import java.nio.file.{Path, Paths}
 import scala.collection.concurrent.TrieMap
-import scala.util.Try
-import scala.jdk.CollectionConverters._
-import scala.util.Failure
-import scala.util.Success
+import scala.jdk.CollectionConverters.SetHasAsScala
+import scala.util.{Failure, Success, Try}
 
 object PackageJsonParser {
   private val logger = LoggerFactory.getLogger(PackageJsonParser.getClass)
@@ -59,7 +56,7 @@ object PackageJsonParser {
         val lockDeps = Try {
           val content      = IOUtils.readLinesInFile(lockDepsPath).mkString
           val packageJson  = new ObjectMapper().readTree(content)
-          val dependencyIt = Option(packageJson.get("dependencies")).map(_.fields().asScala).getOrElse(Iterator.empty)
+          val dependencyIt = Option(packageJson.get("dependencies")).map(_.properties().asScala).getOrElse(Set.empty)
           dependencyIt.flatMap { entry =>
             val depName     = entry.getKey
             val versionNode = entry.getValue.get("version")
@@ -72,7 +69,7 @@ object PackageJsonParser {
           val content     = IOUtils.readLinesInFile(depsPath).mkString
           val packageJson = new ObjectMapper().readTree(content)
           PROJECT_DEPENDENCIES.flatMap { dependency =>
-            val dependencyIt = Option(packageJson.get(dependency)).map(_.fields().asScala).getOrElse(Iterator.empty)
+            val dependencyIt = Option(packageJson.get(dependency)).map(_.properties().asScala).getOrElse(Set.empty)
             dependencyIt.map { entry => entry.getKey -> entry.getValue.asText() }
           }.toMap
         }.toOption

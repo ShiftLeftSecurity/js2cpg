@@ -1,7 +1,7 @@
 package io.shiftleft.js2cpg.passes
 
 import io.shiftleft.codepropertygraph.generated.Cpg
-import io.shiftleft.semanticcpg.language._
+import io.shiftleft.semanticcpg.language.*
 
 class BuiltinTypesPassTest extends AbstractPassTest {
 
@@ -14,7 +14,7 @@ class BuiltinTypesPassTest extends AbstractPassTest {
     }
 
     "create types and type decls correctly" in {
-      Defines.JsTypes.foreach { case typeName: String =>
+      Defines.JsTypes.foreach { typeName =>
         val typeDeclNodes = cpg.typeDecl(typeName).l
         typeDeclNodes should have length 1
         val typeDeclNode = typeDeclNodes.head

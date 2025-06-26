@@ -2,11 +2,10 @@ package io.shiftleft.js2cpg.core
 
 import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.js2cpg.io.FileDefaults.VSIX_SUFFIX
-
-import java.io.File
-import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler
 import scopt.OptionParser
+
+import java.io.File
 
 object Js2cpgArgumentsParser {
   val HELP: String                             = "help"
@@ -46,7 +45,7 @@ object Js2cpgArgumentsParser {
 
 class Js2cpgArgumentsParser {
 
-  import Js2cpgArgumentsParser._
+  import Js2cpgArgumentsParser.*
 
   private lazy val banner: String =
     """

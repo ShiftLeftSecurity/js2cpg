@@ -10,7 +10,7 @@ import io.shiftleft.utils.IOUtils
 
 import scala.collection.concurrent.TrieMap
 import scala.util.Try
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.SetHasAsScala
 
 object FreshJsonParser {
   private val logger = LoggerFactory.getLogger(FreshJsonParser.getClass)
@@ -50,8 +50,8 @@ object FreshJsonParser {
           val content = IOUtils.readLinesInFile(freshJsonPath).mkString
           val json    = new ObjectMapper().readTree(content)
           val dependencyIt = Option(json.get("imports"))
-            .map(_.fields().asScala)
-            .getOrElse(Iterator.empty)
+            .map(_.properties().asScala)
+            .getOrElse(Set.empty)
           dependencyIt.collect {
             case entry if !entry.getKey.startsWith("@") =>
               cleanKey(entry.getKey) -> extractVersion(entry.getValue.asText())

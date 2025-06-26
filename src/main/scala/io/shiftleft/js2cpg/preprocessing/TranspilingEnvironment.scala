@@ -39,7 +39,7 @@ object TranspilingEnvironment {
 trait TranspilingEnvironment {
   self: Transpiler =>
 
-  import TranspilingEnvironment._
+  import TranspilingEnvironment.*
 
   private val logger = LoggerFactory.getLogger(getClass)
 
