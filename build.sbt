@@ -59,6 +59,7 @@ lazy val js2cpg = (project in file(".")).settings(
     Developer("max-leuthaeuser", "Max Leuthäuser", "max@shiftleft.io", url("https://github.com/max-leuthaeuser"))
   ),
   publishMavenStyle := true,
+  gitCommitString   := git.gitHeadCommit.value.getOrElse("n/a"),
   buildInfoKeys     := Seq[BuildInfoKey](version, gitCommitString),
   buildInfoPackage  := "io.shiftleft.js2cpg.core"
 )
