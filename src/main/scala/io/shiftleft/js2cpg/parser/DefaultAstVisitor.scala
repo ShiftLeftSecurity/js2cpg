@@ -1,7 +1,7 @@
 package io.shiftleft.js2cpg.parser
 
 import com.oracle.js.parser.ir
-import com.oracle.js.parser.ir._
+import com.oracle.js.parser.ir.*
 import com.oracle.js.parser.ir.visitor.NodeVisitor
 
 // just a convenience class to make all the methods at hand explicit

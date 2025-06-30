@@ -1,11 +1,12 @@
 package io.shiftleft.js2cpg.astcreation
 
-import com.oracle.js.parser.ir._
+import com.oracle.js.parser.ir.*
 import flatgraph.DiffGraphBuilder
-import io.shiftleft.codepropertygraph.generated.nodes._
+import io.joern.x2cpg.datastructures.VariableScopeManager
+import io.joern.x2cpg.datastructures.VariableScopeManager.ScopeType.*
+import io.shiftleft.codepropertygraph.generated.nodes.*
 import io.shiftleft.codepropertygraph.generated.{DispatchTypes, EvaluationStrategies, Operators}
 import io.shiftleft.js2cpg.datastructures.{LineAndColumn, OrderTracker}
-import io.shiftleft.js2cpg.datastructures.scope.{MethodScope, Scope}
 import io.shiftleft.js2cpg.passes.Defines
 import io.shiftleft.js2cpg.parser.JsSource
 import io.shiftleft.js2cpg.parser.JsSource.shortenCode
@@ -14,11 +15,8 @@ class AstNodeBuilder(
   private val diffGraph: DiffGraphBuilder,
   private val astEdgeBuilder: AstEdgeBuilder,
   private val source: JsSource,
-  private val scope: Scope
+  private val scope: VariableScopeManager
 ) {
-
-  implicit def int2IntegerOpt(x: Option[Int]): Option[Integer] = x.map(java.lang.Integer.valueOf)
-  implicit def int2Integer(x: Int): Integer                    = java.lang.Integer.valueOf(x)
 
   def codeOf(node: NewNode): String = node match {
     case node: AstNodeNew => node.code
@@ -67,7 +65,7 @@ class AstNodeBuilder(
     diffGraph.addNode(param)
     orderTracker.inc()
     astEdgeBuilder.addAstEdge(param, methodNode)
-    scope.addVariable(name, param, MethodScope)
+    scope.addVariable(name, param, Defines.Any, MethodScope)
     param
   }
 
@@ -351,16 +349,6 @@ class AstNodeBuilder(
     namespaceBlock
   }
 
-  def createClosureBindingNode(closureBindingId: String, closureOriginalName: String): NewClosureBinding = {
-    val closureBinding = NewClosureBinding()
-      .closureBindingId(Some(closureBindingId))
-      .evaluationStrategy(EvaluationStrategies.BY_REFERENCE)
-      .closureOriginalName(Some(closureOriginalName))
-
-    diffGraph.addNode(closureBinding)
-    closureBinding
-  }
-
   def createMethodRefNode(code: String, methodFullName: String, functionNode: FunctionNode): NewMethodRef = {
     val lineColumn = lineAndColumn(functionNode)
     val line       = lineColumn.line
@@ -491,9 +479,8 @@ class AstNodeBuilder(
   }
 
   def createLocalNode(name: String, typeFullName: String, closureBindingId: Option[String] = None): NewLocal = {
-    val code = "N/A"
     val local = NewLocal()
-      .code(shortenCode(code))
+      .code(name)
       .name(name)
       .typeFullName(typeFullName)
       .closureBindingId(closureBindingId)

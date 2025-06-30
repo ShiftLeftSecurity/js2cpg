@@ -2,10 +2,10 @@ package io.shiftleft.js2cpg.passes
 
 import better.files.File
 import io.shiftleft.codepropertygraph.generated.*
-import io.shiftleft.js2cpg.core.Report
 import io.shiftleft.semanticcpg.language.*
 import io.joern.x2cpg.passes.controlflow.CfgCreationPass
 import io.joern.x2cpg.passes.controlflow.cfgcreation.Cfg.*
+import io.joern.x2cpg.utils.Report
 import io.shiftleft.codepropertygraph.generated.nodes.{AstNodeBase, CfgNode, Method}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -1300,7 +1300,7 @@ class CfgCreationPassTest extends AnyWordSpec with Matchers {
     private def matchCode(node: CfgNode, code: String): Boolean = node match {
       case m: Method            => m.name == code
       case astNode: AstNodeBase => astNode.code == code
-      case _                    => false
+      case null                 => false
     }
 
     // index is zero based and describes which node to take if multiple node match the code string.

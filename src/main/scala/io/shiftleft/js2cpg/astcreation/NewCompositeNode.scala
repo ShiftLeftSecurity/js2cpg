@@ -32,6 +32,6 @@ class NewCompositeNode(underlying: ListBuffer[NewNode] = ListBuffer.empty[NewNod
   override def isValidInNeighbor(edgeLabel: String, node: NewNode): Boolean     = ??? // we do not need this
   override def isValidOutNeighbor(edgeLabel: String, node: NewNode): Boolean    = ??? // we do not need this
   override def propertiesMap: util.Map[String, Any]                             = ??? // we do not need this
-  override def countAndVisitProperties(interface: BatchedUpdateInterface): Unit = ???
+  override def countAndVisitProperties(interface: BatchedUpdateInterface): Unit = ??? // we do not need this
   override type StoredNodeType = StoredNode
 }

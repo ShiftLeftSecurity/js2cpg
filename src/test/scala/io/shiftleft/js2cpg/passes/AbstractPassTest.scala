@@ -2,15 +2,12 @@ package io.shiftleft.js2cpg.passes
 
 import better.files.File
 import io.joern.x2cpg.X2Cpg.newEmptyCpg
-import io.shiftleft.codepropertygraph.generated.EdgeTypes
+import io.joern.x2cpg.utils.Report
 import io.shiftleft.codepropertygraph.generated.nodes.Dependency
 import io.shiftleft.codepropertygraph.Cpg
-import io.shiftleft.js2cpg.core.Report
 import io.shiftleft.semanticcpg.language.*
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-
-import scala.jdk.CollectionConverters.*
 
 abstract class AbstractPassTest extends AnyWordSpec with Matchers {
 

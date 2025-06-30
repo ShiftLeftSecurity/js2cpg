@@ -4,7 +4,7 @@ import better.files.File
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.ExternalCommand
 import io.shiftleft.js2cpg.io.FileDefaults
-import io.shiftleft.js2cpg.io.FileDefaults._
+import io.shiftleft.js2cpg.io.FileDefaults.*
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.parser.PackageJsonParser
 import org.slf4j.LoggerFactory
@@ -57,7 +57,7 @@ object VueTranspiler {
 
 class VueTranspiler(override val config: Config, override val projectPath: Path) extends Transpiler {
 
-  import VueTranspiler._
+  import VueTranspiler.*
 
   private val logger = LoggerFactory.getLogger(getClass)
 

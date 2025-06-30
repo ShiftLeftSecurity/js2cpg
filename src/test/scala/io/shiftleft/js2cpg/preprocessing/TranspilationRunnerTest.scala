@@ -6,7 +6,7 @@ import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.core.Js2CpgMain
 import io.shiftleft.js2cpg.io.FileDefaults.JS_SUFFIX
 import io.shiftleft.js2cpg.io.FileUtils
-import io.shiftleft.semanticcpg.language._
+import io.shiftleft.semanticcpg.language.*
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.tags.Slow
 import org.scalatest.wordspec.AnyWordSpec

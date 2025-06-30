@@ -1,11 +1,10 @@
 package io.shiftleft.js2cpg.passes
 
+import io.joern.x2cpg.utils.{Report, TimeUtils}
 import io.shiftleft.codepropertygraph.generated.Cpg
 import io.shiftleft.codepropertygraph.generated.nodes.NewConfigFile
-import io.shiftleft.js2cpg.core.Report
 import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.js2cpg.io.FileUtils
-import io.shiftleft.js2cpg.utils.TimeUtils
 import io.shiftleft.passes.ForkJoinParallelCpgPass
 import io.shiftleft.utils.IOUtils
 import org.slf4j.{Logger, LoggerFactory}
@@ -40,12 +39,12 @@ class ConfigPass(filenames: List[(Path, Path)], cpg: Cpg, report: Report)
         val localDiff = Cpg.newDiffGraphBuilder
         logger.debug(s"Adding file '$relativeFile' as config file.")
         val configNode = NewConfigFile().name(fileName).content(content.mkString("\n"))
-        report.addReportInfo(fileName, fileStatistics.linesOfCode, parsed = true, cpgGen = true, isConfig = true)
+        report.addReportInfo(fileName, fileStatistics.linesOfCode, parsed = true)
         localDiff.addNode(configNode)
         localDiff
       }
       diffGraph.absorb(result)
-      report.updateReportDuration(fileName, time)
+      report.updateReport(fileName, true, time)
     }
   }
 

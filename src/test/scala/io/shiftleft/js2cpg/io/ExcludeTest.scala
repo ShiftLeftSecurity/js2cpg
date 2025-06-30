@@ -3,7 +3,7 @@ package io.shiftleft.js2cpg.io
 import better.files.File
 import io.shiftleft.codepropertygraph.Cpg
 import io.shiftleft.js2cpg.core.{Js2cpgArgumentsParser, Js2CpgMain}
-import io.shiftleft.semanticcpg.language._
+import io.shiftleft.semanticcpg.language.*
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks
@@ -19,8 +19,8 @@ object ExcludeTest {
 
 class ExcludeTest extends AnyWordSpec with Matchers with TableDrivenPropertyChecks {
 
-  import ExcludeTest._
-  import Js2cpgArgumentsParser._
+  import ExcludeTest.*
+  import Js2cpgArgumentsParser.*
 
   private val projectUnderTestPath = File(getClass.getResource("/excludes").toURI).pathAsString
 

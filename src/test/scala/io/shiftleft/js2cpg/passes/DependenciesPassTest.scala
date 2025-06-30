@@ -2,12 +2,13 @@ package io.shiftleft.js2cpg.passes
 
 import better.files.File
 import io.joern.x2cpg.X2Cpg.newEmptyCpg
+import io.joern.x2cpg.utils.Report
 import io.shiftleft.codepropertygraph.Cpg
-import io.shiftleft.js2cpg.core.{Config, Report}
+import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileDefaults
 import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.js2cpg.preprocessing.TypescriptTranspiler
-import io.shiftleft.semanticcpg.language._
+import io.shiftleft.semanticcpg.language.*
 
 class DependenciesPassTest extends AbstractPassTest {
 

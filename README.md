@@ -99,7 +99,7 @@ With this, we ensure to have ES6 compliant JS code before we continue with the a
 ## Parsing
 
 This is done by the [GraalJS Parser](https://github.com/oracle/graaljs/tree/master/graal-js/src/com.oracle.js.parser).
-[Standard visitor pattern](https://github.com/ShiftLeftSecurity/js2cpg/blob/master/src/main/scala/io/shiftleft/js2cpg/parser/GeneralizingAstVisitor.scala) is used to traverse the resulting JS AST afterwards for our CPG-generation.
+[Standard visitor pattern](https://github.com/ShiftLeftSecurity/js2cpg/blob/master/src/main/scala/io/shiftleft/js2cpg/parser/GeneralizingAstVisitor.scala) is used to traverse the resulting JS AST afterward for our CPG-generation.
 
 ## CPG-Generation
 

@@ -24,7 +24,7 @@ class ParserTest extends AnyWordSpec with Matchers {
       nodes.collect {
         case callNode: CallNode if callNode.getFunction.toString == "require" => callNode
       }.size shouldBe 1
-      // but its no module any more
+      // but its no module anymore
       ast.isModule shouldBe false
     }
 

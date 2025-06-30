@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import io.shiftleft.js2cpg.core.Config
 import io.shiftleft.js2cpg.io.FileDefaults
-import io.shiftleft.js2cpg.io.FileDefaults._
+import io.shiftleft.js2cpg.io.FileDefaults.*
 import io.shiftleft.js2cpg.io.FileUtils
 import io.shiftleft.js2cpg.parser.PackageJsonParser
 import io.shiftleft.utils.IOUtils
@@ -28,7 +28,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
 
   private def createTranspilers(): Seq[Transpiler] = {
     // We always run the following transpilers by default when not stated otherwise in the Config.
-    // This includes running them for sub-projects.
+    // This includes running them for subprojects.
     val baseTranspilers = TranspilerGroup(
       config,
       projectPath,
@@ -38,7 +38,7 @@ class TranspilationRunner(projectPath: Path, tmpTranspileDir: Path, config: Conf
       )
     )
 
-    // When we got no sub-project, we also run the following ones:
+    // When we got no subproject, we also run the following ones:
     if (subDir.isEmpty) {
       val otherTranspilers = Seq(
         new VueTranspiler(config, projectPath),
