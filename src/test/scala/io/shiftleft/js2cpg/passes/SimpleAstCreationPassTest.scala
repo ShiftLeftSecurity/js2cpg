@@ -283,10 +283,12 @@ class SimpleAstCreationPassTest extends AbstractPassTest {
 
         val List(param1, param2) = lambda.parameter.l
         param1.order shouldBe 0
+        param1.index shouldBe 0
         param1.name shouldBe "this"
         param1.code shouldBe "this"
 
         param2.order shouldBe 1
+        param2.index shouldBe 1
         param2.name shouldBe "param1_0"
         param2.code shouldBe "{param}"
 
@@ -452,8 +454,16 @@ class SimpleAstCreationPassTest extends AbstractPassTest {
     "have correct structure for empty method" in AstFixture("function method(x) {}") { cpg =>
       val List(method) = cpg.method.nameExact("method").l
       method.astChildren.isBlock.size shouldBe 1
-      method.parameter.order(0).nameExact("this").typeFullName(Defines.Any).size shouldBe 1
-      method.parameter.order(1).nameExact("x").typeFullName(Defines.Any).size shouldBe 1
+
+      val List(thisParam, xParam) = method.parameter.l
+      thisParam.order shouldBe 0
+      thisParam.index shouldBe 0
+      thisParam.name shouldBe "this"
+      thisParam.typeFullName shouldBe Defines.Any
+      xParam.order shouldBe 1
+      xParam.index shouldBe 1
+      xParam.name shouldBe "x"
+      xParam.typeFullName shouldBe Defines.Any
     }
 
     "have correct structure for decl assignment" in AstFixture("function foo(x) { var local = 1; }") { cpg =>
@@ -462,9 +472,11 @@ class SimpleAstCreationPassTest extends AbstractPassTest {
 
       val List(t, x) = method.parameter.l
       t.order shouldBe 0
+      t.index shouldBe 0
       t.name shouldBe "this"
       t.typeFullName shouldBe Defines.Any
       x.order shouldBe 1
+      x.index shouldBe 1
       x.name shouldBe "x"
       x.typeFullName shouldBe Defines.Any
 
@@ -484,9 +496,11 @@ class SimpleAstCreationPassTest extends AbstractPassTest {
 
       val List(t, x) = method.parameter.l
       t.order shouldBe 0
+      t.index shouldBe 0
       t.name shouldBe "this"
       t.typeFullName shouldBe Defines.Any
       x.order shouldBe 1
+      x.index shouldBe 1
       x.name shouldBe "x"
       x.typeFullName shouldBe Defines.Any
 
@@ -507,12 +521,15 @@ class SimpleAstCreationPassTest extends AbstractPassTest {
 
       val List(t, x, y) = method.parameter.l
       t.order shouldBe 0
+      t.index shouldBe 0
       t.name shouldBe "this"
       t.typeFullName shouldBe Defines.Any
       x.order shouldBe 1
+      x.index shouldBe 1
       x.name shouldBe "x"
       x.typeFullName shouldBe Defines.Any
       y.order shouldBe 2
+      y.index shouldBe 2
       y.name shouldBe "y"
       y.typeFullName shouldBe Defines.Any
 
@@ -681,9 +698,11 @@ class SimpleAstCreationPassTest extends AbstractPassTest {
       val List(method) = cpg.method.nameExact("method").l
 
       val List(parameterInX) = method.parameter.order(1).l
+      parameterInX.index shouldBe 1
       parameterInX.name shouldBe "x"
 
       val List(parameterInY) = method.parameter.order(2).l
+      parameterInY.index shouldBe 2
       parameterInY.name shouldBe "y"
 
       val List(methodBlock) = method.astChildren.isBlock.l

@@ -751,9 +751,11 @@ class MixedAstCreationPassTest extends AbstractPassTest {
       val List(a)         = fooMethod.parameter.nameExact("param1_0").l
       a.code shouldBe "{a}"
       a.order shouldBe 1
+      a.index shouldBe 1
       val List(b) = fooMethod.parameter.nameExact("b").l
       b.code shouldBe "b"
       b.order shouldBe 2
+      b.index shouldBe 2
     }
 
     "have correct structure for object destruction assignment in call argument" in AstFixture("foo({a, b} = x);") {
@@ -1071,6 +1073,7 @@ class MixedAstCreationPassTest extends AbstractPassTest {
 
       val List(paramA) = foo.parameter.nameExact("a").l
       paramA.order shouldBe 1
+      paramA.index shouldBe 1
 
       val List(block)      = foo.astChildren.isBlock.l
       val List(assignment) = block.astChildren.isCall.l
@@ -1090,9 +1093,11 @@ class MixedAstCreationPassTest extends AbstractPassTest {
       val List(foo)    = cpg.method.nameExact("foo").l
       val List(paramA) = foo.parameter.nameExact("a").l
       paramA.order shouldBe 1
+      paramA.index shouldBe 1
 
       val List(paramB) = foo.parameter.nameExact("b").l
       paramB.order shouldBe 2
+      paramB.index shouldBe 2
 
       val List(block) = foo.astChildren.isBlock.l
 
@@ -1123,8 +1128,10 @@ class MixedAstCreationPassTest extends AbstractPassTest {
         val List(foo)    = cpg.method.nameExact("foo").l
         val List(paramA) = foo.parameter.nameExact("a").l
         paramA.order shouldBe 1
+        paramA.index shouldBe 1
         val List(paramB) = foo.parameter.nameExact("b").l
         paramB.order shouldBe 2
+        paramB.index shouldBe 2
 
         val List(block)       = foo.astChildren.isBlock.l
         val List(assignmentB) = block.astChildren.isCall.codeExact("b = b === void 0 ? 1 : b").l
@@ -1144,10 +1151,13 @@ class MixedAstCreationPassTest extends AbstractPassTest {
       val List(foo)    = cpg.method.nameExact("foo").l
       val List(paramA) = foo.parameter.nameExact("a").l
       paramA.order shouldBe 1
+      paramA.index shouldBe 1
       val List(paramB) = foo.parameter.nameExact("b").l
       paramB.order shouldBe 2
+      paramB.index shouldBe 2
       val List(paramC) = foo.parameter.nameExact("c").l
       paramC.order shouldBe 3
+      paramC.index shouldBe 3
 
       val List(block)       = foo.astChildren.isBlock.l
       val List(assignmentB) = block.astChildren.isCall.codeExact("b = b === void 0 ? 1 : b").l

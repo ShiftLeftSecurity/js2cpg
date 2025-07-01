@@ -60,6 +60,7 @@ class AstNodeBuilder(
       .lineNumber(line)
       .columnNumber(column)
       .order(orderTracker.order)
+      .index(orderTracker.order)
       .typeFullName(Defines.Any)
 
     diffGraph.addNode(param)
