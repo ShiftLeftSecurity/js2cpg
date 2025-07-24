@@ -45,19 +45,19 @@ trait TranspilingEnvironment {
 
   object Versions {
     val babelVersions: Map[String, String] = Map(
-      "@babel/core"                                        -> "7.20.2",
-      "@babel/cli"                                         -> "7.19.3",
-      "@babel/preset-env"                                  -> "7.20.2",
-      "@babel/preset-flow"                                 -> "7.18.6",
-      "@babel/preset-react"                                -> "7.18.6",
-      "@babel/preset-typescript"                           -> "7.18.6",
-      "@babel/plugin-proposal-class-properties"            -> "7.18.6",
-      "@babel/plugin-proposal-private-methods"             -> "7.18.6",
-      "@babel/plugin-proposal-private-property-in-object"  -> "7.21.11",
-      "@babel/plugin-proposal-object-rest-spread"          -> "7.20.2",
-      "@babel/plugin-proposal-nullish-coalescing-operator" -> "7.18.6",
-      "@babel/plugin-transform-runtime"                    -> "7.19.6",
-      "@babel/plugin-transform-property-mutators"          -> "7.18.6"
+      "@babel/core"                                         -> "7.20.2",
+      "@babel/cli"                                          -> "7.19.3",
+      "@babel/preset-env"                                   -> "7.20.2",
+      "@babel/preset-flow"                                  -> "7.18.6",
+      "@babel/preset-react"                                 -> "7.18.6",
+      "@babel/preset-typescript"                            -> "7.18.6",
+      "@babel/plugin-transform-class-properties"            -> "6.24.1",
+      "@babel/plugin-transform-private-methods"             -> "7.27.1",
+      "@babel/plugin-transform-private-property-in-object"  -> "7.27.1",
+      "@babel/plugin-transform-object-rest-spread"          -> "7.28.0",
+      "@babel/plugin-transform-nullish-coalescing-operator" -> "7.27.1",
+      "@babel/plugin-transform-runtime"                     -> "7.19.6",
+      "@babel/plugin-transform-property-mutators"           -> "7.18.6"
     )
 
     private val versions: Map[String, String] =
