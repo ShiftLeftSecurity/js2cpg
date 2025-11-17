@@ -41,6 +41,9 @@ object Js2cpgArgumentsParser {
   val OPTIMIZE_DEPENDENCIES: String            = "optimize-dependencies"
   val ALL_DEPENDENCIES: String                 = "all-dependencies"
   val FIXED_TRANSPILATION_DEPENDENCIES: String = "fixed-transpilation-dependencies"
+  val SERVER_MODE: String                      = "server"
+  val SERVER_MODE_TIMEOUT_MINUTES: String      = "server-timeout-minutes"
+  val ENABLE_EARLY_SCHEMA_CHECKING: String     = "enable-early-schema-checking"
 }
 
 class Js2cpgArgumentsParser {
@@ -203,6 +206,15 @@ class Js2cpgArgumentsParser {
       )
       .action((module, c) => c.copy(moduleMode = Some(module)))
       .hidden()
+    opt[Unit](SERVER_MODE)
+      .action((module, c) => c.copy(serverMode = true))
+      .hidden()
+      .text("runs this frontend in server mode (disabled by default)")
+    opt[Int](SERVER_MODE_TIMEOUT_MINUTES)
+      .action((minutes, c) => c.copy(serverTimeoutSeconds = Some(minutes * 60)))
+      .hidden()
+      .text("timeout after which the server should terminate (use with --server)")
+    opt[Unit](ENABLE_EARLY_SCHEMA_CHECKING).text("does nothing, just here for compat with joern frontends").hidden()
   }
 
   def parse(args: Array[String]): Option[Config] = parser.parse(args, Config())

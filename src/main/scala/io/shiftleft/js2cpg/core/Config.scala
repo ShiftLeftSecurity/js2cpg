@@ -34,6 +34,7 @@ object Config {
   val DEFAULT_WITH_NODE_MODULES_FOLDER: Boolean         = false
   val DEFAULT_OPTIMIZE_DEPENDENCIES: Boolean            = true
   val DEFAULT_FIXED_TRANSPILATION_DEPENDENCIES: Boolean = false
+  val DEFAULT_SERVER_MODE: Boolean                      = false
 
 }
 
@@ -59,7 +60,9 @@ case class Config(
   moduleMode: Option[String] = Config.DEFAULT_MODULE_MODE,
   withNodeModuleFolder: Boolean = Config.DEFAULT_WITH_NODE_MODULES_FOLDER,
   optimizeDependencies: Boolean = Config.DEFAULT_OPTIMIZE_DEPENDENCIES,
-  fixedTranspilationDependencies: Boolean = Config.DEFAULT_FIXED_TRANSPILATION_DEPENDENCIES
+  fixedTranspilationDependencies: Boolean = Config.DEFAULT_FIXED_TRANSPILATION_DEPENDENCIES,
+  serverMode: Boolean = Config.DEFAULT_SERVER_MODE,
+  serverTimeoutSeconds: Option[Int] = None
 ) {
 
   def createPathForPackageJson(): Path = Paths.get(packageJsonLocation) match {
