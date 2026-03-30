@@ -16,9 +16,9 @@ Global / excludeLintKeys += Fast / configuration
 Global / excludeLintKeys += gitCommitString
 
 lazy val commonSettings = Seq(
-  scalaVersion := "3.6.4",
+  scalaVersion := "3.7.4",
   organization := "io.shiftleft",
-  scalacOptions ++= Seq("-Xtarget:8"),
+  scalacOptions ++= Seq("-Xtarget:8", "-Wconf:msg=Implicit parameters should be provided with a `using` clause:s"),
   resolvers ++= Seq(
     Resolver.mavenLocal,
     "Atlassian Maven Repository" at "https://maven.atlassian.com/repository/public"
