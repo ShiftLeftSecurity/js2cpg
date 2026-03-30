@@ -142,7 +142,7 @@ class TranspilationRunnerTest extends AnyWordSpec with Matchers {
               File(f._1).contentAsString
                 .split("\n")
                 .filterNot(_.trim == "\"use strict\";") // latest Babel uses strict checking
-                .head // we ignore the sourcemap reference comment here
+                .head                                   // we ignore the sourcemap reference comment here
                 .mkString
                 .stripLineEnd
             )
