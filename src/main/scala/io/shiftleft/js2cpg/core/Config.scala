@@ -33,7 +33,7 @@ object Config {
   val DEFAULT_MODULE_MODE: Option[String]               = None
   val DEFAULT_WITH_NODE_MODULES_FOLDER: Boolean         = false
   val DEFAULT_OPTIMIZE_DEPENDENCIES: Boolean            = true
-  val DEFAULT_FIXED_TRANSPILATION_DEPENDENCIES: Boolean = false
+  val DEFAULT_FIXED_TRANSPILATION_DEPENDENCIES: Boolean = true
   val DEFAULT_SERVER_MODE: Boolean                      = false
 
 }

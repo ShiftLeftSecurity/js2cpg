@@ -45,23 +45,23 @@ trait TranspilingEnvironment {
 
   object Versions {
     val babelVersions: Map[String, String] = Map(
-      "@babel/core"                                         -> "7.20.2",
-      "@babel/cli"                                          -> "7.19.3",
-      "@babel/preset-env"                                   -> "7.20.2",
-      "@babel/preset-flow"                                  -> "7.18.6",
-      "@babel/preset-react"                                 -> "7.18.6",
-      "@babel/preset-typescript"                            -> "7.18.6",
-      "@babel/plugin-transform-class-properties"            -> "6.24.1",
-      "@babel/plugin-transform-private-methods"             -> "7.27.1",
-      "@babel/plugin-transform-private-property-in-object"  -> "7.27.1",
-      "@babel/plugin-transform-object-rest-spread"          -> "7.28.0",
-      "@babel/plugin-transform-nullish-coalescing-operator" -> "7.27.1",
-      "@babel/plugin-transform-runtime"                     -> "7.19.6",
-      "@babel/plugin-transform-property-mutators"           -> "7.18.6"
+      "@babel/core"                                         -> "7.29.7",
+      "@babel/cli"                                          -> "7.29.7",
+      "@babel/preset-env"                                   -> "7.29.7",
+      "@babel/preset-flow"                                  -> "7.29.7",
+      "@babel/preset-react"                                 -> "7.29.7",
+      "@babel/preset-typescript"                            -> "7.29.7",
+      "@babel/plugin-transform-class-properties"            -> "7.29.7",
+      "@babel/plugin-transform-private-methods"             -> "7.29.7",
+      "@babel/plugin-transform-private-property-in-object"  -> "7.29.7",
+      "@babel/plugin-transform-object-rest-spread"          -> "7.29.7",
+      "@babel/plugin-transform-nullish-coalescing-operator" -> "7.29.7",
+      "@babel/plugin-transform-runtime"                     -> "7.29.7",
+      "@babel/plugin-transform-property-mutators"           -> "7.29.7"
     )
 
     private val versions: Map[String, String] =
-      babelVersions ++ Map("pug-cli" -> "1.0.0-alpha6", "typescript" -> "4.8.4", "@vue/cli-service-global" -> "4.5.19")
+      babelVersions ++ Map("pug-cli" -> "1.0.0-alpha6", "typescript" -> "6.0.3", "@vue/cli-service-global" -> "4.5.19")
 
     def nameAndVersion(dependencyName: String): String = {
       if (config.fixedTranspilationDependencies) {
