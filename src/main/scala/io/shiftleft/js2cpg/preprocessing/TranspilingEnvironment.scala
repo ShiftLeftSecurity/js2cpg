@@ -45,18 +45,19 @@ trait TranspilingEnvironment {
 
   object Versions {
     val babelVersions: Map[String, String] = Map(
-      "@babel/core"                                         -> "8.0.0",
-      "@babel/cli"                                          -> "8.0.0",
-      "@babel/preset-env"                                   -> "8.0.0",
-      "@babel/preset-flow"                                  -> "8.0.0",
-      "@babel/preset-react"                                 -> "8.0.0",
-      "@babel/preset-typescript"                            -> "8.0.0",
-      "@babel/plugin-transform-class-properties"            -> "8.0.0",
-      "@babel/plugin-transform-private-methods"             -> "8.0.0",
-      "@babel/plugin-transform-private-property-in-object"  -> "8.0.0",
-      "@babel/plugin-transform-object-rest-spread"          -> "8.0.0",
-      "@babel/plugin-transform-nullish-coalescing-operator" -> "8.0.0",
-      "@babel/plugin-transform-runtime"                     -> "8.0.0"
+      "@babel/core"                                         -> "7.29.7",
+      "@babel/cli"                                          -> "7.29.7",
+      "@babel/preset-env"                                   -> "7.29.7",
+      "@babel/preset-flow"                                  -> "7.29.7",
+      "@babel/preset-react"                                 -> "7.29.7",
+      "@babel/preset-typescript"                            -> "7.29.7",
+      "@babel/plugin-transform-class-properties"            -> "7.29.7",
+      "@babel/plugin-transform-private-methods"             -> "7.29.7",
+      "@babel/plugin-transform-private-property-in-object"  -> "7.29.7",
+      "@babel/plugin-transform-object-rest-spread"          -> "7.29.7",
+      "@babel/plugin-transform-nullish-coalescing-operator" -> "7.29.7",
+      "@babel/plugin-transform-runtime"                     -> "7.29.7",
+      "@babel/plugin-transform-property-mutators"           -> "7.29.7"
     )
 
     private val versions: Map[String, String] =
